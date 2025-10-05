@@ -5,8 +5,8 @@ screen_point1 Point <?>
 screen_point2 Point <?>
 x_diff        dd ?
 y_diff        dd ?
-x_add         dd ?
-y_add         dd ?
+x_add         dd ? ; 16.16 fixed point
+y_add         dd ? ; 16.16 fixed point
 is_xdiff_neg  db ?
 is_ydiff_neg  db ?
 
@@ -15,6 +15,7 @@ is_ydiff_neg  db ?
 
 ; TODO: convert statically allocated bss variables to stack variables
 ; in:
+	; r8d - color to draw
 	; point1
 	; point2
 screen_drawLine proc
@@ -22,6 +23,16 @@ screen_drawLine proc
 	mov byte ptr [is_xdiff_neg], al
 	mov byte ptr [is_ydiff_neg], al
 
+	; rdi = pointer into pixels
+	lea rdi, pixels
+	mov eax, [screen_point1].Point.y
+	imul eax, SCREEN_WIDTH * sizeof Pixel
+	add rdi, rax
+	mov eax, [screen_point1].Point.x
+	shl eax, 2 ; imul sizeof Pixel
+	add rdi, rax
+
+	; x_diff = |p2.x - p1.x|
 	mov eax, [screen_point2].Point.x
 	sub eax, [screen_point1].Point.x
 	mov ebx, eax
@@ -30,6 +41,7 @@ screen_drawLine proc
 	abseax
 	mov dword ptr [x_diff], eax
 	
+	; y_diff = |p2.y - p1.y|
 	mov eax, [screen_point2].Point.y
 	sub eax, [screen_point1].Point.y
 	mov ebx, eax
@@ -40,10 +52,156 @@ screen_drawLine proc
 
 	cmp eax, dword ptr [x_diff]
 	jl xDiffGreater
+	yDiffGreater:
+		; x_add = x_diff / y_diff
+		mov eax, dword ptr [x_diff]
+		shl eax, 16
+		cdq
+		mov ebx, dword ptr [y_diff]
+		idiv ebx
+		mov dword ptr [x_add], eax
 
-	;yDiffGreater:
+		mov ecx, dword ptr [y_diff]
+		mov eax, 00008000h ; 0.5 fixed point
+		cmp byte ptr [is_ydiff_neg], 0
+		je yIncLoop
+		yDecLoop:
+			cmp byte ptr [is_xdiff_neg], 0
+			je yDecXIncLoop
+			yDecXDecLoop:
+				mov dword ptr [rdi], r8d
+				sub rdi, SCREEN_WIDTH * sizeof Pixel
+
+				add eax, dword ptr [x_add]
+				cmp eax, 00010000h
+				jl @f
+				sub rdi, sizeof Pixel
+				and eax, 0000ffffh
+				@@:
+
+				dec ecx
+				jne yDecXDecLoop
+			ret
+			yDecXIncLoop:
+				mov dword ptr [rdi], r8d
+				sub rdi, SCREEN_WIDTH * sizeof Pixel
+
+				add eax, dword ptr [x_add]
+				cmp eax, 00010000h
+				jl @f
+				add rdi, sizeof Pixel
+				and eax, 0000ffffh
+				@@:
+
+				dec ecx
+				jne yDecXIncLoop
+			ret
+		yIncLoop:
+			cmp byte ptr [is_xdiff_neg], 0
+			je yIncXIncLoop
+			yIncXDecLoop:
+				mov dword ptr [rdi], r8d
+				add rdi, SCREEN_WIDTH * sizeof Pixel
+
+				add eax, dword ptr [x_add]
+				cmp eax, 00010000h
+				jl @f
+				sub rdi, sizeof Pixel
+				and eax, 0000ffffh
+				@@:
+
+				dec ecx
+				jne yIncXDecLoop
+			ret
+			yIncXIncLoop:
+				mov dword ptr [rdi], r8d
+				add rdi, SCREEN_WIDTH * sizeof Pixel
+
+				add eax, dword ptr [x_add]
+				cmp eax, 00010000h
+				jl @f
+				add rdi, sizeof Pixel
+				and eax, 0000ffffh
+				@@:
+
+				dec ecx
+				jne yIncXIncLoop
+			ret
 	xDiffGreater:	
-	
+		; x_add = x_diff / y_diff
+		mov eax, dword ptr [y_diff]
+		shl eax, 16
+		cdq
+		mov ebx, dword ptr [x_diff]
+		idiv ebx
+		mov dword ptr [y_add], eax
 
+		mov ecx, dword ptr [x_diff]
+		mov eax, 00008000h ; 0.5 fixed point
+		cmp byte ptr [is_xdiff_neg], 0
+		je xIncLoop
+		xDecLoop:
+			cmp byte ptr [is_ydiff_neg], 0
+			je xDecYIncLoop
+			xDecYDecLoop:
+				mov dword ptr [rdi], r8d
+				sub rdi, sizeof Pixel
+
+				add eax, dword ptr [y_add]
+				cmp eax, 00010000h
+				jl @f
+				sub rdi, SCREEN_WIDTH * sizeof Pixel
+				and eax, 0000ffffh
+				@@:
+
+				dec ecx
+				jne xDecYDecLoop
+			ret
+			xDecYIncLoop:
+				mov dword ptr [rdi], r8d
+				sub rdi, sizeof Pixel
+
+				add eax, dword ptr [y_add]
+				cmp eax, 00010000h
+				jl @f
+				add rdi, SCREEN_WIDTH * sizeof Pixel
+				and eax, 0000ffffh
+				@@:
+
+				dec ecx
+				jne xDecYIncLoop
+			ret
+		xIncLoop:
+			cmp byte ptr [is_ydiff_neg], 0
+			je xIncYIncLoop
+			xIncYDecLoop:
+				mov dword ptr [rdi], r8d
+				sub rdi, sizeof Pixel
+
+				add eax, dword ptr [y_add]
+				cmp eax, 00010000h
+				jl @f
+				sub rdi, SCREEN_WIDTH * sizeof Pixel
+				and eax, 0000ffffh
+				@@:
+
+				dec ecx
+				jne xIncYDecLoop
+			ret
+			xIncYIncLoop:
+				mov dword ptr [rdi], r8d
+				add rdi, sizeof Pixel
+
+				add eax, dword ptr [y_add]
+				cmp eax, 00010000h
+				jl @f
+				add rdi, SCREEN_WIDTH * sizeof Pixel
+				and eax, 0000ffffh
+				@@:
+
+				dec ecx
+				jne xIncYIncLoop
+			ret
+	
 	ret
 screen_drawLine endp

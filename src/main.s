@@ -6,7 +6,7 @@ include <ship.s>
 
 .data
 
-window_title byte "x64 SDL Test", 0
+window_title byte "ASTEROIDS 86", 0
 
 ; SDL stuff
 window   qword ?
@@ -140,8 +140,6 @@ main proc
 		call clearPixelBuffer
 
 		call ship_update
-
-		lea rdi, pixels
 		call ship_draw
 
 		call render
