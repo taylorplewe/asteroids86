@@ -13,6 +13,16 @@ Point struct
 	y dd ?
 Point ends
 
+Keys struct
+	up    db ?
+	down  db ?
+	left  db ?
+	right db ?
+	fire  db ?
+	quit  db ?
+	menu  db ?
+Keys ends
+
 abseax macro
 	mov ebx, eax
 	sar ebx, 31 ; 00000000h or 0ffffffffh

@@ -16,6 +16,7 @@ texture  qword ?
 event    byte 2048 dup (?)
 
 ticks qword ?
+keys_down Keys <?>
 
 
 .code
@@ -132,13 +133,69 @@ main proc
 			call SDL_PollEvent
 			test al, al
 			je pollLoopEnd
+
 			cmp [event].SDL_Event.event_type, SDL_EVENT_QUIT
 			je quit
+
+			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_DOWN
+			jne keyDownCheckEnd
+			; which key was pressed?
+			mov eax, [event].SDL_KeyboardEvent.key
+			cmp eax, SDLK_W
+			jne @f
+				mov [keys_down].Keys.up, 1
+				jmp keyDownCheckEnd
+			@@:
+			cmp eax, SDLK_S
+			jne @f
+				mov [keys_down].Keys.down, 1
+				jmp keyDownCheckEnd
+			@@:
+			cmp eax, SDLK_A
+			jne @f
+				mov [keys_down].Keys.left, 1
+				jmp keyDownCheckEnd
+			@@:
+			cmp eax, SDLK_D
+			jne @f
+				mov [keys_down].Keys.right, 1
+				jmp keyDownCheckEnd
+			@@:
+			keyDownCheckEnd:
+
+			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_UP
+			jne keyUpCheckEnd
+			; which key was pressed?
+			mov eax, [event].SDL_KeyboardEvent.key
+			cmp eax, SDLK_W
+			jne @f
+				mov [keys_down].Keys.up, 0
+				jmp keyUpCheckEnd
+			@@:
+			cmp eax, SDLK_S
+			jne @f
+				mov [keys_down].Keys.down, 0
+				jmp keyUpCheckEnd
+			@@:
+			cmp eax, SDLK_A
+			jne @f
+				mov [keys_down].Keys.left, 0
+				jmp keyUpCheckEnd
+			@@:
+			cmp eax, SDLK_D
+			jne @f
+				mov [keys_down].Keys.right, 0
+				jmp keyUpCheckEnd
+			@@:
+			keyUpCheckEnd:
+
+			pollLoopNext:
 			jmp pollLoop
 		pollLoopEnd:
 
 		call clearPixelBuffer
 
+		lea rdi, keys_down
 		call ship_update
 		call ship_draw
 

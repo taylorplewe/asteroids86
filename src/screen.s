@@ -13,6 +13,14 @@ is_ydiff_neg  db ?
 
 .code
 
+screen_plotPoint macro
+	mov dword ptr [rdi], r8d
+	mov dword ptr [rdi + sizeof Pixel], r8d
+	mov dword ptr [rdi - sizeof Pixel], r8d
+	mov dword ptr [rdi + SCREEN_WIDTH*sizeof Pixel], r8d
+	mov dword ptr [rdi - SCREEN_WIDTH*sizeof Pixel], r8d
+endm
+
 ; TODO: convert statically allocated bss variables to stack variables
 ; in:
 	; r8d - color to draw
@@ -69,7 +77,7 @@ screen_drawLine proc
 			cmp byte ptr [is_xdiff_neg], 0
 			je yDecXIncLoop
 			yDecXDecLoop:
-				mov dword ptr [rdi], r8d
+				screen_plotPoint
 				sub rdi, SCREEN_WIDTH * sizeof Pixel
 
 				add eax, dword ptr [x_add]
@@ -83,7 +91,7 @@ screen_drawLine proc
 				jne yDecXDecLoop
 			ret
 			yDecXIncLoop:
-				mov dword ptr [rdi], r8d
+				screen_plotPoint
 				sub rdi, SCREEN_WIDTH * sizeof Pixel
 
 				add eax, dword ptr [x_add]
@@ -100,7 +108,7 @@ screen_drawLine proc
 			cmp byte ptr [is_xdiff_neg], 0
 			je yIncXIncLoop
 			yIncXDecLoop:
-				mov dword ptr [rdi], r8d
+				screen_plotPoint
 				add rdi, SCREEN_WIDTH * sizeof Pixel
 
 				add eax, dword ptr [x_add]
@@ -114,7 +122,7 @@ screen_drawLine proc
 				jne yIncXDecLoop
 			ret
 			yIncXIncLoop:
-				mov dword ptr [rdi], r8d
+				screen_plotPoint
 				add rdi, SCREEN_WIDTH * sizeof Pixel
 
 				add eax, dword ptr [x_add]
@@ -144,7 +152,7 @@ screen_drawLine proc
 			cmp byte ptr [is_ydiff_neg], 0
 			je xDecYIncLoop
 			xDecYDecLoop:
-				mov dword ptr [rdi], r8d
+				screen_plotPoint
 				sub rdi, sizeof Pixel
 
 				add eax, dword ptr [y_add]
@@ -158,7 +166,7 @@ screen_drawLine proc
 				jne xDecYDecLoop
 			ret
 			xDecYIncLoop:
-				mov dword ptr [rdi], r8d
+				screen_plotPoint
 				sub rdi, sizeof Pixel
 
 				add eax, dword ptr [y_add]
@@ -175,7 +183,7 @@ screen_drawLine proc
 			cmp byte ptr [is_ydiff_neg], 0
 			je xIncYIncLoop
 			xIncYDecLoop:
-				mov dword ptr [rdi], r8d
+				screen_plotPoint
 				sub rdi, sizeof Pixel
 
 				add eax, dword ptr [y_add]
@@ -189,7 +197,7 @@ screen_drawLine proc
 				jne xIncYDecLoop
 			ret
 			xIncYIncLoop:
-				mov dword ptr [rdi], r8d
+				screen_plotPoint
 				add rdi, sizeof Pixel
 
 				add eax, dword ptr [y_add]

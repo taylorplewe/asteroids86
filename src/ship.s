@@ -21,7 +21,34 @@ ship_init proc
 	ret
 ship_init endp
 
+; in:
+	; rdi - pointer to keys_down: Keys struct
 ship_update proc
+	cmp [rdi].Keys.left, 0
+	je @f
+		cmp [ship].Ship.x, 0
+		je upDownCheck
+		dec [ship].Ship.x
+		jmp upDownCheck
+	@@:
+	cmp [rdi].Keys.right, 0
+	je @f
+		inc [ship].Ship.x
+	@@:
+	upDownCheck:
+	cmp [rdi].Keys.up, 0
+	je @f
+		cmp [ship].Ship.y, 0
+		je moveEnd
+		dec [ship].Ship.y
+		jmp moveEnd
+	@@:
+	cmp [rdi].Keys.down, 0
+	je @f
+		inc [ship].Ship.y
+	@@:
+	moveEnd:
+
 	call ship_setPoints
 
 	ret
