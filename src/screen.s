@@ -184,7 +184,7 @@ screen_drawLine proc
 			je xIncYIncLoop
 			xIncYDecLoop:
 				screen_plotPoint
-				sub rdi, sizeof Pixel
+				add rdi, sizeof Pixel
 
 				add eax, dword ptr [y_add]
 				cmp eax, 00010000h

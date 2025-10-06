@@ -1,13 +1,19 @@
 Ship struct
 	x      dd ?
 	y      dd ?
-	rot    dd ?
+	rot    db ?
 Ship ends
 
 .data
 
 ship Ship <?>
 ship_points Point 3 dup (<?>)
+
+BasePoint struct
+	vec dd ?
+	rad db ? ; 256-based radians; 256 = 360 degrees
+BasePoint ends
+ship_base_points BasePoint {64, 0}, {32, 96}, {32, 160}
 
 ; readonly
 ship_color Pixel <0ffh, 0ffh, 0ffh, 0ffh>
@@ -51,31 +57,85 @@ ship_update proc
 ship_update endp
 
 ship_setPoints proc
-	SHIP_RADIUS = 64
-	; ship is a triangle
-
-	; forward-facing point
-	mov eax, [ship].Ship.x
+	mov al, [ship_base_points].BasePoint.rad
+	add al, [ship].Ship.rot
+	mov bl, al
+	; x
+	mov al, bl
+	call sin
+	mov ecx, [ship_base_points].BasePoint.vec
+	cdqe
+	imul rax, rcx
+	sar rax, 31
+	add eax, [ship].Ship.x
 	mov [ship_points].Point.x, eax
+	; y
+	xor rax, rax ; clear upper bits
+	mov al, bl
+	call cos
+	mov ecx, [ship_base_points].BasePoint.vec
+	; good here
+	cdqe
+	imul rax, rcx
+	sar rax, 31
+	mov ecx, eax
 	mov eax, [ship].Ship.y
-	sub eax, SHIP_RADIUS
+	sub eax, ecx
 	mov [ship_points].Point.y, eax
 
-	; left-rear point
-	mov eax, [ship].Ship.x
-	sub eax, SHIP_RADIUS/2
+	xor rax, rax
+	mov al, [ship_base_points + sizeof BasePoint].BasePoint.rad
+	add al, [ship].Ship.rot
+	mov bl, al
+	; x
+	mov al, bl
+	call sin
+	mov ecx, [ship_base_points + sizeof BasePoint].BasePoint.vec
+	cdqe
+	imul rax, rcx
+	sar rax, 31
+	add eax, [ship].Ship.x
 	mov [ship_points + sizeof Point].Point.x, eax
+	; y
+	xor rax, rax ; clear upper bits
+	mov al, bl
+	call cos
+	mov ecx, [ship_base_points + sizeof BasePoint].BasePoint.vec
+	; good here
+	cdqe
+	imul rax, rcx
+	sar rax, 31
+	mov ecx, eax
 	mov eax, [ship].Ship.y
-	add eax, SHIP_RADIUS/2
+	sub eax, ecx
 	mov [ship_points + sizeof Point].Point.y, eax
 
-	; right-rear point
-	mov eax, [ship].Ship.x
-	add eax, SHIP_RADIUS/2
+	xor rax, rax
+	mov al, [ship_base_points + (sizeof BasePoint)*2].BasePoint.rad
+	add al, [ship].Ship.rot
+	mov bl, al
+	; x
+	mov al, bl
+	call sin
+	mov ecx, [ship_base_points + (sizeof BasePoint)*2].BasePoint.vec
+	cdqe
+	imul rax, rcx
+	sar rax, 31
+	add eax, [ship].Ship.x
 	mov [ship_points + (sizeof Point)*2].Point.x, eax
+	; y
+	xor rax, rax ; clear upper bits
+	mov al, bl
+	call cos
+	mov ecx, [ship_base_points + (sizeof BasePoint)*2].BasePoint.vec
+	cdqe
+	imul rax, rcx
+	sar rax, 31
+	mov ecx, eax
 	mov eax, [ship].Ship.y
-	add eax, SHIP_RADIUS/2
+	sub eax, ecx
 	mov [ship_points + (sizeof Point)*2].Point.y, eax
+
 	ret
 ship_setPoints endp
 
