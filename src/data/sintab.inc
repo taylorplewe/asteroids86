@@ -1,0 +1,12 @@
+.data
+
+sintab:
+dd 00000000h, 03242abfh, 0647d97dh, 096a904ah, 0c8bd35eh, 0fab272ch, 12c8106fh, 15e21445h
+dd 18f8b83dh, 1c0b826bh, 1f19f97bh, 2223a4c6h, 25280c5eh, 2826b928h, 2b1f34ech, 2e110a62h
+dd 30fbc54dh, 33def287h, 36ba2014h, 398cdd32h, 3c56ba70h, 3f1749b8h, 41ce1e65h, 447acd50h
+dd 471cece7h, 49b41533h, 4c3fdff3h, 4ebfe8a4h, 5133cc94h, 539b2aefh, 55f5a4d2h, 5842dd54h
+dd 5a82799ah, 5cb420e0h, 5ed77c89h, 60ec3830h, 62f201ach, 64e88926h, 66cf8120h, 68a69e81h
+dd 6a6d98a4h, 6c242960h, 6dca0d14h, 6f5f02b1h, 70e2cbc6h, 72552c84h, 73b5ebd1h, 7504d345h
+dd 7641af3ch, 776c4edbh, 78848413h, 798a23b1h, 7a7d055bh, 7b5d039dh, 7c29fbeeh, 7ce3ceb1h
+dd 7d8a5f3fh, 7e1d93e9h, 7e9d55fch, 7f0991c3h, 7f62368fh, 7fa736b4h, 7fd8878dh, 7ff62182h
+dd 7fffffffh

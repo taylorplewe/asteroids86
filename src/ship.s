@@ -26,20 +26,16 @@ ship_init endp
 ship_update proc
 	cmp [rdi].Keys.left, 0
 	je @f
-		cmp [ship].Ship.x, 0
-		je upDownCheck
-		dec [ship].Ship.x
+		dec [ship].Ship.rot
 		jmp upDownCheck
 	@@:
 	cmp [rdi].Keys.right, 0
 	je @f
-		inc [ship].Ship.x
+		inc [ship].Ship.rot
 	@@:
 	upDownCheck:
 	cmp [rdi].Keys.up, 0
 	je @f
-		cmp [ship].Ship.y, 0
-		je moveEnd
 		dec [ship].Ship.y
 		jmp moveEnd
 	@@:

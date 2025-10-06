@@ -1,6 +1,8 @@
 include <globaldefs.inc>
 include <sdl\defs.inc>
+include <data\sintab.inc>
 
+include <common.s>
 include <screen.s>
 include <ship.s>
 
