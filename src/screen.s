@@ -87,8 +87,7 @@ screen_drawLine proc
 				and eax, 0000ffffh
 				@@:
 
-				dec ecx
-				jne yDecXDecLoop
+				loop yDecXDecLoop
 			ret
 			yDecXIncLoop:
 				screen_plotPoint
@@ -101,8 +100,7 @@ screen_drawLine proc
 				and eax, 0000ffffh
 				@@:
 
-				dec ecx
-				jne yDecXIncLoop
+				loop yDecXIncLoop
 			ret
 		yIncLoop:
 			cmp byte ptr [is_xdiff_neg], 0
@@ -118,8 +116,7 @@ screen_drawLine proc
 				and eax, 0000ffffh
 				@@:
 
-				dec ecx
-				jne yIncXDecLoop
+				loop yIncXDecLoop
 			ret
 			yIncXIncLoop:
 				screen_plotPoint
@@ -132,8 +129,7 @@ screen_drawLine proc
 				and eax, 0000ffffh
 				@@:
 
-				dec ecx
-				jne yIncXIncLoop
+				loop yIncXIncLoop
 			ret
 	xDiffGreater:	
 		; x_add = x_diff / y_diff
@@ -162,8 +158,7 @@ screen_drawLine proc
 				and eax, 0000ffffh
 				@@:
 
-				dec ecx
-				jne xDecYDecLoop
+				loop xDecYDecLoop
 			ret
 			xDecYIncLoop:
 				screen_plotPoint
@@ -176,8 +171,7 @@ screen_drawLine proc
 				and eax, 0000ffffh
 				@@:
 
-				dec ecx
-				jne xDecYIncLoop
+				loop xDecYIncLoop
 			ret
 		xIncLoop:
 			cmp byte ptr [is_ydiff_neg], 0
@@ -193,8 +187,7 @@ screen_drawLine proc
 				and eax, 0000ffffh
 				@@:
 
-				dec ecx
-				jne xIncYDecLoop
+				loop xIncYDecLoop
 			ret
 			xIncYIncLoop:
 				screen_plotPoint
@@ -207,8 +200,7 @@ screen_drawLine proc
 				and eax, 0000ffffh
 				@@:
 
-				dec ecx
-				jne xIncYIncLoop
+				loop xIncYIncLoop
 			ret
 	
 	ret
