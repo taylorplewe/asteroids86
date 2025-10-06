@@ -12,6 +12,7 @@ Point struct
 	x dd ?
 	y dd ?
 Point ends
+Vector typedef Point ; ??
 
 Keys struct
 	up    db ?

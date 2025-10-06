@@ -1,7 +1,8 @@
 Ship struct
-	x      dd ?
-	y      dd ?
-	rot    db ?
+	x        dd ?     ; 16.16 fixed point
+	y        dd ?     ; 16.16 fixed point
+	rot      db ?
+	velocity Vector <?> ; 16.16 fixed point
 Ship ends
 
 .data
@@ -17,13 +18,19 @@ ship_base_points BasePoint {64, 0}, {32, 96}, {32, 160}
 
 ; readonly
 ship_color Pixel <0ffh, 0ffh, 0ffh, 0ffh>
+SHIP_VELOCITY_ACCEL = 00000600h ; 16.16 fixed point
 
 
 .code
 
 ship_init proc
-	mov [ship].x, SCREEN_WIDTH/2
-	mov [ship].y, SCREEN_HEIGHT/2
+	mov [ship].x, SCREEN_WIDTH/2 shl 16
+	mov [ship].y, SCREEN_HEIGHT/2 shl 16
+	xor eax, eax
+	mov [ship].rot, al
+	mov [ship].velocity.x, eax
+	mov [ship].velocity.y, eax
+
 	ret
 ship_init endp
 
@@ -42,7 +49,22 @@ ship_update proc
 	upDownCheck:
 	cmp [rdi].Keys.up, 0
 	je @f
-		dec [ship].y
+		xor rax, rax
+		mov al, [ship].rot
+		call sin
+		cdqe
+		imul rax, SHIP_VELOCITY_ACCEL
+		sar rax, 31
+		add [ship].velocity.x, eax
+
+		xor rax, rax
+		mov al, [ship].rot
+		call cos
+		cdqe
+		imul rax, SHIP_VELOCITY_ACCEL
+		sar rax, 31
+		sub [ship].velocity.y, eax
+		
 		jmp moveEnd
 	@@:
 	cmp [rdi].Keys.down, 0
@@ -50,6 +72,12 @@ ship_update proc
 		inc [ship].y
 	@@:
 	moveEnd:
+
+	; add velocity to position
+	mov eax, [ship].velocity.x
+	add [ship].x, eax
+	mov eax, [ship].velocity.y
+	add [ship].y, eax
 
 	call ship_setPoints
 
@@ -67,7 +95,10 @@ ship_setPoints proc
 	cdqe
 	imul rax, rcx
 	sar rax, 31
-	add eax, [ship].x
+	mov ecx, eax
+	mov eax, [ship].x
+	shr eax, 16
+	add eax, ecx
 	mov [ship_points].x, eax
 	; y
 	xor rax, rax ; clear upper bits
@@ -80,6 +111,7 @@ ship_setPoints proc
 	sar rax, 31
 	mov ecx, eax
 	mov eax, [ship].y
+	shr eax, 16
 	sub eax, ecx
 	mov [ship_points].y, eax
 
@@ -94,7 +126,10 @@ ship_setPoints proc
 	cdqe
 	imul rax, rcx
 	sar rax, 31
-	add eax, [ship].x
+	mov ecx, eax
+	mov eax, [ship].x
+	shr eax, 16
+	add eax, ecx
 	mov [ship_points + sizeof Point].x, eax
 	; y
 	xor rax, rax ; clear upper bits
@@ -107,6 +142,7 @@ ship_setPoints proc
 	sar rax, 31
 	mov ecx, eax
 	mov eax, [ship].y
+	shr eax, 16
 	sub eax, ecx
 	mov [ship_points + sizeof Point].y, eax
 
@@ -121,7 +157,10 @@ ship_setPoints proc
 	cdqe
 	imul rax, rcx
 	sar rax, 31
-	add eax, [ship].x
+	mov ecx, eax
+	mov eax, [ship].x
+	shr eax, 16
+	add eax, ecx
 	mov [ship_points + (sizeof Point)*2].x, eax
 	; y
 	xor rax, rax ; clear upper bits
@@ -133,6 +172,7 @@ ship_setPoints proc
 	sar rax, 31
 	mov ecx, eax
 	mov eax, [ship].y
+	shr eax, 16
 	sub eax, ecx
 	mov [ship_points + (sizeof Point)*2].y, eax
 
