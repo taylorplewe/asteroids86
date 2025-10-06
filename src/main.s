@@ -61,7 +61,7 @@ render proc
 	mov rcx, [texture]
 	call SDL_DestroyTexture
 
-	add rsp, 100h
+	mov rsp, rbp
 	pop rbp
 	ret
 render endp

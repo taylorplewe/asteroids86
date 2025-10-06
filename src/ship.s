@@ -19,6 +19,7 @@ ship_base_points BasePoint {64, 0}, {32, 96}, {32, 160}
 ; readonly
 ship_color Pixel <0ffh, 0ffh, 0ffh, 0ffh>
 SHIP_VELOCITY_ACCEL = 00000600h ; 16.16 fixed point
+SHIP_VELOCITY_MAX   = 00020000h ; 16.16 fixed point
 
 
 .code
@@ -39,12 +40,12 @@ ship_init endp
 ship_update proc
 	cmp [rdi].Keys.left, 0
 	je @f
-		dec [ship].rot
+		sub [ship].rot, 2
 		jmp upDownCheck
 	@@:
 	cmp [rdi].Keys.right, 0
 	je @f
-		inc [ship].rot
+		add [ship].rot, 2
 	@@:
 	upDownCheck:
 	cmp [rdi].Keys.up, 0
@@ -73,6 +74,31 @@ ship_update proc
 	@@:
 	moveEnd:
 
+	; velocity bounds check
+	mov eax, [ship].velocity.x
+	cmp eax, SHIP_VELOCITY_MAX
+	jg xVelocitySetMax
+	cmp eax, -SHIP_VELOCITY_MAX
+	jg yVeloCheck
+	;xVelocitySetMin:
+		mov [ship].velocity.x, -SHIP_VELOCITY_MAX
+		jmp yVeloCheck
+	xVelocitySetMax:
+		mov [ship].velocity.x, SHIP_VELOCITY_MAX
+	yVeloCheck:
+
+	mov eax, [ship].velocity.y
+	cmp eax, SHIP_VELOCITY_MAX
+	jg yVelocitySetMax
+	cmp eax, -SHIP_VELOCITY_MAX
+	jg yVeloCheckEnd
+	;yVelocitySetMin:
+		mov [ship].velocity.y, -SHIP_VELOCITY_MAX
+		jmp yVeloCheckEnd
+	yVelocitySetMax:
+		mov [ship].velocity.y, SHIP_VELOCITY_MAX
+	yVeloCheckEnd:
+
 	; add velocity to position
 	mov eax, [ship].velocity.x
 	add [ship].x, eax
@@ -85,6 +111,8 @@ ship_update proc
 ship_update endp
 
 ship_setPoints proc
+	xor rax, rax
+	xor rbx, rbx
 	mov al, [ship_base_points].rad
 	add al, [ship].rot
 	mov bl, al
