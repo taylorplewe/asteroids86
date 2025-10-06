@@ -33,16 +33,16 @@ screen_drawLine proc
 
 	; rdi = pointer into pixels
 	lea rdi, pixels
-	mov eax, [screen_point1].Point.y
+	mov eax, [screen_point1].y
 	imul eax, SCREEN_WIDTH * sizeof Pixel
 	add rdi, rax
-	mov eax, [screen_point1].Point.x
+	mov eax, [screen_point1].x
 	shl eax, 2 ; imul sizeof Pixel
 	add rdi, rax
 
 	; x_diff = |p2.x - p1.x|
-	mov eax, [screen_point2].Point.x
-	sub eax, [screen_point1].Point.x
+	mov eax, [screen_point2].x
+	sub eax, [screen_point1].x
 	mov ebx, eax
 	shl ebx, 1
 	rcl byte ptr [is_xdiff_neg], 1
@@ -50,8 +50,8 @@ screen_drawLine proc
 	mov dword ptr [x_diff], eax
 	
 	; y_diff = |p2.y - p1.y|
-	mov eax, [screen_point2].Point.y
-	sub eax, [screen_point1].Point.y
+	mov eax, [screen_point2].y
+	sub eax, [screen_point1].y
 	mov ebx, eax
 	shl ebx, 1
 	rcl byte ptr [is_ydiff_neg], 1

@@ -145,22 +145,22 @@ main proc
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
 			jne @f
-				mov [keys_down].Keys.up, 1
+				mov [keys_down].up, 1
 				jmp keyDownCheckEnd
 			@@:
 			cmp eax, SDLK_S
 			jne @f
-				mov [keys_down].Keys.down, 1
+				mov [keys_down].down, 1
 				jmp keyDownCheckEnd
 			@@:
 			cmp eax, SDLK_A
 			jne @f
-				mov [keys_down].Keys.left, 1
+				mov [keys_down].left, 1
 				jmp keyDownCheckEnd
 			@@:
 			cmp eax, SDLK_D
 			jne @f
-				mov [keys_down].Keys.right, 1
+				mov [keys_down].right, 1
 				jmp keyDownCheckEnd
 			@@:
 			keyDownCheckEnd:
@@ -171,22 +171,22 @@ main proc
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
 			jne @f
-				mov [keys_down].Keys.up, 0
+				mov [keys_down].up, 0
 				jmp keyUpCheckEnd
 			@@:
 			cmp eax, SDLK_S
 			jne @f
-				mov [keys_down].Keys.down, 0
+				mov [keys_down].down, 0
 				jmp keyUpCheckEnd
 			@@:
 			cmp eax, SDLK_A
 			jne @f
-				mov [keys_down].Keys.left, 0
+				mov [keys_down].left, 0
 				jmp keyUpCheckEnd
 			@@:
 			cmp eax, SDLK_D
 			jne @f
-				mov [keys_down].Keys.right, 0
+				mov [keys_down].right, 0
 				jmp keyUpCheckEnd
 			@@:
 			keyUpCheckEnd:
