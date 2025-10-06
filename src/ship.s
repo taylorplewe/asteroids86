@@ -1,20 +1,23 @@
 Ship struct
-	x        dd ?     ; 16.16 fixed point
-	y        dd ?     ; 16.16 fixed point
-	rot      db ?
-	velocity Vector <?> ; 16.16 fixed point
+	x           dd     ?   ; 16.16 fixed point
+	y           dd     ?   ; 16.16 fixed point
+	rot         db     ?
+	is_boosting db     ?
+	velocity    Vector <?> ; 16.16 fixed point
 Ship ends
 
 .data
 
 ship Ship <?>
 ship_points Point 3 dup (<?>)
+ship_fire_points Point 3 dup (<?>)
 
 BasePoint struct
 	vec dd ?
 	rad db ? ; 256-based radians; 256 = 360 degrees
 BasePoint ends
 ship_base_points BasePoint {64, 0}, {32, 96}, {32, 160}
+ship_fire_base_points BasePoint {28, 112}, {52, 128}, {28, 142}
 
 ; readonly
 ship_color Pixel <0ffh, 0ffh, 0ffh, 0ffh>
@@ -48,8 +51,12 @@ ship_update proc
 		add [ship].rot, 2
 	@@:
 	upDownCheck:
+	xor al, al
+	mov [ship].is_boosting, al
 	cmp [rdi].Keys.up, 0
 	je @f
+		inc [ship].is_boosting
+	
 		xor rax, rax
 		mov al, [ship].rot
 		call sin
@@ -105,21 +112,23 @@ ship_update proc
 	mov eax, [ship].velocity.y
 	add [ship].y, eax
 
-	call ship_setPoints
+	call ship_setAllPoints
 
 	ret
 ship_update endp
 
-ship_setPoints proc
+; in:
+	; r8 - pointer to source BasePoint
+	; r9 - pointer to destination Point
+ship_setPoint proc
 	xor rax, rax
-	xor rbx, rbx
-	mov al, [ship_base_points].rad
+	mov al, [r8].BasePoint.rad
 	add al, [ship].rot
 	mov bl, al
 	; x
 	mov al, bl
 	call sin
-	mov ecx, [ship_base_points].vec
+	mov ecx, [r8].BasePoint.vec
 	cdqe
 	imul rax, rcx
 	sar rax, 31
@@ -127,13 +136,12 @@ ship_setPoints proc
 	mov eax, [ship].x
 	shr eax, 16
 	add eax, ecx
-	mov [ship_points].x, eax
+	mov [r9].Point.x, eax
 	; y
 	xor rax, rax ; clear upper bits
 	mov al, bl
 	call cos
-	mov ecx, [ship_base_points].vec
-	; good here
+	mov ecx, [r8].BasePoint.vec
 	cdqe
 	imul rax, rcx
 	sar rax, 31
@@ -141,105 +149,70 @@ ship_setPoints proc
 	mov eax, [ship].y
 	shr eax, 16
 	sub eax, ecx
-	mov [ship_points].y, eax
-
-	xor rax, rax
-	mov al, [ship_base_points + sizeof BasePoint].rad
-	add al, [ship].rot
-	mov bl, al
-	; x
-	mov al, bl
-	call sin
-	mov ecx, [ship_base_points + sizeof BasePoint].vec
-	cdqe
-	imul rax, rcx
-	sar rax, 31
-	mov ecx, eax
-	mov eax, [ship].x
-	shr eax, 16
-	add eax, ecx
-	mov [ship_points + sizeof Point].x, eax
-	; y
-	xor rax, rax ; clear upper bits
-	mov al, bl
-	call cos
-	mov ecx, [ship_base_points + sizeof BasePoint].vec
-	; good here
-	cdqe
-	imul rax, rcx
-	sar rax, 31
-	mov ecx, eax
-	mov eax, [ship].y
-	shr eax, 16
-	sub eax, ecx
-	mov [ship_points + sizeof Point].y, eax
-
-	xor rax, rax
-	mov al, [ship_base_points + (sizeof BasePoint)*2].rad
-	add al, [ship].rot
-	mov bl, al
-	; x
-	mov al, bl
-	call sin
-	mov ecx, [ship_base_points + (sizeof BasePoint)*2].vec
-	cdqe
-	imul rax, rcx
-	sar rax, 31
-	mov ecx, eax
-	mov eax, [ship].x
-	shr eax, 16
-	add eax, ecx
-	mov [ship_points + (sizeof Point)*2].x, eax
-	; y
-	xor rax, rax ; clear upper bits
-	mov al, bl
-	call cos
-	mov ecx, [ship_base_points + (sizeof BasePoint)*2].vec
-	cdqe
-	imul rax, rcx
-	sar rax, 31
-	mov ecx, eax
-	mov eax, [ship].y
-	shr eax, 16
-	sub eax, ecx
-	mov [ship_points + (sizeof Point)*2].y, eax
+	mov [r9].Point.y, eax
 
 	ret
-ship_setPoints endp
+ship_setPoint endp
+
+ship_setAllPoints proc
+	xor rbx, rbx
+
+	lea r8, ship_base_points
+	lea r9, ship_points
+	call ship_setPoint
+
+	lea r8, ship_base_points + sizeof BasePoint
+	lea r9, ship_points + sizeof Point
+	call ship_setPoint
+
+	lea r8, ship_base_points + sizeof BasePoint*2
+	lea r9, ship_points + sizeof Point*2
+	call ship_setPoint
+
+	lea r8, ship_fire_base_points
+	lea r9, ship_fire_points
+	call ship_setPoint
+
+	lea r8, ship_fire_base_points + sizeof BasePoint
+	lea r9, ship_fire_points + sizeof Point
+	call ship_setPoint
+
+	lea r8, ship_fire_base_points + sizeof BasePoint*2
+	lea r9, ship_fire_points + sizeof Point*2
+	call ship_setPoint
+
+	ret
+ship_setAllPoints endp
+
+ship_drawLine macro point1:req, point2:req
+	mov eax, [point1].x
+	mov [screen_point1].x, eax
+	mov eax, [point1].y
+	mov [screen_point1].y, eax
+	mov eax, [point2].x
+	mov [screen_point2].x, eax
+	mov eax, [point2].y
+	mov [screen_point2].y, eax
+	; mov r8d, [ship_color]
+	call screen_drawLine
+endm
 
 ship_draw proc
-	mov eax, [ship_points].x
-	mov [screen_point1].x, eax
-	mov eax, [ship_points].y
-	mov [screen_point1].y, eax
-	mov eax, [ship_points + sizeof Point].x
-	mov [screen_point2].x, eax
-	mov eax, [ship_points + sizeof Point].y
-	mov [screen_point2].y, eax
 	mov r8d, [ship_color]
-	call screen_drawLine
 
-	mov eax, [ship_points + sizeof Point].x
-	mov [screen_point1].x, eax
-	mov eax, [ship_points + sizeof Point].y
-	mov [screen_point1].y, eax
-	mov eax, [ship_points + sizeof Point * 2].x
-	mov [screen_point2].x, eax
-	mov eax, [ship_points + sizeof Point * 2].y
-	mov [screen_point2].y, eax
-	mov r8d, [ship_color]
-	call screen_drawLine
+	ship_drawLine ship_points + sizeof Point*0, ship_points + sizeof Point*1
+	ship_drawLine ship_points + sizeof Point*1, ship_points + sizeof Point*2
+	ship_drawLine ship_points + sizeof Point*2, ship_points + sizeof Point*0
 
-	mov eax, [ship_points + sizeof Point * 2].x
-	mov [screen_point1].x, eax
-	mov eax, [ship_points + sizeof Point * 2].y
-	mov [screen_point1].y, eax
-	mov eax, [ship_points].x
-	mov [screen_point2].x, eax
-	mov eax, [ship_points].y
-	mov [screen_point2].y, eax
-	mov r8d, [ship_color]
-	call screen_drawLine
+	mov al, [ship].is_boosting
+	test al, al
+	je @f
+	mov rax, frame_counter
+	and rax, 1b
+	je @f
+		ship_drawLine ship_fire_points + sizeof Point*0, ship_fire_points + sizeof Point*1
+		ship_drawLine ship_fire_points + sizeof Point*1, ship_fire_points + sizeof Point*2
+	@@:
 
 	ret
 ship_draw endp

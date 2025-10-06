@@ -2,6 +2,7 @@ include <globaldefs.inc>
 include <sdl\defs.inc>
 include <data\sintab.inc>
 
+include <global.s>
 include <common.s>
 include <screen.s>
 include <ship.s>
@@ -19,7 +20,6 @@ event    byte 2048 dup (?)
 
 ticks qword ?
 keys_down Keys <?>
-
 
 .code
 
@@ -126,6 +126,9 @@ main proc
 	call SDL_CreateSurface
 	mov qword ptr [surface], rax
 
+	xor rax, rax
+	mov [frame_counter], rax
+
 	mainLoop:
 		call SDL_GetTicks
 		mov qword ptr [ticks], rax
@@ -212,6 +215,7 @@ main proc
 		call SDL_Delay
 		delayEnd:
 
+		inc [frame_counter]
 		jmp mainLoop
 
 	
