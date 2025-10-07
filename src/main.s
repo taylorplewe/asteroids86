@@ -6,6 +6,7 @@ include <global.s>
 include <common.s>
 include <screen.s>
 include <bullets.s>
+include <fire.s>
 include <ship.s>
 
 .data
@@ -216,6 +217,7 @@ main proc
 		call ship_draw
 
 		call bullets_updateAll
+		call fire_updateAll
 
 		call render
 

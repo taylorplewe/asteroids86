@@ -5,7 +5,7 @@ Bullet struct
 Bullet ends
 
 NUM_BULLETS = 64
-BULLET_SPEED = 4
+BULLET_SPEED = 8
 
 
 .data

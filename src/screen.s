@@ -40,9 +40,8 @@ endm
 	; point1
 	; point2
 screen_drawLine proc
-	xor al, al
-	mov byte ptr [is_xdiff_neg], al
-	mov byte ptr [is_ydiff_neg], al
+	mov [is_xdiff_neg], 0
+	mov [is_ydiff_neg], 0
 
 	; rdi = pointer into pixels
 	lea rdi, pixels
@@ -61,42 +60,42 @@ screen_drawLine proc
 	sub eax, [screen_point1].x
 	mov ebx, eax
 	shl ebx, 1
-	rcl byte ptr [is_xdiff_neg], 1
+	rcl [is_xdiff_neg], 1
 	abseax
-	mov dword ptr [x_diff], eax
+	mov [x_diff], eax
 	
 	; y_diff = |p2.y - p1.y|
 	mov eax, [screen_point2].y
 	sub eax, [screen_point1].y
 	mov ebx, eax
 	shl ebx, 1
-	rcl byte ptr [is_ydiff_neg], 1
+	rcl [is_ydiff_neg], 1
 	abseax
-	mov dword ptr [y_diff], eax
+	mov [y_diff], eax
 
-	cmp eax, dword ptr [x_diff]
+	cmp eax, [x_diff]
 	jl xDiffGreater
 	yDiffGreater:
 		; x_add = x_diff / y_diff
-		mov eax, dword ptr [x_diff]
+		mov eax, [x_diff]
 		shl eax, 16
 		cdq
-		mov ebx, dword ptr [y_diff]
+		mov ebx, [y_diff]
 		idiv ebx
-		mov dword ptr [x_add], eax
+		mov [x_add], eax
 
-		mov ecx, dword ptr [y_diff]
+		mov ecx, [y_diff]
 		mov eax, 00008000h ; 0.5 fixed point
-		cmp byte ptr [is_ydiff_neg], 0
+		cmp [is_ydiff_neg], 0
 		je yIncLoop
 		yDecLoop:
-			cmp byte ptr [is_xdiff_neg], 0
+			cmp [is_xdiff_neg], 0
 			je yDecXIncLoop
 			yDecXDecLoop:
 				screen_plotPoint
 				sub rdi, SCREEN_WIDTH * sizeof Pixel
 
-				add eax, dword ptr [x_add]
+				add eax, [x_add]
 				cmp eax, 00010000h
 				jl @f
 				sub rdi, sizeof Pixel
@@ -109,7 +108,7 @@ screen_drawLine proc
 				screen_plotPoint
 				sub rdi, SCREEN_WIDTH * sizeof Pixel
 
-				add eax, dword ptr [x_add]
+				add eax, [x_add]
 				cmp eax, 00010000h
 				jl @f
 				add rdi, sizeof Pixel
@@ -119,13 +118,13 @@ screen_drawLine proc
 				loop yDecXIncLoop
 			ret
 		yIncLoop:
-			cmp byte ptr [is_xdiff_neg], 0
+			cmp [is_xdiff_neg], 0
 			je yIncXIncLoop
 			yIncXDecLoop:
 				screen_plotPoint
 				add rdi, SCREEN_WIDTH * sizeof Pixel
 
-				add eax, dword ptr [x_add]
+				add eax, [x_add]
 				cmp eax, 00010000h
 				jl @f
 				sub rdi, sizeof Pixel
@@ -138,7 +137,7 @@ screen_drawLine proc
 				screen_plotPoint
 				add rdi, SCREEN_WIDTH * sizeof Pixel
 
-				add eax, dword ptr [x_add]
+				add eax, [x_add]
 				cmp eax, 00010000h
 				jl @f
 				add rdi, sizeof Pixel
@@ -149,25 +148,25 @@ screen_drawLine proc
 			ret
 	xDiffGreater:	
 		; x_add = x_diff / y_diff
-		mov eax, dword ptr [y_diff]
+		mov eax, [y_diff]
 		shl eax, 16
 		cdq
-		mov ebx, dword ptr [x_diff]
+		mov ebx, [x_diff]
 		idiv ebx
-		mov dword ptr [y_add], eax
+		mov [y_add], eax
 
-		mov ecx, dword ptr [x_diff]
+		mov ecx, [x_diff]
 		mov eax, 00008000h ; 0.5 fixed point
-		cmp byte ptr [is_xdiff_neg], 0
+		cmp [is_xdiff_neg], 0
 		je xIncLoop
 		xDecLoop:
-			cmp byte ptr [is_ydiff_neg], 0
+			cmp [is_ydiff_neg], 0
 			je xDecYIncLoop
 			xDecYDecLoop:
 				screen_plotPoint
 				sub rdi, sizeof Pixel
 
-				add eax, dword ptr [y_add]
+				add eax, [y_add]
 				cmp eax, 00010000h
 				jl @f
 				sub rdi, SCREEN_WIDTH * sizeof Pixel
@@ -180,7 +179,7 @@ screen_drawLine proc
 				screen_plotPoint
 				sub rdi, sizeof Pixel
 
-				add eax, dword ptr [y_add]
+				add eax, [y_add]
 				cmp eax, 00010000h
 				jl @f
 				add rdi, SCREEN_WIDTH * sizeof Pixel
@@ -190,13 +189,13 @@ screen_drawLine proc
 				loop xDecYIncLoop
 			ret
 		xIncLoop:
-			cmp byte ptr [is_ydiff_neg], 0
+			cmp [is_ydiff_neg], 0
 			je xIncYIncLoop
 			xIncYDecLoop:
 				screen_plotPoint
 				add rdi, sizeof Pixel
 
-				add eax, dword ptr [y_add]
+				add eax, [y_add]
 				cmp eax, 00010000h
 				jl @f
 				sub rdi, SCREEN_WIDTH * sizeof Pixel
@@ -209,7 +208,7 @@ screen_drawLine proc
 				screen_plotPoint
 				add rdi, sizeof Pixel
 
-				add eax, dword ptr [y_add]
+				add eax, [y_add]
 				cmp eax, 00010000h
 				jl @f
 				add rdi, SCREEN_WIDTH * sizeof Pixel

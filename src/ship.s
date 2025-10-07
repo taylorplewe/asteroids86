@@ -11,10 +11,8 @@ Ship ends
 
 ship             Ship   {0}
 ship_points      Point  5 dup ({0})
-ship_fire_points Point  3 dup ({0})
 
 ship_base_points      BasePoint {32, 0}, {16, 96}, {16, 160}, {11, 90}, {11, 166}
-ship_fire_base_points BasePoint {28, 112}, {52, 128}, {28, 142}
 
 ; readonly
 SHIP_VELOCITY_ACCEL = 00002800h ; 16.16 fixed point
@@ -131,6 +129,20 @@ ship_update proc
 	mov eax, [ship].velocity.y
 	add [ship].y, eax
 
+	; draw fire lines
+	cmp [ship].is_boosting, 0
+	je @f
+	mov r8, qword ptr [ship_points + 3 * sizeof Point]
+	mov rax, 0000ffff0000ffffh 
+	and r8, rax
+	shl r8, 16
+	mov r10, qword ptr [ship_points + 4 * sizeof Point]
+	and r10, rax
+	shl r10, 16
+	call fire_create
+	@@:
+
+
 	call ship_setAllPoints
 
 	ret
@@ -196,18 +208,6 @@ ship_setAllPoints proc
 	lea r9, ship_points + sizeof Point*4
 	call ship_setPoint
 
-	lea r8, ship_fire_base_points
-	lea r9, ship_fire_points
-	call ship_setPoint
-
-	lea r8, ship_fire_base_points + sizeof BasePoint
-	lea r9, ship_fire_points + sizeof Point
-	call ship_setPoint
-
-	lea r8, ship_fire_base_points + sizeof BasePoint*2
-	lea r9, ship_fire_points + sizeof Point*2
-	call ship_setPoint
-
 	ret
 ship_setAllPoints endp
 
@@ -231,37 +231,5 @@ ship_draw proc
 	ship_drawLine ship_points + sizeof Point*0, ship_points + sizeof Point*2
 	ship_drawLine ship_points + sizeof Point*3, ship_points + sizeof Point*4
 
-	mov al, [ship].is_boosting
-	test al, al
-	je @f
-	mov rax, frame_counter
-	and rax, 1b
-	je @f
-		ship_drawLine ship_fire_points + sizeof Point*0, ship_fire_points + sizeof Point*1
-		ship_drawLine ship_fire_points + sizeof Point*1, ship_fire_points + sizeof Point*2
-	@@:
-
 	ret
 ship_draw endp
-
-
-; fire effect
-
-.data
-
-Fire struct
-	is_alive         dd    ?
-	p1               Point <?>
-	p2               Point <?>
-	num_frames_alive dd    ?
-Fire ends
-fires Fire 64 dup (<?>)
-
-FIRE_MAX_NUM_FRAMES = 60
-
-
-.code
-
-fire_update proc
-	ret
-fire_update endp
