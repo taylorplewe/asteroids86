@@ -257,6 +257,11 @@ Fire struct
 Fire ends
 fires Fire 64 dup (<?>)
 
+FIRE_MAX_NUM_FRAMES = 60
+
+
+.code
+
 fire_update proc
 	ret
 fire_update endp
