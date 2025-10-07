@@ -17,8 +17,9 @@ ship_base_points      BasePoint {32, 0}, {16, 96}, {16, 160}, {11, 90}, {11, 166
 ship_fire_base_points BasePoint {28, 112}, {52, 128}, {28, 142}
 
 ; readonly
-SHIP_VELOCITY_ACCEL = 00000600h ; 16.16 fixed point
-SHIP_VELOCITY_MAX   = 00040000h ; 16.16 fixed point
+SHIP_VELOCITY_ACCEL = 00002800h ; 16.16 fixed point
+SHIP_VELOCITY_MAX   = 00060000h ; 16.16 fixed point
+SHIP_VELOCITY_DRAG  = 0000fa00h ; 16.16 fixed point
 
 
 .code
@@ -86,7 +87,7 @@ ship_update proc
 	test eax, eax
 	je @f
 	cdqe
-	imul rax, 0000f000h
+	imul rax, SHIP_VELOCITY_DRAG
 	sar rax, 16
 	mov [ship].velocity.x, eax
 	@@:
@@ -94,7 +95,7 @@ ship_update proc
 	test eax, eax
 	je moveEnd
 	cdqe
-	imul rax, 0000f000h
+	imul rax, SHIP_VELOCITY_DRAG
 	sar rax, 16
 	mov [ship].velocity.y, eax
 	moveEnd:
