@@ -72,7 +72,7 @@ SDL_Surface struct
 	w        dd               ? ; 8
 	h        dd               ? ; 12
 	pitch    dd               ? ; 16
-	    pad0 dd               ? ; 20
+	         dd               ? ; 20
 	pixels   dq               ? ; 24
 	refcount dd               ? ; 32
 	reserved dq               ? ; 36

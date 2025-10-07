@@ -140,7 +140,7 @@ main proc
 		xor al, al
 		mov [keys_down].fire, al
 		pollLoop:
-			lea rcx, [event]
+			lea rcx, event
 			call SDL_PollEvent
 			test al, al
 			je pollLoopEnd
@@ -155,27 +155,23 @@ main proc
 			cmp eax, SDLK_W
 			jne @f
 				mov [keys_down].up, 1
-				jmp keyDownCheckEnd
+				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_S
 			jne @f
 				mov [keys_down].down, 1
-				jmp keyDownCheckEnd
+				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_A
 			jne @f
 				mov [keys_down].left, 1
-				jmp keyDownCheckEnd
+				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_D
 			jne @f
 				mov [keys_down].right, 1
-				jmp keyDownCheckEnd
+				jmp pollLoopNext
 			@@:
-			; cmp eax, SDLK_SPACE
-			; jne @f
-			; 	mov [keys_down].fire, 1
-			; @@:
 			keyDownCheckEnd:
 
 			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_UP
@@ -185,22 +181,22 @@ main proc
 			cmp eax, SDLK_W
 			jne @f
 				mov [keys_down].up, 0
-				jmp keyUpCheckEnd
+				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_S
 			jne @f
 				mov [keys_down].down, 0
-				jmp keyUpCheckEnd
+				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_A
 			jne @f
 				mov [keys_down].left, 0
-				jmp keyUpCheckEnd
+				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_D
 			jne @f
 				mov [keys_down].right, 0
-				jmp keyUpCheckEnd
+				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_SPACE
 			jne @f

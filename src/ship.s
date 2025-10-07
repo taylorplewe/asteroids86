@@ -10,15 +10,15 @@ Ship ends
 .data
 
 ship             Ship   {0}
-ship_points      Point  3 dup ({0})
+ship_points      Point  5 dup ({0})
 ship_fire_points Point  3 dup ({0})
 
-ship_base_points      BasePoint {64, 0}, {32, 96}, {32, 160}
+ship_base_points      BasePoint {32, 0}, {16, 96}, {16, 160}, {11, 90}, {11, 166}
 ship_fire_base_points BasePoint {28, 112}, {52, 128}, {28, 142}
 
 ; readonly
 SHIP_VELOCITY_ACCEL = 00000600h ; 16.16 fixed point
-SHIP_VELOCITY_MAX   = 00020000h ; 16.16 fixed point
+SHIP_VELOCITY_MAX   = 00040000h ; 16.16 fixed point
 
 
 .code
@@ -40,13 +40,13 @@ ship_update proc
 	cmp [rdi].Keys.left, 0
 	je @f
 		sub [ship].rot, 2
-		jmp upDownCheck
+		jmp fireCheck
 	@@:
 	cmp [rdi].Keys.right, 0
 	je @f
 		add [ship].rot, 2
-		jmp upDownCheck
 	@@:
+	fireCheck:
 	cmp [rdi].Keys.fire, 0
 	je @f
 		mov r8d, [ship_points].x
@@ -54,9 +54,6 @@ ship_update proc
 		mov r9d, [ship_points].y
 		shl r9d, 16
 		mov r10b, [ship].rot
-		; xor rax, rax
-		; mov al, [ship].rot
-		; mov r10d, eax
 		call bullets_createBullet
 	@@:
 	upDownCheck:
@@ -84,10 +81,22 @@ ship_update proc
 		
 		jmp moveEnd
 	@@:
-	cmp [rdi].Keys.down, 0
+	; drag
+	mov eax, [ship].velocity.x
+	test eax, eax
 	je @f
-		inc [ship].y
+	cdqe
+	imul rax, 0000f000h
+	sar rax, 16
+	mov [ship].velocity.x, eax
 	@@:
+	mov eax, [ship].velocity.y
+	test eax, eax
+	je moveEnd
+	cdqe
+	imul rax, 0000f000h
+	sar rax, 16
+	mov [ship].velocity.y, eax
 	moveEnd:
 
 	; velocity bounds check
@@ -178,6 +187,14 @@ ship_setAllPoints proc
 	lea r9, ship_points + sizeof Point*2
 	call ship_setPoint
 
+	lea r8, ship_base_points + sizeof BasePoint*3
+	lea r9, ship_points + sizeof Point*3
+	call ship_setPoint
+
+	lea r8, ship_base_points + sizeof BasePoint*4
+	lea r9, ship_points + sizeof Point*4
+	call ship_setPoint
+
 	lea r8, ship_fire_base_points
 	lea r9, ship_fire_points
 	call ship_setPoint
@@ -210,8 +227,8 @@ ship_draw proc
 	mov r8d, [fg_color]
 
 	ship_drawLine ship_points + sizeof Point*0, ship_points + sizeof Point*1
-	ship_drawLine ship_points + sizeof Point*1, ship_points + sizeof Point*2
-	ship_drawLine ship_points + sizeof Point*2, ship_points + sizeof Point*0
+	ship_drawLine ship_points + sizeof Point*0, ship_points + sizeof Point*2
+	ship_drawLine ship_points + sizeof Point*3, ship_points + sizeof Point*4
 
 	mov al, [ship].is_boosting
 	test al, al
@@ -225,3 +242,20 @@ ship_draw proc
 
 	ret
 ship_draw endp
+
+
+; fire effect
+
+.data
+
+Fire struct
+	is_alive         dd    ?
+	p1               Point <?>
+	p2               Point <?>
+	num_frames_alive dd    ?
+Fire ends
+fires Fire 64 dup (<?>)
+
+fire_update proc
+	ret
+fire_update endp
