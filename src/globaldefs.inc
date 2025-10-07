@@ -14,6 +14,12 @@ Point struct
 Point ends
 Vector typedef Point ; ??
 
+; rotations and line lengths for drawing things
+BasePoint struct
+	vec dd ?
+	rad db ? ; 256-based radians; 256 = 360 degrees
+BasePoint ends
+
 Keys struct
 	up    db ?
 	down  db ?

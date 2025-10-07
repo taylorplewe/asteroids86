@@ -5,6 +5,7 @@ include <data\sintab.inc>
 include <global.s>
 include <common.s>
 include <screen.s>
+include <bullets.s>
 include <ship.s>
 
 .data
@@ -101,6 +102,9 @@ main proc
 	sub rsp, 200h
 
 	call ship_init
+	; mov r8d, SCREEN_WIDTH/2
+	; mov r9d, SCREEN_HEIGHT/2
+	; call bullets_createBullet
 
 	mov ecx, SDL_INIT_VIDEO
 	call SDL_Init
@@ -133,6 +137,8 @@ main proc
 		call SDL_GetTicks
 		mov qword ptr [ticks], rax
 
+		xor al, al
+		mov [keys_down].fire, al
 		pollLoop:
 			lea rcx, [event]
 			call SDL_PollEvent
@@ -166,6 +172,10 @@ main proc
 				mov [keys_down].right, 1
 				jmp keyDownCheckEnd
 			@@:
+			; cmp eax, SDLK_SPACE
+			; jne @f
+			; 	mov [keys_down].fire, 1
+			; @@:
 			keyDownCheckEnd:
 
 			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_UP
@@ -192,7 +202,12 @@ main proc
 				mov [keys_down].right, 0
 				jmp keyUpCheckEnd
 			@@:
+			cmp eax, SDLK_SPACE
+			jne @f
+				mov [keys_down].fire, 1
+			@@:
 			keyUpCheckEnd:
+
 
 			pollLoopNext:
 			jmp pollLoop
@@ -203,6 +218,8 @@ main proc
 		lea rdi, keys_down
 		call ship_update
 		call ship_draw
+
+		call bullets_updateAll
 
 		call render
 

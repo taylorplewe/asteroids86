@@ -15,10 +15,23 @@ is_ydiff_neg  db ?
 
 screen_plotPoint macro
 	mov dword ptr [rdi], r8d
+
+	mov rsi, rdi
+	sub rsi, SCREEN_WIDTH * sizeof Pixel
+	cmp rsi, r12
+	jb @f
+	mov dword ptr [rsi], r8d
+	@@:
+
+	mov rsi, rdi
+	add rsi, SCREEN_WIDTH * sizeof Pixel
+	cmp rsi, r13
+	ja @f
+	mov dword ptr [rsi], r8d
+	@@:
+
 	mov dword ptr [rdi + sizeof Pixel], r8d
 	mov dword ptr [rdi - sizeof Pixel], r8d
-	mov dword ptr [rdi + SCREEN_WIDTH*sizeof Pixel], r8d
-	mov dword ptr [rdi - SCREEN_WIDTH*sizeof Pixel], r8d
 endm
 
 ; TODO: convert statically allocated bss variables to stack variables
@@ -33,6 +46,9 @@ screen_drawLine proc
 
 	; rdi = pointer into pixels
 	lea rdi, pixels
+	lea r12, pixels
+	lea r13, pixels + SCREEN_WIDTH * SCREEN_HEIGHT * sizeof Pixel
+	
 	mov eax, [screen_point1].y
 	imul eax, SCREEN_WIDTH * sizeof Pixel
 	add rdi, rax
@@ -205,3 +221,21 @@ screen_drawLine proc
 	
 	ret
 screen_drawLine endp
+
+; in:
+	; point1
+	; r8d - color
+screen_drawPoint proc
+	; rdi = pointer into pixels
+	lea rdi, pixels
+	mov eax, [screen_point1].y
+	imul eax, SCREEN_WIDTH * sizeof Pixel
+	add rdi, rax
+	mov eax, [screen_point1].x
+	shl eax, 2 ; imul sizeof Pixel
+	add rdi, rax
+
+	screen_plotPoint
+
+	ret
+screen_drawPoint endp

@@ -6,21 +6,17 @@ Ship struct
 	velocity    Vector <?> ; 16.16 fixed point
 Ship ends
 
+
 .data
 
-ship Ship <?>
-ship_points Point 3 dup (<?>)
-ship_fire_points Point 3 dup (<?>)
+ship             Ship   {0}
+ship_points      Point  3 dup ({0})
+ship_fire_points Point  3 dup ({0})
 
-BasePoint struct
-	vec dd ?
-	rad db ? ; 256-based radians; 256 = 360 degrees
-BasePoint ends
-ship_base_points BasePoint {64, 0}, {32, 96}, {32, 160}
+ship_base_points      BasePoint {64, 0}, {32, 96}, {32, 160}
 ship_fire_base_points BasePoint {28, 112}, {52, 128}, {28, 142}
 
 ; readonly
-ship_color Pixel <0ffh, 0ffh, 0ffh, 0ffh>
 SHIP_VELOCITY_ACCEL = 00000600h ; 16.16 fixed point
 SHIP_VELOCITY_MAX   = 00020000h ; 16.16 fixed point
 
@@ -49,6 +45,19 @@ ship_update proc
 	cmp [rdi].Keys.right, 0
 	je @f
 		add [ship].rot, 2
+		jmp upDownCheck
+	@@:
+	cmp [rdi].Keys.fire, 0
+	je @f
+		mov r8d, [ship_points].x
+		shl r8d, 16
+		mov r9d, [ship_points].y
+		shl r9d, 16
+		mov r10b, [ship].rot
+		; xor rax, rax
+		; mov al, [ship].rot
+		; mov r10d, eax
+		call bullets_createBullet
 	@@:
 	upDownCheck:
 	xor al, al
@@ -198,7 +207,7 @@ ship_drawLine macro point1:req, point2:req
 endm
 
 ship_draw proc
-	mov r8d, [ship_color]
+	mov r8d, [fg_color]
 
 	ship_drawLine ship_points + sizeof Point*0, ship_points + sizeof Point*1
 	ship_drawLine ship_points + sizeof Point*1, ship_points + sizeof Point*2
