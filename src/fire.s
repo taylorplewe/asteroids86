@@ -36,6 +36,7 @@ fire_draw macro
 	; alpha
 	sub ebx, eax
 	add ebx, 15
+	; mov ebx, 0ffffffffh
 	shl ebx, 24 + 2
 	or r8d, ebx
 

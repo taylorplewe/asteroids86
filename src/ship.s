@@ -55,7 +55,9 @@ ship_update proc
 		mov r9d, [ship_points].y
 		shl r9d, 16
 		mov r10b, [ship].rot
+		push rdi
 		call bullets_createBullet
+		pop rdi
 	@@:
 
 	; boost

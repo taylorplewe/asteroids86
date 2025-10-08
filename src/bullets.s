@@ -5,7 +5,7 @@ Bullet struct
 Bullet ends
 
 NUM_BULLETS = 64
-BULLET_SPEED = 8
+BULLET_SPEED = 10
 
 
 .data
@@ -109,15 +109,23 @@ bullets_updateAll endp
 ; in:
 	; rdi - pointer to bullet
 bullets_draw proc
-	mov eax, [rdi].Bullet.pos.x
-	shr eax, 16
-	mov [screen_point1].x, eax
-	mov eax, [rdi].Bullet.pos.y
-	shr eax, 16
-	mov [screen_point1].y, eax
-	mov r8d, [fg_color]
 	push rdi
-	call screen_drawPoint
+	push rcx
+
+	lea rdi, pixels
+	mov r8d, [fg_color]
+
+	mov ebx, [rdi].Bullet.pos.x
+	shr ebx, 16
+	mov ecx, [rdi].Bullet.pos.y
+	shr ecx, 16
+
+	mov r14d, SCREEN_WIDTH
+	mov r15d, SCREEN_HEIGHT
+
+	screen_plotPoint
+
+	pop rcx
 	pop rdi
 
 	ret

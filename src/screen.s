@@ -13,25 +13,51 @@ is_ydiff_neg  db ?
 
 .code
 
+; in:
+	; ebx  - x
+	; ecx  - y
+	; r8d  - color
+	; rdi  - point to pixels
+	; r14d - SCREEN_WIDTH
+	; r15d - SCREEN_HEIGHT
+screen_setPixelWrapped macro
+	; wrap x
+	mov eax, ebx
+	add eax, r14d
+	cdq
+	div r14d
+	imul edx, sizeof Pixel
+	mov r13d, edx
+	; wrap y
+	mov eax, ecx
+	add eax, r15d
+	cdq
+	div r15d
+	imul edx, SCREEN_WIDTH * sizeof Pixel
+	add r13d, edx
+	; plot pixel
+	mov [rdi + r13], r8d
+endm
+
+; in:
+	; ebx  - x
+	; ecx  - y
+	; r8d  - color
+	; rdi  - point to pixels
+	; r14d - SCREEN_WIDTH
+	; r15d - SCREEN_HEIGHT
 screen_plotPoint macro
-	mov dword ptr [rdi], r8d
-
-	mov rsi, rdi
-	sub rsi, SCREEN_WIDTH * sizeof Pixel
-	cmp rsi, r12
-	jb @f
-	mov dword ptr [rsi], r8d
-	@@:
-
-	mov rsi, rdi
-	add rsi, SCREEN_WIDTH * sizeof Pixel
-	cmp rsi, r13
-	ja @f
-	mov dword ptr [rsi], r8d
-	@@:
-
-	mov dword ptr [rdi + sizeof Pixel], r8d
-	mov dword ptr [rdi - sizeof Pixel], r8d
+	screen_setPixelWrapped
+	dec ebx
+	screen_setPixelWrapped
+	add ebx, 2
+	screen_setPixelWrapped
+	dec ebx
+	dec ecx
+	screen_setPixelWrapped
+	add ecx, 2
+	screen_setPixelWrapped
+	dec ecx
 endm
 
 ; TODO: convert statically allocated bss variables to stack variables
@@ -45,15 +71,8 @@ screen_drawLine proc
 
 	; rdi = pointer into pixels
 	lea rdi, pixels
-	lea r12, pixels
-	lea r13, pixels + SCREEN_WIDTH * SCREEN_HEIGHT * sizeof Pixel
-	
-	mov eax, [screen_point1].y
-	imul eax, SCREEN_WIDTH * sizeof Pixel
-	add rdi, rax
-	mov eax, [screen_point1].x
-	shl eax, 2 ; imul sizeof Pixel
-	add rdi, rax
+	mov r14d, SCREEN_WIDTH
+	mov r15d, SCREEN_HEIGHT
 
 	; x_diff = |p2.x - p1.x|
 	mov eax, [screen_point2].x
@@ -92,8 +111,11 @@ screen_drawLine proc
 		idiv ebx
 		mov [x_add], eax
 
-		mov ecx, [y_diff]
-		mov eax, 00008000h ; 0.5 fixed point
+		mov ebx, [screen_point1].x
+		mov ecx, [screen_point1].y
+
+		mov r11d, [y_diff]
+		mov r10d, 00008000h ; 0.5 fixed point
 		cmp [is_ydiff_neg], 0
 		je yIncLoop
 		yDecLoop:
@@ -101,58 +123,62 @@ screen_drawLine proc
 			je yDecXIncLoop
 			yDecXDecLoop:
 				screen_plotPoint
-				sub rdi, SCREEN_WIDTH * sizeof Pixel
+				dec ecx
 
-				add eax, [x_add]
-				cmp eax, 00010000h
+				add r10d, [x_add]
+				cmp r10d, 00010000h
 				jl @f
-				sub rdi, sizeof Pixel
-				and eax, 0000ffffh
+				dec ebx
+				and r10d, 0000ffffh
 				@@:
 
-				loop yDecXDecLoop
+				dec r11d
+				jne yDecXDecLoop
 			ret
 			yDecXIncLoop:
 				screen_plotPoint
-				sub rdi, SCREEN_WIDTH * sizeof Pixel
+				dec ecx
 
-				add eax, [x_add]
-				cmp eax, 00010000h
+				add r10d, [x_add]
+				cmp r10d, 00010000h
 				jl @f
-				add rdi, sizeof Pixel
-				and eax, 0000ffffh
+				inc ebx
+				and r10d, 0000ffffh
 				@@:
 
-				loop yDecXIncLoop
+				dec r11d
+				jne yDecXIncLoop
 			ret
 		yIncLoop:
 			cmp [is_xdiff_neg], 0
 			je yIncXIncLoop
 			yIncXDecLoop:
 				screen_plotPoint
-				add rdi, SCREEN_WIDTH * sizeof Pixel
+				inc ecx
 
-				add eax, [x_add]
-				cmp eax, 00010000h
+				add r10d, [x_add]
+				cmp r10d, 00010000h
 				jl @f
-				sub rdi, sizeof Pixel
-				and eax, 0000ffffh
+				dec ebx
+				and r10d, 0000ffffh
 				@@:
 
-				loop yIncXDecLoop
+				dec r11d
+				jne yIncXDecLoop
 			ret
 			yIncXIncLoop:
 				screen_plotPoint
-				add rdi, SCREEN_WIDTH * sizeof Pixel
+				inc ecx
 
-				add eax, [x_add]
-				cmp eax, 00010000h
+				add r10d, [x_add]
+				cmp r10d, 00010000h
 				jl @f
-				add rdi, sizeof Pixel
-				and eax, 0000ffffh
+				inc ebx
+				and r10d, 0000ffffh
 				@@:
 
-				loop yIncXIncLoop
+				dec r11d
+				jne yIncXIncLoop
 			ret
 	xDiffGreater:	
 		; x_add = x_diff / y_diff
@@ -163,8 +189,11 @@ screen_drawLine proc
 		idiv ebx
 		mov [y_add], eax
 
-		mov ecx, [x_diff]
-		mov eax, 00008000h ; 0.5 fixed point
+		mov ebx, [screen_point1].x
+		mov ecx, [screen_point1].y
+
+		mov r11d, [x_diff]
+		mov r10d, 00008000h ; 0.5 fixed point
 		cmp [is_xdiff_neg], 0
 		je xIncLoop
 		xDecLoop:
@@ -172,77 +201,72 @@ screen_drawLine proc
 			je xDecYIncLoop
 			xDecYDecLoop:
 				screen_plotPoint
-				sub rdi, sizeof Pixel
+				dec ebx
 
-				add eax, [y_add]
-				cmp eax, 00010000h
+				add r10d, [y_add]
+				cmp r10d, 00010000h
 				jl @f
-				sub rdi, SCREEN_WIDTH * sizeof Pixel
-				and eax, 0000ffffh
+				dec ecx
+				and r10d, 0000ffffh
 				@@:
 
-				loop xDecYDecLoop
+				dec r11d
+				jne xDecYDecLoop
 			ret
 			xDecYIncLoop:
 				screen_plotPoint
-				sub rdi, sizeof Pixel
+				dec ebx
 
-				add eax, [y_add]
-				cmp eax, 00010000h
+				add r10d, [y_add]
+				cmp r10d, 00010000h
 				jl @f
-				add rdi, SCREEN_WIDTH * sizeof Pixel
-				and eax, 0000ffffh
+				inc ecx
+				and r10d, 0000ffffh
 				@@:
 
-				loop xDecYIncLoop
+				dec r11d
+				jne xDecYIncLoop
 			ret
 		xIncLoop:
 			cmp [is_ydiff_neg], 0
 			je xIncYIncLoop
 			xIncYDecLoop:
 				screen_plotPoint
-				add rdi, sizeof Pixel
+				inc ebx
 
-				add eax, [y_add]
-				cmp eax, 00010000h
+				add r10d, [y_add]
+				cmp r10d, 00010000h
 				jl @f
-				sub rdi, SCREEN_WIDTH * sizeof Pixel
-				and eax, 0000ffffh
+				dec ecx
+				and r10d, 0000ffffh
 				@@:
 
-				loop xIncYDecLoop
+				dec r11d
+				jne xIncYDecLoop
 			ret
 			xIncYIncLoop:
 				screen_plotPoint
-				add rdi, sizeof Pixel
+				inc ebx
 
-				add eax, [y_add]
-				cmp eax, 00010000h
+				add r10d, [y_add]
+				cmp r10d, 00010000h
 				jl @f
-				add rdi, SCREEN_WIDTH * sizeof Pixel
-				and eax, 0000ffffh
+				inc ecx
+				and r10d, 0000ffffh
 				@@:
 
-				loop xIncYIncLoop
+				dec r11d
+				jne xIncYIncLoop
 			ret
 	
 	ret
 screen_drawLine endp
 
 ; in:
-	; point1
+	; ebx - x
+	; ecx - y
 	; r8d - color
-screen_drawPoint proc
-	; rdi = pointer into pixels
+screen_drawPoint macro
 	lea rdi, pixels
-	mov eax, [screen_point1].y
-	imul eax, SCREEN_WIDTH * sizeof Pixel
-	add rdi, rax
-	mov eax, [screen_point1].x
-	shl eax, 2 ; imul sizeof Pixel
-	add rdi, rax
-
 	screen_plotPoint
-
-	ret
-screen_drawPoint endp
+endm
