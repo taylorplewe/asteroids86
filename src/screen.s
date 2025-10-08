@@ -73,6 +73,14 @@ screen_drawLine proc
 	abseax
 	mov [y_diff], eax
 
+	; if both are zero, exit
+	test eax, eax
+	jne @f
+	cmp [x_diff], 0
+	jne @f
+	ret
+	@@:
+
 	cmp eax, [x_diff]
 	jl xDiffGreater
 	yDiffGreater:

@@ -1,6 +1,6 @@
 ; fire effect
 
-FIRE_MAX_NUM_FRAMES = 60
+FIRE_MAX_NUM_FRAMES = 30
 MAX_NUM_FIRES       = 64
 
 .data
@@ -50,14 +50,13 @@ fire_create proc
 	mov ecx, MAX_NUM_FIRES
 	mainLoop:
 		cmp [rdi].Fire.is_alive, 0
-        jne next
+		jne next
 
 		inc [rdi].Fire.is_alive
 		mov [rdi].Fire.num_frames_alive, 0
 		mov qword ptr [rdi].Fire.p1, r8
 		mov qword ptr [rdi].Fire.p2, r10
 
-		; calculate amount to shrink every frame
 		mov r9, r8
 		shr r9, 32
 		mov r11, r10
@@ -66,15 +65,51 @@ fire_create proc
 		; r9d  = p1.y
 		; r10d = p2.x
 		; r11d = p2.y
+
+		; calculate center point
 		; x
-			mov eax, r10d
+			cmp r8d, r10d
+			ja p1xGreater
+			p2xGreater:
+				mov eax, r10d
+				mov ebx, r8d
+				jmp xCenterFinish
+			p1xGreater:
+				mov eax, r8d
+				mov ebx, r10d
+			xCenterFinish:
+			sub eax, ebx
+			shr eax, 1 ; /2
+			add ebx, eax
+			mov r12d, ebx
+		; y
+			cmp r9d, r11d
+			ja p1yGreater
+			p2yGreater:
+				mov eax, r11d
+				mov ebx, r9d
+				jmp yCenterFinish
+			p1yGreater:
+				mov eax, r9d
+				mov ebx, r11d
+			yCenterFinish:
+			sub eax, ebx
+			shr eax, 1 ; /2
+			add ebx, eax
+			mov r13d, ebx
+		; r12d = center.x
+		; r13d = center.y
+
+		; calculate amount to shrink every frame
+		; x
+			mov eax, r12d
 			sub eax, r8d
 			mov ebx, FIRE_MAX_NUM_FRAMES
 			cdq
 			idiv ebx
 			mov [rdi].Fire.shrink_vec.x, eax
 		; y
-			mov eax, r11d
+			mov eax, r13d
 			sub eax, r9d
 			mov ebx, FIRE_MAX_NUM_FRAMES
 			cdq
@@ -85,7 +120,8 @@ fire_create proc
 
 		next:
 		add rdi, sizeof Fire
-		loop mainLoop
+		dec ecx
+		jne mainLoop ; can't do LOOP instruction since that requires a rel8 jump
 	_end:
 	ret
 fire_create endp
@@ -95,23 +131,23 @@ fire_updateAll proc
 	mov ecx, MAX_NUM_FIRES
 	mainLoop:
 		cmp [rdi].Fire.is_alive, 0
-        je next
+		je next
 
 		inc [rdi].Fire.num_frames_alive
 		cmp [rdi].Fire.num_frames_alive, FIRE_MAX_NUM_FRAMES
 		jl @f
-            ; destroy fire
+        	; destroy fire
 			mov [rdi].Fire.is_alive, 0
 			jmp next
 		@@:
 
 		; shrink fire
-        mov eax, [rdi].Fire.shrink_vec.x
-        add [rdi].Fire.p1.x, eax
-        sub [rdi].Fire.p2.x, eax
-        mov eax, [rdi].Fire.shrink_vec.y
-        add [rdi].Fire.p1.y, eax
-        sub [rdi].Fire.p2.y, eax
+		mov eax, [rdi].Fire.shrink_vec.x
+		add [rdi].Fire.p1.x, eax
+		sub [rdi].Fire.p2.x, eax
+		mov eax, [rdi].Fire.shrink_vec.y
+		add [rdi].Fire.p1.y, eax
+		sub [rdi].Fire.p2.y, eax
 
 		push rcx
 		push rdi
