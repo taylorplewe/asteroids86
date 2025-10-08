@@ -15,8 +15,8 @@ ship_points      Point  5 dup ({0})
 ship_base_points      BasePoint {32, 0}, {16, 96}, {16, 160}, {11, 90}, {11, 166}
 
 ; readonly
-SHIP_VELOCITY_ACCEL = 00002800h ; 16.16 fixed point
-SHIP_VELOCITY_MAX   = 00060000h ; 16.16 fixed point
+SHIP_VELOCITY_ACCEL = 00004000h ; 16.16 fixed point
+SHIP_VELOCITY_MAX   = 00080000h ; 16.16 fixed point
 SHIP_VELOCITY_DRAG  = 0000fa00h ; 16.16 fixed point
 
 
@@ -36,6 +36,7 @@ ship_init endp
 ; in:
 	; rdi - pointer to keys_down: Keys struct
 ship_update proc
+	; rotate
 	cmp [rdi].Keys.left, 0
 	je @f
 		sub [ship].rot, 2
@@ -45,6 +46,7 @@ ship_update proc
 	je @f
 		add [ship].rot, 2
 	@@:
+
 	fireCheck:
 	cmp [rdi].Keys.fire, 0
 	je @f
@@ -55,9 +57,9 @@ ship_update proc
 		mov r10b, [ship].rot
 		call bullets_createBullet
 	@@:
-	upDownCheck:
-	xor al, al
-	mov [ship].is_boosting, al
+
+	; boost
+	mov [ship].is_boosting, 0
 	cmp [rdi].Keys.up, 0
 	je @f
 		inc [ship].is_boosting
@@ -77,26 +79,25 @@ ship_update proc
 		imul rax, SHIP_VELOCITY_ACCEL
 		sar rax, 31
 		sub [ship].velocity.y, eax
-		
-		jmp moveEnd
 	@@:
+
 	; drag
 	mov eax, [ship].velocity.x
 	test eax, eax
 	je @f
-	cdqe
-	imul rax, SHIP_VELOCITY_DRAG
-	sar rax, 16
-	mov [ship].velocity.x, eax
+		cdqe
+		imul rax, SHIP_VELOCITY_DRAG
+		sar rax, 16
+		mov [ship].velocity.x, eax
 	@@:
 	mov eax, [ship].velocity.y
 	test eax, eax
-	je moveEnd
-	cdqe
-	imul rax, SHIP_VELOCITY_DRAG
-	sar rax, 16
-	mov [ship].velocity.y, eax
-	moveEnd:
+	je @f
+		cdqe
+		imul rax, SHIP_VELOCITY_DRAG
+		sar rax, 16
+		mov [ship].velocity.y, eax
+	@@:
 
 	; velocity bounds check
 	mov eax, [ship].velocity.x
@@ -142,6 +143,8 @@ ship_update proc
 	mov r10, qword ptr [ship_points + 4 * sizeof Point]
 	and r10, rax
 	shl r10, 16
+	mov al, [ship].rot
+	add al, 128
 	call fire_create
 	@@:
 

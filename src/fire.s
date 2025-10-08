@@ -1,16 +1,18 @@
 ; fire effect
 
+FIRE_VELOCITY       = 1
 FIRE_MAX_NUM_FRAMES = 30
 MAX_NUM_FIRES       = 64
 
 .data
 
 Fire struct
-	is_alive         dd    ?
-	p1               Point <?> ; 16.16 fixed point
-	p2               Point <?> ; 16.16 fixed point
-        shrink_vec       Vector <?> ; p1 will ADD this value to get towards the center, p2 will SUBTRACT
-	num_frames_alive dd    ?
+	is_alive         dd     ?
+	num_frames_alive dd     ?
+	p1               Point  <?> ; 16.16 fixed point
+	p2               Point  <?> ; 16.16 fixed point
+    shrink_vec       Vector <?> ; p1 will ADD this value to get towards the center, p2 will SUBTRACT
+	rot              db     ?
 Fire ends
 fires Fire MAX_NUM_FIRES dup (<?>)
 fire_color Pixel <0ffh, 0, 0, 0ffh>
@@ -76,6 +78,7 @@ endm
 ; in:
 	; r8  - point1 (as qword ptr)
 	; r10 - point2 (as qword ptr)
+	; al  - rotation in 256-based radians
 fire_create proc
 	; look for empty spot
 	lea rdi, fires
@@ -85,6 +88,7 @@ fire_create proc
 		jne next
 
 		inc [rdi].Fire.is_alive
+		mov [rdi].Fire.rot, al
 		mov [rdi].Fire.num_frames_alive, 0
 		mov qword ptr [rdi].Fire.p1, r8
 		mov qword ptr [rdi].Fire.p2, r10
@@ -172,6 +176,27 @@ fire_updateAll proc
 			mov [rdi].Fire.is_alive, 0
 			jmp next
 		@@:
+
+		; move fire
+		; x
+		xor rax, rax
+		mov al, [rdi].Fire.rot
+		call sin
+		cdqe
+		imul rax, FIRE_VELOCITY
+		sar rax, 15
+		add [rdi].Fire.p1.x, eax
+		add [rdi].Fire.p2.x, eax
+		; y
+		xor rax, rax
+		mov al, [rdi].Fire.rot
+		call cos
+		cdqe
+		imul rax, FIRE_VELOCITY
+		sar rax, 15
+		neg eax
+		add [rdi].Fire.p1.y, eax
+		add [rdi].Fire.p2.y, eax
 
 		; shrink fire
 		mov eax, [rdi].Fire.shrink_vec.x
