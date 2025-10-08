@@ -46,11 +46,11 @@ endm
 	; r10 - point2 (as qword ptr)
 fire_create proc
 	; look for empty spot
-	xor ecx, ecx
 	lea rdi, fires
+	mov ecx, MAX_NUM_FIRES
 	mainLoop:
 		cmp [rdi].Fire.is_alive, 0
-                jne next
+        jne next
 
 		inc [rdi].Fire.is_alive
 		mov [rdi].Fire.num_frames_alive, 0
@@ -59,9 +59,9 @@ fire_create proc
 
 		; calculate amount to shrink every frame
 		mov r9, r8
-		shr r9, 16
+		shr r9, 32
 		mov r11, r10
-		shr r11, 16
+		shr r11, 32
 		; r8d  = p1.x
 		; r9d  = p1.y
 		; r10d = p2.x
@@ -84,36 +84,34 @@ fire_create proc
 		jmp _end
 
 		next:
-		add ecx, sizeof Fire
-		cmp ecx, MAX_NUM_FIRES * sizeof Fire
-		jl mainLoop
+		add rdi, sizeof Fire
+		loop mainLoop
 	_end:
 	ret
 fire_create endp
 
 fire_updateAll proc
-	xor ecx, ecx
 	lea rdi, fires
+	mov ecx, MAX_NUM_FIRES
 	mainLoop:
 		cmp [rdi].Fire.is_alive, 0
-                je next
+        je next
 
 		inc [rdi].Fire.num_frames_alive
 		cmp [rdi].Fire.num_frames_alive, FIRE_MAX_NUM_FRAMES
 		jl @f
-                        ; destroy fire
-			xor eax, eax
-			mov [rdi].Fire.is_alive, eax
+            ; destroy fire
+			mov [rdi].Fire.is_alive, 0
 			jmp next
 		@@:
 
 		; shrink fire
-                mov eax, [rdi].Fire.shrink_vec.x
-                add [rdi].Fire.p1.x, eax
-                sub [rdi].Fire.p2.x, eax
-                mov eax, [rdi].Fire.shrink_vec.y
-                add [rdi].Fire.p1.y, eax
-                sub [rdi].Fire.p2.y, eax
+        mov eax, [rdi].Fire.shrink_vec.x
+        add [rdi].Fire.p1.x, eax
+        sub [rdi].Fire.p2.x, eax
+        mov eax, [rdi].Fire.shrink_vec.y
+        add [rdi].Fire.p1.y, eax
+        sub [rdi].Fire.p2.y, eax
 
 		push rcx
 		push rdi
@@ -122,9 +120,8 @@ fire_updateAll proc
 		pop rcx
 
 		next:
-		add ecx, sizeof Fire
-		cmp ecx, MAX_NUM_FIRES * sizeof Fire
-		jl mainLoop
+		add rdi, sizeof Fire
+		loop mainLoop
 	ret
 fire_updateAll endp
 
