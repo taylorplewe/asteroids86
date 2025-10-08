@@ -132,6 +132,9 @@ ship_update proc
 	; draw fire lines
 	cmp [ship].is_boosting, 0
 	je @f
+	mov rax, [frame_counter]
+	and rax, 1b
+	jne @f
 	mov rax, 0000ffff0000ffffh 
 	mov r8, qword ptr [ship_points + 3 * sizeof Point]
 	and r8, rax

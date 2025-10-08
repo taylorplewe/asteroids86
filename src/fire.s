@@ -21,13 +21,42 @@ fire_color Pixel <0ffh, 0, 0, 0ffh>
 ; in:
 	; rdi - pointer to fire
 fire_draw macro
+	; color
 	mov r8d, [fire_color]
-	and r8d, 00ffffffh
+	and r8d, 000000ffh
 	mov eax, [rdi].Fire.num_frames_alive
 	mov ebx, FIRE_MAX_NUM_FRAMES
+	mov ecx, ebx
+	mov r9d, ebx
+	mov edx, eax
+	mov r10d, eax
+
+	; alpha
 	sub ebx, eax
+	add ebx, 15
 	shl ebx, 24 + 2
 	or r8d, ebx
+
+	; green
+	shl edx, 1
+	cmp edx, ecx
+	jg @f
+	sub ecx, edx
+	add ecx, 15
+	shl ecx, 8 + 2
+	or r8d, ecx
+	@@:
+
+	; blue
+	shl r10d, 2
+	cmp r10d, r9d
+	jg @f
+	sub r9d, r10d
+	add r9d, 15
+	shl r9d, 16 + 2
+	or r8d, r9d
+	@@:
+
 	mov eax, [rdi].Fire.p1.x
 	sar eax, 16
 	mov [screen_point1].x, eax
@@ -40,6 +69,7 @@ fire_draw macro
 	mov eax, [rdi].Fire.p2.y
 	sar eax, 16
 	mov [screen_point2].y, eax
+
 	call screen_drawLine
 endm
 
