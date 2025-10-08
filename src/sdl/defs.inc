@@ -1,5 +1,3 @@
-
-; SDL3
 extern SDL_Init                     : proto :dword
 extern SDL_Quit                     : proto
 extern SDL_GetTicks                 : proto
@@ -46,23 +44,6 @@ SDL_KeyboardEvent struct
 	key        dd ? ; 28
 	; ... more that idc about
 SDL_KeyboardEvent ends
-
-
-; typedef struct SDL_KeyboardEvent
-; {
-;     SDL_EventType type;     /**< SDL_EVENT_KEY_DOWN or SDL_EVENT_KEY_UP */
-;     Uint32 reserved;
-;     Uint64 timestamp;       /**< In nanoseconds, populated using SDL_GetTicksNS() */
-;     SDL_WindowID windowID;  /**< The window with keyboard focus, if any */
-;     SDL_KeyboardID which;   /**< The keyboard instance id, or 0 if unknown or virtual */
-;     SDL_Scancode scancode;  /**< SDL physical key code */
-;     SDL_Keycode key;        /**< SDL virtual key code */
-;     SDL_Keymod mod;         /**< current key modifiers */
-;     Uint16 raw;             /**< The platform dependent scancode for this event */
-;     bool down;              /**< true if the key is pressed */
-;     bool repeat;            /**< true if this is a key repeat */
-; } SDL_KeyboardEvent;
-
 
 SDL_SurfaceFlags typedef dword
 SDL_PixelFormat  typedef dword

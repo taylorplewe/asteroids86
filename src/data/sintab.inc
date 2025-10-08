@@ -1,4 +1,4 @@
-.data
+; .32 signed fixed-point values of sin(n * ((pi / 2) / 64)) where 0 <= n <= 64.data
 
 sintab:
 dd 00000000h, 03242abfh, 0647d97dh, 096a904ah, 0c8bd35eh, 0fab272ch, 12c8106fh, 15e21445h

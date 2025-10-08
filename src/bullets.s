@@ -55,7 +55,7 @@ bullets_createBullet proc
 		cmp ecx, NUM_BULLETS
 		jl mainLoop
 
-		; no empty spaces!
+		; no empty spaces found!
 
 	_end:
 	ret

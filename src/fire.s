@@ -22,6 +22,12 @@ fire_color Pixel <0ffh, 0, 0, 0ffh>
 	; rdi - pointer to fire
 fire_draw macro
 	mov r8d, [fire_color]
+	and r8d, 00ffffffh
+	mov eax, [rdi].Fire.num_frames_alive
+	mov ebx, FIRE_MAX_NUM_FRAMES
+	sub ebx, eax
+	shl ebx, 24 + 2
+	or r8d, ebx
 	mov eax, [rdi].Fire.p1.x
 	sar eax, 16
 	mov [screen_point1].x, eax
@@ -34,10 +40,6 @@ fire_draw macro
 	mov eax, [rdi].Fire.p2.y
 	sar eax, 16
 	mov [screen_point2].y, eax
-	; mov rax, 0000000400000004h
-	; mov [screen_point1], rax
-	; mov rax, 0000000800000008h
-	; mov [screen_point2], rax
 	call screen_drawLine
 endm
 
@@ -157,7 +159,8 @@ fire_updateAll proc
 
 		next:
 		add rdi, sizeof Fire
-		loop mainLoop
+		dec ecx
+		jne mainLoop ; too far for LOOP instruction
 	ret
 fire_updateAll endp
 

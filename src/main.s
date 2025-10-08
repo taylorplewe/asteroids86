@@ -103,9 +103,6 @@ main proc
 	sub rsp, 200h
 
 	call ship_init
-	; mov r8d, SCREEN_WIDTH/2
-	; mov r9d, SCREEN_HEIGHT/2
-	; call bullets_createBullet
 
 	mov ecx, SDL_INIT_VIDEO
 	call SDL_Init

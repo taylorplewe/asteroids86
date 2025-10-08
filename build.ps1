@@ -18,6 +18,10 @@ if (-not (Get-Command "ml64" -ErrorAction SilentlyContinue)) {
 
 $gameName = "asteroids86"
 
+# /Cp       = preserve case of user identifiers
+# /Zd       = add line numbers to debug info
+# /Zi       = add symbolic debug info
+# /Fo<path> = name .obj output file
 ml64 `
     /Cp `
     /Zd `
