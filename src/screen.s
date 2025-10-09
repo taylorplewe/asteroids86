@@ -258,15 +258,5 @@ screen_drawLine proc
 				dec r11d
 				jne xIncYIncLoop
 			ret
-	
 	ret
 screen_drawLine endp
-
-; in:
-	; ebx - x
-	; ecx - y
-	; r8d - color
-screen_drawPoint macro
-	lea rdi, pixels
-	screen_plotPoint
-endm

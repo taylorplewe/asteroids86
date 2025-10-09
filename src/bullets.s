@@ -1,11 +1,12 @@
 Bullet struct
-	pos      Point  <?>  ; 16.16 fixed point x and y
-	velocity Vector <?> ; 16.16 fixed point x and y
-	exists   dd     ?
+	pos           Point  <?>  ; 16.16 fixed point x and y
+	velocity      Vector <?> ; 16.16 fixed point x and y
+	ticks_to_live dd ?
 Bullet ends
 
-NUM_BULLETS = 64
-BULLET_SPEED = 10
+NUM_BULLETS          = 64
+BULLET_SPEED         = 10
+BULLET_TICKS_TO_LIVE = 60
 
 
 .data
@@ -24,11 +25,11 @@ bullets_createBullet proc
 	lea rdi, bullets
 	xor ecx, ecx
 	mainLoop:
-		mov eax, [rdi].Bullet.exists
+		mov eax, [rdi].Bullet.ticks_to_live
 		test eax, eax
 		jne next
 
-		inc [rdi].Bullet.exists
+		mov [rdi].Bullet.ticks_to_live, BULLET_TICKS_TO_LIVE
 		mov [rdi].Bullet.pos.x, r8d
 		mov [rdi].Bullet.pos.y, r9d
 
@@ -62,10 +63,13 @@ bullets_createBullet proc
 bullets_createBullet endp
 
 bullets_updateAll proc
+	mov r14d, SCREEN_WIDTH
+	mov r15d, SCREEN_HEIGHT
+
 	lea rdi, bullets
 	xor ecx, ecx
 	mainLoop:
-		mov eax, [rdi].Bullet.exists
+		mov eax, [rdi].Bullet.ticks_to_live
 		test eax, eax
 		je next
 
@@ -74,28 +78,27 @@ bullets_updateAll proc
 		mov eax, [rdi].Bullet.velocity.y
 		sub [rdi].Bullet.pos.y, eax
 
-		; bounds check
-		mov eax, [rdi].Bullet.pos.x
-		sar eax, 16
-		test eax, eax
-		js destroyBullet		
-		cmp eax, SCREEN_WIDTH
-		jg destroyBullet
-
-		mov eax, [rdi].Bullet.pos.y
-		sar eax, 16
-		test eax, eax
-		js destroyBullet		
-		cmp eax, SCREEN_HEIGHT
-		jg destroyBullet
-		jmp renderBullet
+		; wrap around screen
+		cmp [rdi].Bullet.pos.x, 0
+		jg @f
+		add [rdi].Bullet.pos.x, SCREEN_WIDTH shl 16
+		@@:
+		cmp [rdi].Bullet.pos.x, SCREEN_WIDTH shl 16
+		jb @f
+		sub [rdi].Bullet.pos.x, SCREEN_WIDTH shl 16
+		@@:
+		cmp [rdi].Bullet.pos.y, 0
+		jg @f
+		add [rdi].Bullet.pos.y, SCREEN_HEIGHT shl 16
+		@@:
+		cmp [rdi].Bullet.pos.y, SCREEN_HEIGHT shl 16
+		jb @f
+		sub [rdi].Bullet.pos.y, SCREEN_HEIGHT shl 16
+		@@:
 		
-		destroyBullet:
-		xor eax, eax
-		mov [rdi].Bullet.exists, eax
-		jmp next
-		renderBullet:
 		call bullets_draw
+
+		dec [rdi].Bullet.ticks_to_live
 		
 		next:
 		add rdi, sizeof Bullet
@@ -119,9 +122,6 @@ bullets_draw proc
 
 	lea rdi, pixels
 	mov r8d, [fg_color]
-
-	mov r14d, SCREEN_WIDTH
-	mov r15d, SCREEN_HEIGHT
 
 	screen_plotPoint
 
