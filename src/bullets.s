@@ -1,7 +1,7 @@
 Bullet struct
-	pos      Point <?>  ; 16.16 fixed point x and y
+	pos      Point  <?>  ; 16.16 fixed point x and y
 	velocity Vector <?> ; 16.16 fixed point x and y
-	exists   dd ?
+	exists   dd     ?
 Bullet ends
 
 NUM_BULLETS = 64
@@ -112,13 +112,13 @@ bullets_draw proc
 	push rdi
 	push rcx
 
-	lea rdi, pixels
-	mov r8d, [fg_color]
-
 	mov ebx, [rdi].Bullet.pos.x
 	shr ebx, 16
 	mov ecx, [rdi].Bullet.pos.y
 	shr ecx, 16
+
+	lea rdi, pixels
+	mov r8d, [fg_color]
 
 	mov r14d, SCREEN_WIDTH
 	mov r15d, SCREEN_HEIGHT
