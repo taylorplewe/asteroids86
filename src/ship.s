@@ -18,6 +18,7 @@ ship_base_points      BasePoint {32, 0}, {16, 96}, {16, 160}, {11, 90}, {11, 166
 SHIP_VELOCITY_ACCEL = 00004000h ; 16.16 fixed point
 SHIP_VELOCITY_MAX   = 00080000h ; 16.16 fixed point
 SHIP_VELOCITY_DRAG  = 0000fa00h ; 16.16 fixed point
+SHIP_VELOCITY_KICK  = 00008000h ; 16.16 fixed point
 
 
 .code
@@ -58,6 +59,25 @@ ship_update proc
 		push rdi
 		call bullets_createBullet
 		pop rdi
+
+		; kick
+		xor rax, rax
+		mov al, [ship].rot
+		add al, 128
+		mov bl, al
+		call sin
+		cdqe
+		imul rax, SHIP_VELOCITY_KICK
+		sar rax, 31
+		add [ship].velocity.x, eax
+		xor rax, rax
+		mov al, bl
+		call cos
+		cdqe
+		imul rax, SHIP_VELOCITY_KICK
+		sar rax, 31
+		sub [ship].velocity.y, eax
+
 	@@:
 
 	; boost
