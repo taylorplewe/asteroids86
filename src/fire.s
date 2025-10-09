@@ -106,7 +106,7 @@ fire_create proc
 		; calculate center point
 		; x
 			cmp r8d, r10d
-			ja p1xGreater
+			jg p1xGreater
 			p2xGreater:
 				mov eax, r10d
 				mov ebx, r8d
@@ -121,7 +121,7 @@ fire_create proc
 			mov r12d, ebx
 		; y
 			cmp r9d, r11d
-			ja p1yGreater
+			jg p1yGreater
 			p2yGreater:
 				mov eax, r11d
 				mov ebx, r9d
