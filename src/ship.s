@@ -15,7 +15,7 @@ ship_points      Point  5 dup ({0})
 ship_base_points      BasePoint {32, 0}, {16, 96}, {16, 160}, {11, 90}, {11, 166}
 
 ; readonly
-SHIP_VELOCITY_ACCEL = 00004000h ; 16.16 fixed point
+SHIP_VELOCITY_ACCEL = 00005000h ; 16.16 fixed point
 SHIP_VELOCITY_MAX   = 00080000h ; 16.16 fixed point
 SHIP_VELOCITY_DRAG  = 0000fa00h ; 16.16 fixed point
 SHIP_VELOCITY_KICK  = 00008000h ; 16.16 fixed point
@@ -257,25 +257,12 @@ ship_setAllPoints proc
 	ret
 ship_setAllPoints endp
 
-ship_drawLine macro point1:req, point2:req
-	mov eax, [point1].x
-	mov [screen_point1].x, eax
-	mov eax, [point1].y
-	mov [screen_point1].y, eax
-	mov eax, [point2].x
-	mov [screen_point2].x, eax
-	mov eax, [point2].y
-	mov [screen_point2].y, eax
-	; mov r8d, [ship_color]
-	call screen_drawLine
-endm
-
 ship_draw proc
 	mov r8d, [fg_color]
 
-	ship_drawLine ship_points + sizeof Point*0, ship_points + sizeof Point*1
-	ship_drawLine ship_points + sizeof Point*0, ship_points + sizeof Point*2
-	ship_drawLine ship_points + sizeof Point*3, ship_points + sizeof Point*4
+	screen_mDrawLine ship_points + sizeof Point*0, ship_points + sizeof Point*1
+	screen_mDrawLine ship_points + sizeof Point*0, ship_points + sizeof Point*2
+	screen_mDrawLine ship_points + sizeof Point*3, ship_points + sizeof Point*4
 
 	ret
 ship_draw endp

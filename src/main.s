@@ -7,6 +7,7 @@ include <common.s>
 include <screen.s>
 include <bullets.s>
 include <fire.s>
+include <asteroids.s>
 include <ship.s>
 
 .data
@@ -170,6 +171,8 @@ main proc
 				mov [keys_down].right, 1
 				jmp pollLoopNext
 			@@:
+			cmp eax, SDLK_Q
+			je quit
 			keyDownCheckEnd:
 
 			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_UP
@@ -214,6 +217,7 @@ main proc
 		call ship_draw
 
 		call bullets_updateAll
+		call asteroids_updateAll
 		call fire_updateAll
 
 		call render

@@ -1,6 +1,11 @@
 SCREEN_WIDTH  = 1100
 SCREEN_HEIGHT = 800
 
+FatPtr struct
+	pntr qword ?
+	len  dd    ?
+FatPtr ends
+
 Pixel struct
 	r db ?
 	g db ?

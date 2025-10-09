@@ -27,6 +27,7 @@ SDLK_A     = 61h
 SDLK_S     = 73h
 SDLK_D     = 64h
 SDLK_SPACE = 20h
+SDLK_Q     = 71h
 
 SDL_PIXELFORMAT_RGBA32 = 376840196 ; idk
 

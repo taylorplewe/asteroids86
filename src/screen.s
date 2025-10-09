@@ -60,6 +60,18 @@ screen_plotPoint macro
 	dec ecx
 endm
 
+screen_mDrawLine macro point1:req, point2:req
+	mov eax, [point1].x
+	mov [screen_point1].x, eax
+	mov eax, [point1].y
+	mov [screen_point1].y, eax
+	mov eax, [point2].x
+	mov [screen_point2].x, eax
+	mov eax, [point2].y
+	mov [screen_point2].y, eax
+	call screen_drawLine
+endm
+
 ; TODO: convert statically allocated bss variables to stack variables
 ; in:
 	; r8d - color to draw
