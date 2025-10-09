@@ -61,13 +61,13 @@ screen_plotPoint macro
 endm
 
 screen_mDrawLine macro point1:req, point2:req
-	mov eax, [point1].x
+	mov eax, [point1].Point.x
 	mov [screen_point1].x, eax
-	mov eax, [point1].y
+	mov eax, [point1].Point.y
 	mov [screen_point1].y, eax
-	mov eax, [point2].x
+	mov eax, [point2].Point.x
 	mov [screen_point2].x, eax
-	mov eax, [point2].y
+	mov eax, [point2].Point.y
 	mov [screen_point2].y, eax
 	call screen_drawLine
 endm
@@ -77,6 +77,17 @@ endm
 	; r8d - color to draw
 	; point1
 	; point2
+; clobbers:
+	; rax
+	; rbx
+	; rcx
+	; rdx
+	; rdi
+	; r10
+	; r11
+	; r13
+	; r14
+	; r15
 screen_drawLine proc
 	mov [is_xdiff_neg], 0
 	mov [is_ydiff_neg], 0

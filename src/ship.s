@@ -194,65 +194,31 @@ ship_update proc
 	ret
 ship_update endp
 
-; in:
-	; r8 - pointer to source BasePoint
-	; r9 - pointer to destination Point
-ship_setPoint proc
-	xor rax, rax
-	mov al, [r8].BasePoint.rad
-	add al, [ship].rot
-	mov bl, al
-	; x
-	mov al, bl
-	call sin
-	mov ecx, [r8].BasePoint.vec
-	cdqe
-	imul rax, rcx
-	sar rax, 31
-	mov ecx, eax
-	mov eax, [ship].x
-	shr eax, 16
-	add eax, ecx
-	mov [r9].Point.x, eax
-	; y
-	xor rax, rax ; clear upper bits
-	mov al, bl
-	call cos
-	mov ecx, [r8].BasePoint.vec
-	cdqe
-	imul rax, rcx
-	sar rax, 31
-	mov ecx, eax
-	mov eax, [ship].y
-	shr eax, 16
-	sub eax, ecx
-	mov [r9].Point.y, eax
-
-	ret
-ship_setPoint endp
-
 ship_setAllPoints proc
 	xor rbx, rbx
 
+	mov r11b, [ship].rot
+	lea r10, ship
+
 	lea r8, ship_base_points
 	lea r9, ship_points
-	call ship_setPoint
+	call applyBasePointToPoint
 
 	lea r8, ship_base_points + sizeof BasePoint
 	lea r9, ship_points + sizeof Point
-	call ship_setPoint
+	call applyBasePointToPoint
 
 	lea r8, ship_base_points + sizeof BasePoint*2
 	lea r9, ship_points + sizeof Point*2
-	call ship_setPoint
+	call applyBasePointToPoint
 
 	lea r8, ship_base_points + sizeof BasePoint*3
 	lea r9, ship_points + sizeof Point*3
-	call ship_setPoint
+	call applyBasePointToPoint
 
 	lea r8, ship_base_points + sizeof BasePoint*4
 	lea r9, ship_points + sizeof Point*4
-	call ship_setPoint
+	call applyBasePointToPoint
 
 	ret
 ship_setAllPoints endp

@@ -132,6 +132,8 @@ main proc
 	xor rax, rax
 	mov [frame_counter], rax
 
+	call asteroids_test
+
 	mainLoop:
 		call SDL_GetTicks
 		mov qword ptr [ticks], rax
