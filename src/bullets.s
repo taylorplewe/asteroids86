@@ -1,3 +1,12 @@
+ifndef bullets_h
+bullets_h = 1
+
+include <common.s>
+include <globaldefs.inc>
+include <global.s>
+include <screen.s>
+
+
 Bullet struct
 	pos           Point  <?>  ; 16.16 fixed point x and y
 	velocity      Vector <?> ; 16.16 fixed point x and y
@@ -116,3 +125,6 @@ bullets_draw proc
 
 	ret
 bullets_draw endp
+
+
+endif

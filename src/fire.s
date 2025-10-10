@@ -1,8 +1,13 @@
-; fire effect
+ifndef fire_h
+fire_h = 1
+
+include <screen.s>
+
 
 FIRE_VELOCITY       = 1
 FIRE_MAX_NUM_FRAMES = 30
 MAX_NUM_FIRES       = 64
+
 
 .data
 
@@ -220,3 +225,5 @@ fire_updateAll proc
 	ret
 fire_updateAll endp
 
+
+endif

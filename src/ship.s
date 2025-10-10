@@ -1,3 +1,11 @@
+ifndef ship_h
+ship_h = 1
+
+include <fire.s>
+include <bullets.s>
+include <screen.s>
+
+
 Ship struct
 	x           dd     ?   ; 16.16 fixed point
 	y           dd     ?   ; 16.16 fixed point
@@ -218,3 +226,6 @@ ship_draw proc
 
 	ret
 ship_draw endp
+
+
+endif

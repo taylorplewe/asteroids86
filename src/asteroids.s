@@ -1,3 +1,10 @@
+ifndef asteroids_h
+asteroids_h = 1
+
+include <common.s>
+include <screen.s>
+
+
 Asteroid struct
 	pos       Point  <?> ; 16.16 fixed point
 	velocity  Vector <?> ; 16.16 fixed point
@@ -26,13 +33,19 @@ asteroid_shape2_len = ($ - asteroid_shape2) / BasePoint
 asteroid_shape3 BasePoint {48, 10h}, {39, 20h}, {54, 33h}, {35, 41h}, {46, 60h}, {32, 73h}, {45, 88h}, {46, 0a8h}, {28, 0c6h}, {43, 0c6h}, {51, 0e0h}, {35, 0e8h}
 asteroid_shape3_len = ($ - asteroid_shape3) / BasePoint
 
+ASTEROID_MASS1 = 16
+ASTEROID_MASS2 = 32
+ASTEROID_MASS3 = 50
+asteroid_masses dd 0, ASTEROID_MASS1, ASTEROID_MASS2, ASTEROID_MASS3
+asteroid_r_squareds dd 0, ASTEROID_MASS1*ASTEROID_MASS1, ASTEROID_MASS2*ASTEROID_MASS2, ASTEROID_MASS3*ASTEROID_MASS3
+
 
 .code
 
 asteroids_test proc
 	mov [asteroids].Asteroid.pos.x, (SCREEN_WIDTH/2) shl 16
 	mov [asteroids].Asteroid.pos.y, (SCREEN_HEIGHT/2) shl 16
-	mov [asteroids].Asteroid.mass, 1
+	mov [asteroids].Asteroid.mass, 3
 	mov [asteroids].Asteroid.rot, 0
 	mov [asteroids].Asteroid.rot_speed, 1
 	mov [asteroids].Asteroid.velocity.x, 00002000h
@@ -42,7 +55,7 @@ asteroids_test proc
 
 	mov [asteroids + sizeof Asteroid].Asteroid.pos.x, (100) shl 16
 	mov [asteroids + sizeof Asteroid].Asteroid.pos.y, (20) shl 16
-	mov [asteroids + sizeof Asteroid].Asteroid.mass, 1
+	mov [asteroids + sizeof Asteroid].Asteroid.mass, 3
 	mov [asteroids + sizeof Asteroid].Asteroid.rot, 0
 	mov [asteroids + sizeof Asteroid].Asteroid.velocity.x, 00010000h
 	mov [asteroids + sizeof Asteroid].Asteroid.velocity.y, -00008000h
@@ -52,8 +65,13 @@ asteroids_test proc
 	ret
 asteroids_test endp
 
+asteroids_checkBullets macro
+	mov ecx, NUM_BULLETS
+	lea rsi, bullets
+endm
+
 asteroids_updateAll proc
-	mov ecx, MAX_NUM_ASTEROIDS
+	mov edx, MAX_NUM_ASTEROIDS
 	lea rdi, asteroids
 	mainLoop:
 		cmp [rdi].Asteroid.mass, 0
@@ -73,15 +91,18 @@ asteroids_updateAll proc
 		lea rsi, [rdi].Asteroid.pos
 		call wrapPointAroundScreen
 
+		; check for bullets
+
 		push rdi
-		push rcx
+		push rdx
 		call asteroids_draw
-		pop rcx
+		pop rdx
 		pop rdi
 
 		next:
 		add rdi, sizeof Asteroid
-		loop mainLoop
+		dec edx
+		jne mainLoop
 	ret
 asteroids_updateAll endp
 
@@ -123,3 +144,6 @@ asteroids_draw proc
 		loop mainLoop
 	ret
 asteroids_draw endp
+
+
+endif

@@ -1,14 +1,10 @@
 include <globaldefs.inc>
 include <sdl\defs.inc>
-include <data\sintab.inc>
 
-include <global.s>
-include <common.s>
-include <screen.s>
-include <bullets.s>
-include <fire.s>
-include <asteroids.s>
 include <ship.s>
+include <screen.s>
+include <asteroids.s>
+
 
 .data
 
@@ -23,6 +19,7 @@ event    byte 2048 dup (?)
 
 ticks qword ?
 keys_down Keys <?>
+
 
 .code
 

@@ -1,3 +1,9 @@
+ifndef screen_h
+screen_h = 1
+
+include <globaldefs.inc>
+
+
 .data
 
 pixels        Pixel SCREEN_WIDTH*SCREEN_HEIGHT dup (<?>)
@@ -283,3 +289,6 @@ screen_drawLine proc
 			ret
 	ret
 screen_drawLine endp
+
+
+endif

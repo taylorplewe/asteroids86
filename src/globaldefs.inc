@@ -1,3 +1,7 @@
+ifndef globaldefs_h
+globaldefs_h = 1
+
+
 SCREEN_WIDTH  = 1100
 SCREEN_HEIGHT = 800
 
@@ -41,3 +45,6 @@ abseax macro
 	xor eax, ebx
 	sub eax, ebx
 endm
+
+
+endif

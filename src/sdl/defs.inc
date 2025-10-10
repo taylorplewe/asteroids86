@@ -1,3 +1,7 @@
+ifndef sdl_defs_h
+sdl_defs_h = 1
+
+
 extern SDL_Init                     : proto :dword
 extern SDL_Quit                     : proto
 extern SDL_GetTicks                 : proto
@@ -59,3 +63,6 @@ SDL_Surface struct
 	refcount dd               ? ; 32
 	reserved dq               ? ; 36
 SDL_Surface ends
+
+
+endif

@@ -1,3 +1,9 @@
+ifndef common_h
+common_h = 1
+
+include <data\sintab.inc>
+
+
 .code
 
 cos proc
@@ -90,3 +96,6 @@ wrapPointAroundScreen proc
 	@@:
 	ret
 wrapPointAroundScreen endp
+
+
+endif
