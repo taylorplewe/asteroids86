@@ -65,17 +65,17 @@ fire_draw macro
 	or r8d, r9d
 	@@:
 
-	mov eax, [rdi].Fire.p1.x
-	sar eax, 16
+	mov ax, word ptr [rdi].Fire.p1.x + 2
+	cwde
 	mov [screen_point1].x, eax
-	mov eax, [rdi].Fire.p1.y
-	sar eax, 16
+	mov ax, word ptr [rdi].Fire.p1.y + 2
+	cwde
 	mov [screen_point1].y, eax
-	mov eax, [rdi].Fire.p2.x
-	sar eax, 16
+	mov ax, word ptr [rdi].Fire.p2.x + 2
+	cwde
 	mov [screen_point2].x, eax
-	mov eax, [rdi].Fire.p2.y
-	sar eax, 16
+	mov ax, word ptr [rdi].Fire.p2.y + 2
+	cwde
 	mov [screen_point2].y, eax
 
 	call screen_drawLine

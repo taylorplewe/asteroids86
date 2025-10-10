@@ -8,7 +8,7 @@ include <screen.s>
 
 
 Bullet struct
-	pos           Point  <?>  ; 16.16 fixed point x and y
+	pos           Point  <?> ; 16.16 fixed point x and y
 	velocity      Vector <?> ; 16.16 fixed point x and y
 	ticks_to_live dd ?
 Bullet ends
@@ -110,10 +110,8 @@ bullets_draw proc
 	push rdi
 	push rcx
 
-	mov ebx, [rdi].Bullet.pos.x
-	shr ebx, 16
-	mov ecx, [rdi].Bullet.pos.y
-	shr ecx, 16
+	mov bx, word ptr [rdi].Bullet.pos.x + 2
+	mov cx, word ptr [rdi].Bullet.pos.y + 2
 
 	lea rdi, pixels
 	mov r8d, [fg_color]

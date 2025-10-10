@@ -3,18 +3,19 @@ asteroids_h = 1
 
 include <common.s>
 include <screen.s>
+include <bullets.s>
 
 
 Asteroid struct
 	pos       Point  <?> ; 16.16 fixed point
 	velocity  Vector <?> ; 16.16 fixed point
-	mass      dd     ?   ; 0 when dead
+	mass      dd     ?   ; 0 when dead ; 'size' is a reserved word
 	shape_ptr dq     ?
 	rot       db     ?
 	rot_speed db     ?
 Asteroid ends
 
-MAX_NUM_ASTEROIDS       = 64
+MAX_NUM_ASTEROIDS = 64
 
 
 .data
@@ -65,9 +66,43 @@ asteroids_test proc
 	ret
 asteroids_test endp
 
+; in:
+	; rdi - pointer to current asteroid
 asteroids_checkBullets macro
+	local mainLoop
+	local _next
+
 	mov ecx, NUM_BULLETS
 	lea rsi, bullets
+	mainLoop:
+		cmp [rsi].Bullet.ticks_to_live, 0
+		je _next
+	
+		; check if bullet is inside this asteroid's circular hitbox, dictacted by it's 'mass'
+		; hit if (dx^2 + dy^2) <= r^2
+		mov ax, word ptr [rsi].Bullet.pos.x + 2
+		sub ax, word ptr [rdi].Asteroid.pos.x + 2
+		imul eax, eax
+		mov r8d, eax
+		mov ax, word ptr [rsi].Bullet.pos.y + 2
+		sub ax, word ptr [rdi].Asteroid.pos.y + 2
+		imul eax, eax
+		mov r9d, eax
+
+		add r8d, r9d
+		lea r9, asteroid_r_squareds
+		mov ebx, [rdi].Asteroid.mass
+		shl ebx, 2 ; dwords
+		cmp r8d, [r9 + rbx]
+		jg _next
+
+		; hit!
+		mov [rdi].Asteroid.mass, 0
+		jmp next
+
+		_next:
+		add rsi, sizeof Bullet
+		loop mainLoop
 endm
 
 asteroids_updateAll proc
@@ -91,7 +126,41 @@ asteroids_updateAll proc
 		lea rsi, [rdi].Asteroid.pos
 		call wrapPointAroundScreen
 
-		; check for bullets
+		; asteroids_checkBullets
+		mov ecx, NUM_BULLETS
+		lea rsi, bullets
+		_mainLoop:
+			cmp [rsi].Bullet.ticks_to_live, 0
+			je _next
+	
+			; check if bullet is inside this asteroid's circular hitbox, dictacted by it's 'mass'
+			; hit if (dx^2 + dy^2) <= r^2
+			mov ax, word ptr [rsi].Bullet.pos.x + 2
+			sub ax, word ptr [rdi].Asteroid.pos.x + 2
+			cwde
+			imul eax, eax
+			mov r8d, eax
+			mov ax, word ptr [rsi].Bullet.pos.y + 2
+			sub ax, word ptr [rdi].Asteroid.pos.y + 2
+			cwde
+			imul eax, eax
+			mov r9d, eax
+
+			add r8d, r9d
+			lea r9, asteroid_r_squareds
+			mov ebx, [rdi].Asteroid.mass
+			shl ebx, 2 ; dwords
+			cmp r8d, [r9 + rbx]
+			jg _next
+
+			; hit!
+			mov [rdi].Asteroid.mass, 0
+			mov [rsi].Bullet.ticks_to_live, 0
+			jmp next
+
+			_next:
+			add rsi, sizeof Bullet
+			loop _mainLoop
 
 		push rdi
 		push rdx
