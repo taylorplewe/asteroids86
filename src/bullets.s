@@ -79,22 +79,8 @@ bullets_updateAll proc
 		sub [rdi].Bullet.pos.y, eax
 
 		; wrap around screen
-		cmp [rdi].Bullet.pos.x, 0
-		jg @f
-		add [rdi].Bullet.pos.x, SCREEN_WIDTH shl 16
-		@@:
-		cmp [rdi].Bullet.pos.x, SCREEN_WIDTH shl 16
-		jb @f
-		sub [rdi].Bullet.pos.x, SCREEN_WIDTH shl 16
-		@@:
-		cmp [rdi].Bullet.pos.y, 0
-		jg @f
-		add [rdi].Bullet.pos.y, SCREEN_HEIGHT shl 16
-		@@:
-		cmp [rdi].Bullet.pos.y, SCREEN_HEIGHT shl 16
-		jb @f
-		sub [rdi].Bullet.pos.y, SCREEN_HEIGHT shl 16
-		@@:
+		lea rsi, [rdi].Bullet.pos
+		call wrapPointAroundScreen
 		
 		call bullets_draw
 

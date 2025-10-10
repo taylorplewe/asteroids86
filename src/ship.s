@@ -153,22 +153,8 @@ ship_update proc
 	add [ship].y, eax
 
 	; wrap position
-	cmp [ship].x, 0
-	jg @f
-	add [ship].x, SCREEN_WIDTH shl 16
-	@@:
-	cmp [ship].x, SCREEN_WIDTH shl 16
-	jb @f
-	sub [ship].x, SCREEN_WIDTH shl 16
-	@@:
-	cmp [ship].y, 0
-	jg @f
-	add [ship].y, SCREEN_HEIGHT shl 16
-	@@:
-	cmp [ship].y, SCREEN_HEIGHT shl 16
-	jb @f
-	sub [ship].y, SCREEN_HEIGHT shl 16
-	@@:
+	lea rsi, ship
+	call wrapPointAroundScreen
 
 	; draw fire lines
 	cmp [ship].is_boosting, 0

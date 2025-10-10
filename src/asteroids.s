@@ -4,6 +4,7 @@ Asteroid struct
 	mass      dd     ?   ; 0 when dead
 	shape_ptr dq     ?
 	rot       db     ?
+	rot_speed db     ?
 Asteroid ends
 
 MAX_NUM_ASTEROIDS       = 64
@@ -14,10 +15,16 @@ MAX_NUM_ASTEROIDS       = 64
 asteroids Asteroid MAX_NUM_ASTEROIDS dup (<>)
 asteroids_current_points Point 2 dup (<?>) ; for drawing
 
-asteroid_shapes FatPtr {asteroid_shape1, asteroid_shape1_len}
+asteroid_shapes FatPtr {asteroid_shape1, asteroid_shape1_len}, {asteroid_shape2, asteroid_shape2_len}, {asteroid_shape3, asteroid_shape3_len}
 
-asteroid_shape1 BasePoint {32, 00h}, {32, 40h}, {32, 80h}, {32, 0c0h}
+asteroid_shape1 BasePoint {48, 08h}, {48, 1eh}, {35, 28h}, {42, 42h}, {48, 58h}, {30, 72h}, {40, 87h}, {46, 9eh}, {32, 0bch}, {43, 0c5h}, {46, 0deh}, {37, 0eeh}
 asteroid_shape1_len = ($ - asteroid_shape1) / BasePoint
+
+asteroid_shape2 BasePoint {30, 00h}, {40, 1eh}, {48, 37h}, {44, 53h}, {32, 68h}, {48, 78h}, {49, 8dh}, {46, 0a6h}, {32, 0bbh}, {43, 0c5h}, {49, 0e0h}, {46, 0f4h}
+asteroid_shape2_len = ($ - asteroid_shape2) / BasePoint
+
+asteroid_shape3 BasePoint {48, 10h}, {39, 20h}, {54, 33h}, {35, 41h}, {46, 60h}, {32, 73h}, {45, 88h}, {46, 0a8h}, {28, 0c6h}, {43, 0c6h}, {51, 0e0h}, {35, 0e8h}
+asteroid_shape3_len = ($ - asteroid_shape3) / BasePoint
 
 
 .code
@@ -27,6 +34,7 @@ asteroids_test proc
 	mov [asteroids].Asteroid.pos.y, (SCREEN_HEIGHT/2) shl 16
 	mov [asteroids].Asteroid.mass, 1
 	mov [asteroids].Asteroid.rot, 0
+	mov [asteroids].Asteroid.rot_speed, 1
 	mov [asteroids].Asteroid.velocity.x, 00002000h
 	mov [asteroids].Asteroid.velocity.y, 00008000h
 	lea rax, asteroid_shapes
@@ -35,10 +43,10 @@ asteroids_test proc
 	mov [asteroids + sizeof Asteroid].Asteroid.pos.x, (100) shl 16
 	mov [asteroids + sizeof Asteroid].Asteroid.pos.y, (20) shl 16
 	mov [asteroids + sizeof Asteroid].Asteroid.mass, 1
-	mov [asteroids + sizeof Asteroid].Asteroid.rot, 50
+	mov [asteroids + sizeof Asteroid].Asteroid.rot, 0
 	mov [asteroids + sizeof Asteroid].Asteroid.velocity.x, 00010000h
 	mov [asteroids + sizeof Asteroid].Asteroid.velocity.y, -00008000h
-	lea rax, asteroid_shapes
+	lea rax, asteroid_shapes + sizeof FatPtr*2
 	mov [asteroids + sizeof Asteroid].Asteroid.shape_ptr, rax
 
 	ret
@@ -50,6 +58,10 @@ asteroids_updateAll proc
 	mainLoop:
 		cmp [rdi].Asteroid.mass, 0
 		je next
+
+		; rotate asteroid
+		mov al, [rdi].Asteroid.rot_speed
+		add [rdi].Asteroid.rot, al
 
 		; move asteroid
 		mov eax, [rdi].Asteroid.velocity.x
