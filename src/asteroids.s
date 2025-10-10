@@ -60,7 +60,7 @@ asteroids_test proc
 	mov [asteroids + sizeof Asteroid].Asteroid.rot, 0
 	mov [asteroids + sizeof Asteroid].Asteroid.velocity.x, 00010000h
 	mov [asteroids + sizeof Asteroid].Asteroid.velocity.y, -00008000h
-	lea rax, asteroid_shapes + sizeof FatPtr*2
+	lea rax, asteroid_shapes + sizeof FatPtr*1
 	mov [asteroids + sizeof Asteroid].Asteroid.shape_ptr, rax
 
 	ret
@@ -80,6 +80,7 @@ asteroids_checkBullets macro
 	
 		; check if bullet is inside this asteroid's circular hitbox, dictacted by it's 'mass'
 		; hit if (dx^2 + dy^2) <= r^2
+		xor eax, eax ; clear upper bits
 		mov ax, word ptr [rsi].Bullet.pos.x + 2
 		sub ax, word ptr [rdi].Asteroid.pos.x + 2
 		imul eax, eax
@@ -135,6 +136,7 @@ asteroids_updateAll proc
 	
 			; check if bullet is inside this asteroid's circular hitbox, dictacted by it's 'mass'
 			; hit if (dx^2 + dy^2) <= r^2
+			xor eax, eax ; clear upper bits
 			mov ax, word ptr [rsi].Bullet.pos.x + 2
 			sub ax, word ptr [rdi].Asteroid.pos.x + 2
 			cwde

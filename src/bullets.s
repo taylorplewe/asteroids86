@@ -110,6 +110,8 @@ bullets_draw proc
 	push rdi
 	push rcx
 
+	xor ebx, ebx ; clear upper bits
+	xor ecx, ecx ; clear upper bits
 	mov bx, word ptr [rdi].Bullet.pos.x + 2
 	mov cx, word ptr [rdi].Bullet.pos.y + 2
 

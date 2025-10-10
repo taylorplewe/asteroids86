@@ -65,6 +65,7 @@ fire_draw macro
 	or r8d, r9d
 	@@:
 
+	xor eax, eax ; clear upper bits
 	mov ax, word ptr [rdi].Fire.p1.x + 2
 	cwde
 	mov [screen_point1].x, eax

@@ -59,7 +59,7 @@ applyBasePointToPoint proc
 	add eax, ecx
 	mov [r9].Point.x, eax
 	; y
-	xor rax, rax ; clear upper bits
+	xor eax, eax ; clear upper bits
 	mov al, bl
 	call cos
 	mov ecx, [r8].BasePoint.vec
