@@ -113,6 +113,8 @@ asteroids_checkBullets proc
 	push r8
 	push r9
 
+	cmp [bullets_len], 0
+	je noHit
 	xor ecx, ecx
 	lea rsi, bullets
 	mainLoop:
@@ -150,6 +152,7 @@ asteroids_checkBullets proc
 		cmp ecx, [bullets_len]
 		jb mainLoop
 
+	noHit:
 	xor eax, eax
 	_end:
 	pop r9
