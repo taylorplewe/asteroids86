@@ -28,24 +28,54 @@ Following is the source of truth for this codebase's style of code.
   For example:
 
   `ship_updateAll`
+  
+  `ship_setAllPoints`
+  
+  `ship_base_points`
 - Contiguous definitions (no empty line separating them) of the same definition syntax should have all their columns aligned.
   - Good:
-  ```
-Ship struct
-	x           dd     ?   ; 16.16 fixed point
-	y           dd     ?   ; 16.16 fixed point
-	rot         db     ?
-	is_boosting db     ?
-	velocity    Vector <?> ; 16.16 fixed point
-Ship ends
-  ```
+	```
+	Ship struct
+		x           dd     ?   ; 16.16 fixed point
+		y           dd     ?   ; 16.16 fixed point
+		rot         db     ?
+		is_boosting db     ?
+		velocity    Vector <?> ; 16.16 fixed point
+	Ship ends
+
+  	bullets     Bullet NUM_BULLETS dup (<>)
+	bullets_len dd     0
+	```
   - Bad:
-  ```
-Ship struct
-	x dd ? ; 16.16 fixed point
-	y dd ? ; 16.16 fixed point
-	rot db ?
-	is_boosting db ?
-	velocity Vector <?> ; 16.16 fixed point
-Ship ends
-  ```
+	```
+	Ship struct
+		x dd ? ; 16.16 fixed point
+		y dd ? ; 16.16 fixed point
+		rot db ?
+		is_boosting db ?
+		velocity Vector <?> ; 16.16 fixed point
+	Ship ends
+
+  	bullets Bullet NUM_BULLETS dup (<>)
+	bullets_len dd 0
+	```
+- Procedures declare their arguments (`in`) and return values (`out`) as such:
+	```
+	; in:
+		; r8  - point1 (as qword ptr)
+		; r10 - point2 (as qword ptr)
+		; al  - rotation in 256-based radians
+ 	; out:
+ 		; rax - 1 if hit, 0 else
+ 	fire_doSomething
+ 	```
+ - MASM's unnamed labels (`@@:`) are fine to use for short, single-level blocks. MASM itself will enforce the latter, since unlike other assemblers, it doesn't support jumping over unnamed labels to get to other unnamed labels, only the next one or prevoius one.
+	```
+	dec [rdi].Bullet.ticks_to_live
+	jne @f
+	; destroy bullet
+	mov eax, ecx
+	call bullets_destroyBullet
+	jmp nextCmp
+	@@:
+	```
