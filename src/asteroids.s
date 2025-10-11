@@ -150,7 +150,7 @@ asteroids_checkBullets proc
 		jg next
 
 		; hit!
-		mov [rdi].Asteroid.mass, 0
+		call asteroids_destroyAsteroid
 		mov eax, ecx
 		call bullets_destroyBullet
 		mov eax, 1
@@ -212,18 +212,16 @@ asteroids_updateAll proc
 	ret
 asteroids_updateAll endp
 
+; in:
+	; rdi - pointer to asteroid to destroy
 asteroids_destroyAsteroid proc
-	push rdi
 	push rsi
 	push rcx
 
 	dec [asteroids_len]
 	je _end
 
-	imul eax, sizeof Asteroid
-	lea rdi, asteroids
-	add rdi, rax
-
+	; move the last element in the list to this newly opened up one
 	mov eax, [asteroids_len]
 	imul eax, sizeof Asteroid
 	lea rsi, asteroids
@@ -241,7 +239,6 @@ asteroids_destroyAsteroid proc
 	_end:
 	pop rcx
 	pop rsi
-	pop rdi
 	ret
 asteroids_destroyAsteroid endp
 
