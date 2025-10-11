@@ -20,9 +20,9 @@ MAX_NUM_ASTEROIDS = 64
 
 .data
 
-asteroids                    Asteroid  MAX_NUM_ASTEROIDS dup (<>)
-asteroids_arr                FatPtr    { asteroids, 0 }
-asteroids_current_points     Point     2                 dup (<?>) ; for drawing
+asteroids                Asteroid  MAX_NUM_ASTEROIDS dup (<>)
+asteroids_len            dd        0
+asteroids_current_points Point     2                 dup (<?>) ; for drawing
 
 asteroid_shapes FatPtr {asteroid_shape1, asteroid_shape1_len}, {asteroid_shape2, asteroid_shape2_len}, {asteroid_shape3, asteroid_shape3_len}
 
@@ -46,59 +46,69 @@ asteroid_mass_factors dd 0, 00008000h,                     00010000h,           
 .code
 
 asteroids_test proc
-	mov [asteroids].Asteroid.pos.x, (SCREEN_WIDTH/2) shl 16
-	mov [asteroids].Asteroid.pos.y, (SCREEN_HEIGHT/2) shl 16
-	mov [asteroids].Asteroid.mass, 3
-	mov [asteroids].Asteroid.rot, 0
-	mov [asteroids].Asteroid.rot_speed, 1
-	mov [asteroids].Asteroid.velocity.x, 00002000h
-	mov [asteroids].Asteroid.velocity.y, 00008000h
-	lea rax, asteroid_shapes
-	mov [asteroids].Asteroid.shape_ptr, rax
+	; rax - pos
+	; ebx - mass
+	; rsi - shape_ptr
+	; r8b - rot (will be used for its velocity as well)
+	; r9b - rot_speed
+	mov rax, ((SCREEN_HEIGHT/2) shl 48) or ((SCREEN_WIDTH/2) shl 16)
+	mov ebx, 3
+	lea rsi, asteroid_shapes
+	xor r8, r8
+	mov r9, 1
+	call asteroids_create
 
-	mov [asteroids + sizeof Asteroid].Asteroid.pos.x, (100) shl 16
-	mov [asteroids + sizeof Asteroid].Asteroid.pos.y, (20) shl 16
-	mov [asteroids + sizeof Asteroid].Asteroid.mass, 3
-	mov [asteroids + sizeof Asteroid].Asteroid.rot, 0
-	mov [asteroids + sizeof Asteroid].Asteroid.velocity.x, 00010000h
-	mov [asteroids + sizeof Asteroid].Asteroid.velocity.y, -00008000h
-	lea rax, asteroid_shapes + sizeof FatPtr*1
-	mov [asteroids + sizeof Asteroid].Asteroid.shape_ptr, rax
+	mov rax, ((20) shl 48) or ((100) shl 16)
+	mov ebx, 3
+	lea rsi, asteroid_shapes + sizeof FatPtr
+	xor r8, r8
+	xor r9, r9
+	call asteroids_create
 
-	mov [asteroids + sizeof Asteroid*2].Asteroid.pos.x, (900) shl 16
-	mov [asteroids + sizeof Asteroid*2].Asteroid.pos.y, (200) shl 16
-	mov [asteroids + sizeof Asteroid*2].Asteroid.mass, 3
-	mov [asteroids + sizeof Asteroid*2].Asteroid.rot, 0
-	mov [asteroids + sizeof Asteroid*2].Asteroid.velocity.x, 00030000h
-	mov [asteroids + sizeof Asteroid*2].Asteroid.velocity.y, 000000800h
-	lea rax, asteroid_shapes + sizeof FatPtr*2
-	mov [asteroids + sizeof Asteroid*2].Asteroid.shape_ptr, rax
+	mov rax, ((200) shl 48) or ((900) shl 16)
+	mov ebx, 3
+	lea rsi, asteroid_shapes + sizeof FatPtr*2
+	mov r8, 50
+	xor r9, r9
+	call asteroids_create
 
 	ret
 asteroids_test endp
 
 ; in:
+	; rax - pos
 	; ebx - mass
-	
-	
-	; pos       Point  <?> ; 16.16 fixed point
-	; velocity  Vector <?> ; 16.16 fixed point
-	; mass      dd     ?   ; 0 when dead ; 'size' is a reserved word
-	; shape_ptr dq     ?
-	; rot       db     ?
-	; rot_speed db     ?
+	; rsi - shape_ptr
+	; r8b - rot (will be used for its velocity as well)
+	; r9b - rot_speed
 asteroids_create proc
-	mov ecx, MAX_NUM_ASTEROIDS
+	mov ecx, [asteroids_len]
+	cmp ecx, MAX_NUM_ASTEROIDS
+	jge _end
+
+	inc [asteroids_len]
+	imul ecx, sizeof Asteroid
+
 	lea rdi, asteroids
-	_loop:
-		cmp [rdi].Asteroid.mass, 0
-		jne next
+	mov qword ptr [rdi + rcx].Asteroid.pos, rax
+	mov [rdi + rcx].Asteroid.mass, ebx
+	mov [rdi + rcx].Asteroid.shape_ptr, rsi
+	mov [rdi + rcx].Asteroid.rot, r8b
+	mov [rdi + rcx].Asteroid.rot_speed, r9b
 
-		
+	xor eax, eax ; clear upper bits
+	mov al, r8b
+	call sin
+	sar rax, 15
+	mov [rdi + rcx].Asteroid.velocity.x, eax
 
-		next:
-		add rdi, sizeof Asteroid
-		loop _loop
+	xor rax, rax
+	mov al, r8b
+	call cos
+	sar rax, 15
+	mov [rdi + rcx].Asteroid.velocity.y, eax
+
+	_end:
 	ret
 asteroids_create endp
 
@@ -164,12 +174,11 @@ asteroids_checkBullets proc
 asteroids_checkBullets endp
 
 asteroids_updateAll proc
-	mov edx, MAX_NUM_ASTEROIDS
+	cmp [asteroids_len], 0
+	je _end
+	xor edx, edx
 	lea rdi, asteroids
 	mainLoop:
-		cmp [rdi].Asteroid.mass, 0
-		je next
-
 		; rotate asteroid
 		mov al, [rdi].Asteroid.rot_speed
 		add [rdi].Asteroid.rot, al
@@ -196,8 +205,10 @@ asteroids_updateAll proc
 
 		next:
 		add rdi, sizeof Asteroid
-		dec edx
-		jne mainLoop
+		inc edx
+		cmp edx, [asteroids_len]
+		jb mainLoop
+	_end:
 	ret
 asteroids_updateAll endp
 
