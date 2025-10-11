@@ -32,7 +32,7 @@ Following is the source of truth for this codebase's style of code.
   `ship_setAllPoints`
   
   `ship_base_points`
-- Contiguous definitions (no empty line separating them) of the same definition syntax should have all their columns aligned.
+- Contiguous definitions (no empty line separating them) of the same definition syntax should have all their columns aligned with spaces.
   - Good:
 	```
 	Ship struct
@@ -79,3 +79,4 @@ Following is the source of truth for this codebase's style of code.
 	jmp nextCmp
 	@@:
 	```
+ - for simple words that happen to be reserved, such as `loop` and `end`, it is okay to prepend them with an underscore to appease the assembler: `_loop`, `_end`.
