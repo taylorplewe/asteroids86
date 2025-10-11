@@ -1,6 +1,7 @@
 ifndef asteroids_h
 asteroids_h = 1
 
+include <globaldefs.inc>
 include <common.s>
 include <screen.s>
 include <bullets.s>
@@ -195,7 +196,7 @@ asteroids_updateAll proc
 
 		call asteroids_checkBullets
 		test eax, eax
-		jne next
+		jne nextCmp
 
 		push rdi
 		push rdx
@@ -206,6 +207,7 @@ asteroids_updateAll proc
 		next:
 		add rdi, sizeof Asteroid
 		inc edx
+		nextCmp:
 		cmp edx, [asteroids_len]
 		jb mainLoop
 	_end:
