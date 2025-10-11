@@ -193,6 +193,7 @@ ship_setAllPoints proc
 
 	mov r11b, [ship].rot
 	lea r10, ship
+	mov r12d, 00010000h
 
 	lea r8, ship_base_points
 	lea r9, ship_points

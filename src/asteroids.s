@@ -20,8 +20,9 @@ MAX_NUM_ASTEROIDS = 64
 
 .data
 
-asteroids Asteroid MAX_NUM_ASTEROIDS dup (<>)
-asteroids_current_points Point 2 dup (<?>) ; for drawing
+asteroids                    Asteroid  MAX_NUM_ASTEROIDS dup (<>)
+asteroids_arr                FatPtr    { asteroids, 0 }
+asteroids_current_points     Point     2                 dup (<?>) ; for drawing
 
 asteroid_shapes FatPtr {asteroid_shape1, asteroid_shape1_len}, {asteroid_shape2, asteroid_shape2_len}, {asteroid_shape3, asteroid_shape3_len}
 
@@ -34,11 +35,12 @@ asteroid_shape2_len = ($ - asteroid_shape2) / BasePoint
 asteroid_shape3 BasePoint {48, 10h}, {39, 20h}, {54, 33h}, {35, 41h}, {46, 60h}, {32, 73h}, {45, 88h}, {46, 0a8h}, {28, 0c6h}, {43, 0c6h}, {51, 0e0h}, {35, 0e8h}
 asteroid_shape3_len = ($ - asteroid_shape3) / BasePoint
 
-ASTEROID_MASS1 = 16
-ASTEROID_MASS2 = 32
-ASTEROID_MASS3 = 50
-asteroid_masses dd 0, ASTEROID_MASS1, ASTEROID_MASS2, ASTEROID_MASS3
-asteroid_r_squareds dd 0, ASTEROID_MASS1*ASTEROID_MASS1, ASTEROID_MASS2*ASTEROID_MASS2, ASTEROID_MASS3*ASTEROID_MASS3
+ASTEROID_MASS1 = 32
+ASTEROID_MASS2 = 50
+ASTEROID_MASS3 = 70
+asteroid_masses       dd 0, ASTEROID_MASS1,                ASTEROID_MASS2,                ASTEROID_MASS3
+asteroid_r_squareds   dd 0, ASTEROID_MASS1*ASTEROID_MASS1, ASTEROID_MASS2*ASTEROID_MASS2, ASTEROID_MASS3*ASTEROID_MASS3
+asteroid_mass_factors dd 0, 00008000h,                     00010000h,                     00018000h
 
 
 .code
@@ -63,30 +65,68 @@ asteroids_test proc
 	lea rax, asteroid_shapes + sizeof FatPtr*1
 	mov [asteroids + sizeof Asteroid].Asteroid.shape_ptr, rax
 
+	mov [asteroids + sizeof Asteroid*2].Asteroid.pos.x, (900) shl 16
+	mov [asteroids + sizeof Asteroid*2].Asteroid.pos.y, (200) shl 16
+	mov [asteroids + sizeof Asteroid*2].Asteroid.mass, 3
+	mov [asteroids + sizeof Asteroid*2].Asteroid.rot, 0
+	mov [asteroids + sizeof Asteroid*2].Asteroid.velocity.x, 00030000h
+	mov [asteroids + sizeof Asteroid*2].Asteroid.velocity.y, 000000800h
+	lea rax, asteroid_shapes + sizeof FatPtr*2
+	mov [asteroids + sizeof Asteroid*2].Asteroid.shape_ptr, rax
+
 	ret
 asteroids_test endp
 
 ; in:
-	; rdi - pointer to current asteroid
-asteroids_checkBullets macro
-	local mainLoop
-	local _next
+	; ebx - mass
+	
+	
+	; pos       Point  <?> ; 16.16 fixed point
+	; velocity  Vector <?> ; 16.16 fixed point
+	; mass      dd     ?   ; 0 when dead ; 'size' is a reserved word
+	; shape_ptr dq     ?
+	; rot       db     ?
+	; rot_speed db     ?
+asteroids_create proc
+	mov ecx, MAX_NUM_ASTEROIDS
+	lea rdi, asteroids
+	_loop:
+		cmp [rdi].Asteroid.mass, 0
+		jne next
 
-	mov ecx, NUM_BULLETS
+		
+
+		next:
+		add rdi, sizeof Asteroid
+		loop _loop
+	ret
+asteroids_create endp
+
+; in:
+	; rdi - pointer to current asteroid
+; out:
+	; eax - 1 if hit, 0 else
+asteroids_checkBullets proc
+	push rsi
+	push rcx
+	push rbx
+	push r8
+	push r9
+
+	xor ecx, ecx
 	lea rsi, bullets
 	mainLoop:
-		cmp [rsi].Bullet.ticks_to_live, 0
-		je _next
-	
 		; check if bullet is inside this asteroid's circular hitbox, dictacted by it's 'mass'
 		; hit if (dx^2 + dy^2) <= r^2
 		xor eax, eax ; clear upper bits
 		mov ax, word ptr [rsi].Bullet.pos.x + 2
 		sub ax, word ptr [rdi].Asteroid.pos.x + 2
+		cwde
 		imul eax, eax
 		mov r8d, eax
 		mov ax, word ptr [rsi].Bullet.pos.y + 2
 		sub ax, word ptr [rdi].Asteroid.pos.y + 2
+		cwde
 		imul eax, eax
 		mov r9d, eax
 
@@ -95,16 +135,30 @@ asteroids_checkBullets macro
 		mov ebx, [rdi].Asteroid.mass
 		shl ebx, 2 ; dwords
 		cmp r8d, [r9 + rbx]
-		jg _next
+		jg next
 
 		; hit!
 		mov [rdi].Asteroid.mass, 0
-		jmp next
+		mov eax, ecx
+		call bullets_destroyBullet
+		mov eax, 1
+		jmp _end
 
-		_next:
+		next:
 		add rsi, sizeof Bullet
-		loop mainLoop
-endm
+		inc ecx
+		cmp ecx, [bullets_len]
+		jb mainLoop
+
+	xor eax, eax
+	_end:
+	pop r9
+	pop r8
+	pop rbx
+	pop rcx
+	pop rsi
+	ret
+asteroids_checkBullets endp
 
 asteroids_updateAll proc
 	mov edx, MAX_NUM_ASTEROIDS
@@ -127,42 +181,9 @@ asteroids_updateAll proc
 		lea rsi, [rdi].Asteroid.pos
 		call wrapPointAroundScreen
 
-		; asteroids_checkBullets
-		mov ecx, NUM_BULLETS
-		lea rsi, bullets
-		_mainLoop:
-			cmp [rsi].Bullet.ticks_to_live, 0
-			je _next
-	
-			; check if bullet is inside this asteroid's circular hitbox, dictacted by it's 'mass'
-			; hit if (dx^2 + dy^2) <= r^2
-			xor eax, eax ; clear upper bits
-			mov ax, word ptr [rsi].Bullet.pos.x + 2
-			sub ax, word ptr [rdi].Asteroid.pos.x + 2
-			cwde
-			imul eax, eax
-			mov r8d, eax
-			mov ax, word ptr [rsi].Bullet.pos.y + 2
-			sub ax, word ptr [rdi].Asteroid.pos.y + 2
-			cwde
-			imul eax, eax
-			mov r9d, eax
-
-			add r8d, r9d
-			lea r9, asteroid_r_squareds
-			mov ebx, [rdi].Asteroid.mass
-			shl ebx, 2 ; dwords
-			cmp r8d, [r9 + rbx]
-			jg _next
-
-			; hit!
-			mov [rdi].Asteroid.mass, 0
-			mov [rsi].Bullet.ticks_to_live, 0
-			jmp next
-
-			_next:
-			add rsi, sizeof Bullet
-			loop _mainLoop
+		call asteroids_checkBullets
+		test eax, eax
+		jne next
 
 		push rdi
 		push rdx
@@ -180,6 +201,11 @@ asteroids_updateAll endp
 ; in:
 	; rdi - pointer to current asteroid
 asteroids_draw proc
+	; for shrinking the asteroids based on their mass
+	lea r12, asteroid_mass_factors
+	mov eax, [rdi].Asteroid.mass
+	shl eax, 2
+	mov r12d, [r12 + rax]
 	; draw all the points of this asteroid's shape
 	mov rax, [rdi].Asteroid.shape_ptr
 	mov ecx, [rax].FatPtr.len
@@ -188,8 +214,8 @@ asteroids_draw proc
 	mainLoop:
 		lea r10, [rdi].Asteroid.pos
 		mov r11b, [rdi].Asteroid.rot
-		push rcx
 		lea r9, asteroids_current_points
+		push rcx
 		call applyBasePointToPoint
 		pop rcx
 
@@ -197,8 +223,8 @@ asteroids_draw proc
 		cmp rcx, 1
 		cmove r8, rsi ; on the last one, wrap back to first point to finish the shape
 
-		push rcx
 		lea r9, asteroids_current_points + sizeof Point
+		push rcx
 		call applyBasePointToPoint
 		pop rcx
 
@@ -212,7 +238,8 @@ asteroids_draw proc
 		pop rdi
 
 		next:
-		loop mainLoop
+		dec ecx
+		jne mainLoop
 	ret
 asteroids_draw endp
 

@@ -41,6 +41,7 @@ sin endp
 	; r9   - pointer to destination Point
 	; r10  - pointer to origin point
 	; r11b - rotation in 256-based radians
+	; r12d - factor to multiply vector by (16.16 fixed point)
 applyBasePointToPoint proc
 	xor rax, rax
 	mov al, [r8].BasePoint.rad
@@ -53,6 +54,8 @@ applyBasePointToPoint proc
 	cdqe
 	imul rax, rcx
 	sar rax, 31
+	imul rax, r12
+	sar rax, 16
 	mov ecx, eax
 	mov eax, [r10].Point.x
 	shr eax, 16
@@ -66,6 +69,8 @@ applyBasePointToPoint proc
 	cdqe
 	imul rax, rcx
 	sar rax, 31
+	imul rax, r12
+	sar rax, 16
 	mov ecx, eax
 	mov eax, [r10].Point.y
 	shr eax, 16

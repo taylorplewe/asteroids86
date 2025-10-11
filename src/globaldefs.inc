@@ -46,5 +46,9 @@ abseax macro
 	sub eax, ebx
 endm
 
+brk macro
+	int 3
+endm
+
 
 endif
