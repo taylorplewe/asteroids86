@@ -28,3 +28,24 @@ Following is the source of truth for this codebase's style of code.
   For example:
 
   `ship_updateAll`
+- Contiguous definitions (no empty line separating them) of the same definition syntax should have all their columns aligned.
+  - Good:
+  ```
+Ship struct
+	x           dd     ?   ; 16.16 fixed point
+	y           dd     ?   ; 16.16 fixed point
+	rot         db     ?
+	is_boosting db     ?
+	velocity    Vector <?> ; 16.16 fixed point
+Ship ends
+  ```
+  - Bad:
+  ```
+Ship struct
+	x dd ? ; 16.16 fixed point
+	y dd ? ; 16.16 fixed point
+	rot db ?
+	is_boosting db ?
+	velocity Vector <?> ; 16.16 fixed point
+Ship ends
+  ```
