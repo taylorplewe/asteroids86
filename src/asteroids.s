@@ -212,6 +212,39 @@ asteroids_updateAll proc
 	ret
 asteroids_updateAll endp
 
+asteroids_destroyAsteroid proc
+	push rdi
+	push rsi
+	push rcx
+
+	dec [asteroids_len]
+	je _end
+
+	imul eax, sizeof Asteroid
+	lea rdi, asteroids
+	add rdi, rax
+
+	mov eax, [asteroids_len]
+	imul eax, sizeof Asteroid
+	lea rsi, asteroids
+	add rsi, rax
+
+	mov ecx, sizeof Asteroid
+	xor eax, eax
+	copyLoop:
+		mov al, [rsi]
+		mov [rdi], al
+		inc rsi
+		inc rdi
+		loop copyLoop
+
+	_end:
+	pop rcx
+	pop rsi
+	pop rdi
+	ret
+asteroids_destroyAsteroid endp
+
 ; in:
 	; rdi - pointer to current asteroid
 asteroids_draw proc
