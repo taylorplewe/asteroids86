@@ -65,7 +65,7 @@ ship_update proc
 		shl r9d, 16
 		mov r10b, [ship].rot
 		push rdi
-		call bullets_createBullet
+		call bullets_create
 		pop rdi
 
 		; kick

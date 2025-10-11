@@ -30,7 +30,7 @@ bullets_len dd     0
 	; r8d - X 16.16 fixed point
 	; r9d - Y 16.16 fixed point
 	; r10b - rotation in 256-based radians
-bullets_createBullet proc
+bullets_create proc
 	mov ecx, [bullets_len]
 	cmp ecx, NUM_BULLETS
 	jge _end
@@ -61,7 +61,7 @@ bullets_createBullet proc
 
 	_end:
 	ret
-bullets_createBullet endp
+bullets_create endp
 
 ; in:
 	; eax - index to delete

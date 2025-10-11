@@ -26,6 +26,7 @@ asteroids_len            dd        0
 asteroids_current_points Point     2                 dup (<?>) ; for drawing
 
 asteroid_shapes FatPtr {asteroid_shape1, asteroid_shape1_len}, {asteroid_shape2, asteroid_shape2_len}, {asteroid_shape3, asteroid_shape3_len}
+asteroid_shapes_end:
 
 asteroid_shape1 BasePoint {48, 08h}, {48, 1eh}, {35, 28h}, {42, 42h}, {48, 58h}, {30, 72h}, {40, 87h}, {46, 9eh}, {32, 0bch}, {43, 0c5h}, {46, 0deh}, {37, 0eeh}
 asteroid_shape1_len = ($ - asteroid_shape1) / BasePoint
@@ -113,6 +114,37 @@ asteroids_create proc
 	ret
 asteroids_create endp
 
+; If this asteroid has a mass greater than 1, destroy this asteroid and spawn 2 smaller ones in its place.
+; Otherwise, just destroy it.
+; in:
+	; rdi - pointer to asteroid just hit
+asteroids_onHitByBullet proc
+	cmp [rdi].Asteroid.mass, 1
+	je destroy
+
+	; replace this asteroid with a smaller one...
+	dec [rdi].Asteroid.mass
+	add [rdi].Asteroid.shape_ptr, sizeof FatPtr
+	lea rax, asteroid_shapes_end
+	cmp [rdi].Asteroid.shape_ptr, rax
+	jb @f
+	lea rax, asteroid_shapes
+	mov [rdi].Asteroid.shape_ptr, rax
+	@@:
+	shl [rdi].Asteroid.velocity.x, 1
+	shl [rdi].Asteroid.velocity.y, 1
+	add [rdi].Asteroid.rot_speed, 1
+
+	; ...and then add another one
+	jmp _end
+
+	destroy:
+	call asteroids_destroyAsteroid
+
+	_end:
+	ret
+asteroids_onHitByBullet endp
+
 ; in:
 	; rdi - pointer to current asteroid
 ; out:
@@ -151,9 +183,9 @@ asteroids_checkBullets proc
 		jg next
 
 		; hit!
-		call asteroids_destroyAsteroid
 		mov eax, ecx
 		call bullets_destroyBullet
+		call asteroids_onHitByBullet
 		mov eax, 1
 		jmp _end
 

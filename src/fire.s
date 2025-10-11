@@ -19,7 +19,7 @@ Fire struct
     shrink_vec       Vector <?> ; p1 will ADD this value to get towards the center, p2 will SUBTRACT
 	rot              db     ?
 Fire ends
-fires Fire MAX_NUM_FIRES dup (<?>)
+fires      Fire  MAX_NUM_FIRES dup (<?>)
 fire_color Pixel <0ffh, 0, 0, 0ffh>
 
 
