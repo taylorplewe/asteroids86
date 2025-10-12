@@ -1,6 +1,24 @@
 ------
 REGULAR INSTRUCTION LOOP
 ------
+	rdtsc
+	mov r8d, edx
+	shl r8, 32
+	or r8, rax
+	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT)/2
+	lea rdi, [pixels]
+	mov rax, 0
+	_loop:
+		mov qword ptr [rdi], rax
+		add rdi, 8
+		loop _loop
+
+	rdtsc
+	shl rdx, 32
+	or rdx, rax
+	sub rdx, r8
+	brk
+	; read RDX
 5CBF07
 329712
 5C527D
@@ -24,13 +42,31 @@ REGULAR INSTRUCTION LOOP
 22C114
 5D0E9B
 
-Average:
-4335EE = 4,404,718
+Average (sum/22):
+4335EE = 4,404,718 clock cycles
 
 
 ------
 SIMD INSTRUCTION LOOP
 ------
+	rdtsc
+	mov r8d, edx
+	shl r8, 32
+	or r8, rax
+	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT*4)/32
+	lea rdi, [pixels]
+	vmovdqu ymm0, ymmword ptr [zero64]
+	_loop:
+		vmovdqu ymmword ptr [rdi], ymm0
+		add rdi, 32
+		loop _loop
+
+	rdtsc
+	shl rdx, 32
+	or rdx, rax
+	sub rdx, r8
+	brk
+	; read RDX
 1B82D6
 19EDF1
 1624B4
@@ -54,5 +90,15 @@ SIMD INSTRUCTION LOOP
 194928
 0D5520
 
-Average:
-13DE32 = 1,302,066
+Average (sum/22):
+13DE32 = 1,302,066 clock cycles
+
+
+------
+FINDINGS
+------
+
+  4,404,718
+- 1,302,066
+-----------
+  3,102,652 clock cycles saved using SIMD instructions to clear the pixel buffer
