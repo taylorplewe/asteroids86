@@ -20,6 +20,7 @@ Fire struct
 	rot              db     ?
 Fire ends
 fires      Fire  MAX_NUM_FIRES dup (<?>)
+fires_len  dd    0
 fire_color Pixel <0ffh, 0, 0, 0ffh>
 
 

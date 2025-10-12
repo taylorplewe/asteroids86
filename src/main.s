@@ -40,8 +40,8 @@ render proc
 	mov rbx, [surface]
 	mov rdi, [rbx].SDL_Surface.pixels
 	lea rsi, pixels
-	mov ebx, (SCREEN_WIDTH * SCREEN_HEIGHT)/2
-	call memcpyAligned64
+	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 32
+	call memcpyAligned32
 
 	mov rcx, [renderer]
 	call SDL_UnlockSurface
@@ -68,21 +68,24 @@ render proc
 	ret
 render endp
 
-; TODO: make use of MOVDIR64B instruction? x86 has like fifty different MOV variant instructions lmao
 ; in:
 	; rdi = destination ptr
 	; rsi = source ptr
-	; ebx = count of qwords
-memcpyAligned64 proc
+	; ecx = count of qwords
+memcpyAligned32 proc
 	mainLoop:
-		mov rax, qword ptr [rsi]
-		mov qword ptr [rdi], rax
-		add rsi, 8
-		add rdi, 8
-		dec ebx
-		jne mainLoop
+		vmovdqa ymm0, ymmword ptr [rsi]
+		vmovdqa ymmword ptr [rdi], ymm0
+		add rsi, 32
+		add rdi, 32
+		loop mainLoop
 	ret
-memcpyAligned64 endp
+
+	; loop duration (in clock cycles) moving 8 bytes at a time with RAX:
+		; 7,340,032 cycles
+	; loop duration (in clock cycles) moving 32 bytes at a time with YMM0 (SIMD):
+		; 2,246,728 cycles
+memcpyAligned32 endp
 
 main proc
 	push rbp

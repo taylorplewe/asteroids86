@@ -62,6 +62,15 @@ Following is the source of truth for this codebase's style of code.
 	```
 - Tab characters (`\t`), as opposed to spaces, to represent tabs
   - Anything where the horizontal alignment matters (like the previous point about contiguous definitions) is done with spaces
+- A single space should separate *every* part of a numerical expression:
+  - Good:
+	```
+	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 32
+	```
+  - Bad:
+	```
+	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT*4)/32
+	```
 - Procedures declare their arguments (`in`) and return values (`out`) as such:
 	```
 	; Description of the procedure

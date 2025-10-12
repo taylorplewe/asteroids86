@@ -349,27 +349,13 @@ screen_drawLine endp
 
 zero64 db 64 dup (0)
 screen_clearPixelBuffer proc
-	rdtsc
-	mov r8d, edx
-	shl r8, 32
-	or r8, rax
 	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT*4)/32
-	; mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT)/2
 	lea rdi, [pixels]
 	vmovdqu ymm0, ymmword ptr [zero64]
-	; mov rax, 0
 	_loop:
 		vmovdqu ymmword ptr [rdi], ymm0
-		; mov qword ptr [rdi], rax
 		add rdi, 32
-		; add rdi, 8
 		loop _loop
-
-	rdtsc
-	shl rdx, 32
-	or rdx, rax
-	sub rdx, r8
-
 	ret
 screen_clearPixelBuffer endp
 
