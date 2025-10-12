@@ -58,7 +58,7 @@ asteroid_test proc
 	mov rax, ((SCREEN_HEIGHT/2) shl 48) or ((SCREEN_WIDTH/2) shl 16)
 	mov ebx, 3
 	lea rsi, asteroid_shapes
-	xor r8, r8
+	mov r8, -5
 	mov r9, 1
 	call asteroid_create
 
@@ -88,13 +88,14 @@ asteroid_setVelocity proc
 	xor eax, eax ; clear upper bits
 	mov al, r8b
 	call sin
-	sar rax, 15
+	sar eax, 15
 	mov [rdi].Asteroid.velocity.x, eax
 
 	xor rax, rax
 	mov al, r8b
 	call cos
-	sar rax, 15
+	sar eax, 15
+	neg eax
 	mov [rdi].Asteroid.velocity.y, eax
 
 	; smaller asteroids double their velocity a few times
@@ -150,6 +151,8 @@ asteroid_onHitByBullet proc
 	cmp [rdi].Asteroid.mass, 1
 	je destroy
 
+	xor r8, r8
+
 	; replace this asteroid with a smaller one...
 	dec [rdi].Asteroid.mass
 	add [rdi].Asteroid.shape_ptr, sizeof FatPtr
@@ -159,18 +162,17 @@ asteroid_onHitByBullet proc
 	lea rax, asteroid_shapes
 	mov [rdi].Asteroid.shape_ptr, rax
 	@@:
-	sub [rdi].Asteroid.dir, 20
 	add [rdi].Asteroid.rot_speed, 1
-	mov r8b, [rdi].Asteroid.dir
 
 	; (set velocity of that one)
+	sub [rdi].Asteroid.dir, 20
+	mov r8b, [rdi].Asteroid.dir
 	call asteroid_setVelocity
 
 	; ...and then add another one
 	mov rax, qword ptr [rdi].Asteroid.pos
 	mov ebx, [rdi].Asteroid.mass
 	mov rsi, [rdi].Asteroid.shape_ptr
-	mov r8b, [rdi].Asteroid.dir
 	add r8b, 40
 	mov r9b, [rdi].Asteroid.rot_speed
 	call asteroid_create
