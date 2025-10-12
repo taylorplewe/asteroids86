@@ -18,8 +18,9 @@ surface  qword ?
 texture  qword ?
 event    byte 2048 dup (?)
 
-ticks qword ?
-keys_down Keys <?>
+ticks     qword ?
+keys_down Keys  <?>
+is_paused dd    0
 
 
 .code
@@ -83,19 +84,6 @@ memcpyAligned64 proc
 	ret
 memcpyAligned64 endp
 
-clearPixelBuffer proc
-	mov ebx, (SCREEN_WIDTH*SCREEN_HEIGHT)/2
-	lea rdi, [pixels]
-	mov rax, 0
-	mainLoop:
-		mov qword ptr [rdi], rax
-		add rdi, 8
-		dec ebx
-		jne mainLoop
-		
-	ret
-clearPixelBuffer endp
-
 main proc
 	push rbp
 	mov rbp, rsp
@@ -136,8 +124,9 @@ main proc
 		call SDL_GetTicks
 		mov qword ptr [ticks], rax
 
-		xor al, al
+		xor eax, eax
 		mov [keys_down].fire, al
+		mov [is_paused], eax
 		pollLoop:
 			lea rcx, event
 			call SDL_PollEvent
@@ -202,6 +191,12 @@ main proc
 			cmp eax, SDLK_SPACE
 			jne @f
 				mov [keys_down].fire, 1
+				jmp pollLoopNext
+			@@:
+			cmp eax, SDLK_ESC
+			jne @f
+				inc [is_paused]
+				; jmp pollLoopNext
 			@@:
 			keyUpCheckEnd:
 
@@ -210,7 +205,7 @@ main proc
 			jmp pollLoop
 		pollLoopEnd:
 
-		call clearPixelBuffer
+		call screen_clearPixelBuffer
 
 		lea rdi, keys_down
 		call ship_update
@@ -233,7 +228,6 @@ main proc
 
 		inc [frame_counter]
 		jmp mainLoop
-
 	
 	quit:
 	mov rcx, [window]

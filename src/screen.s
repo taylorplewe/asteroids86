@@ -78,26 +78,18 @@ screen_drawCircle macro
 	mov rbp, rsp
 	sub rsp, 16
 
-	; push r10 ; x count
-	; push r11 ; y count
-	; push r12 ; center.x
-	; push r13 ; center.y
 	push rdx
 
 	CIRCLE_RADIUS = 4
 	CIRCLE_RSQ    = CIRCLE_RADIUS * CIRCLE_RADIUS
 
-	; mov r12d, ebx ; center.x
-	; mov r13d, ecx ; center.y
 	mov dword ptr [rsp + 8], ebx
 	mov dword ptr [rsp + 12], ecx
 	sub ebx, CIRCLE_RADIUS
 	sub ecx, CIRCLE_RADIUS
 
-	; mov r11d, CIRCLE_RADIUS*2
 	mov dword ptr [rsp + 4], CIRCLE_RADIUS*2
 	rowLoop:
-		; mov r10d, CIRCLE_RADIUS*2
 		mov dword ptr [rsp], CIRCLE_RADIUS*2
 		colLoop:
 			; inside circle if (dx^2 + dy^2) <= r^2
@@ -112,20 +104,16 @@ screen_drawCircle macro
 			jg colLoopNext
 
 			push rdx
-			; push r13
 			screen_setPixelWrapped
-			; pop r13
 			pop rdx
 
 			colLoopNext:
 			inc ebx
-			; dec r10d
 			dec dword ptr [rsp]
 			jne colLoop
 		rowLoopNext:
 		sub ebx, CIRCLE_RADIUS*2
 		inc ecx
-		; dec r11d
 		dec dword ptr [rsp + 4]
 		jne rowLoop
 
@@ -358,6 +346,33 @@ screen_drawLine proc
 			ret
 	ret
 screen_drawLine endp
+
+zero64 db 64 dup (0)
+screen_clearPixelBuffer proc
+	rdtsc
+	mov r8d, edx
+	shl r8, 32
+	or r8, rax
+	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT*4)/32
+	; mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT)/2
+	lea rdi, [pixels]
+	vmovdqu ymm0, ymmword ptr [zero64]
+	; mov rax, 0
+	_loop:
+		vmovdqu ymmword ptr [rdi], ymm0
+		; mov qword ptr [rdi], rax
+		add rdi, 32
+		; add rdi, 8
+		loop _loop
+
+	rdtsc
+	shl rdx, 32
+	or rdx, rax
+	sub rdx, r8
+	brk
+
+	ret
+screen_clearPixelBuffer endp
 
 
 endif
