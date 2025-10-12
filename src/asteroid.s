@@ -98,12 +98,12 @@ asteroid_setVelocity proc
 	mov [rdi].Asteroid.velocity.y, eax
 
 	; smaller asteroids double their velocity a few times
-	xor ecx, ecx
+	mov ecx, [rdi].Asteroid.mass
 	lea rax, asteroid_speed_shifts
-	add eax, [rdi].Asteroid.mass
+	add rax, rcx
 	mov cl, byte ptr [rax]
-	; shl [rdi].Asteroid.velocity.x, cl
-	; shl [rdi].Asteroid.velocity.y, cl
+	shl [rdi].Asteroid.velocity.x, cl
+	shl [rdi].Asteroid.velocity.y, cl
 
 	pop rcx
 	ret
@@ -159,33 +159,19 @@ asteroid_onHitByBullet proc
 	lea rax, asteroid_shapes
 	mov [rdi].Asteroid.shape_ptr, rax
 	@@:
-	; sub [rdi].Asteroid.dir, 20
+	sub [rdi].Asteroid.dir, 20
 	add [rdi].Asteroid.rot_speed, 1
 	mov r8b, [rdi].Asteroid.dir
 
 	; (set velocity of that one)
-	; x
-	xor eax, eax ; clear upper bits
-	mov al, r8b
-	call sin
-	sar rax, 15
-	mov [rdi].Asteroid.velocity.x, eax
-	; y
-	xor eax, eax
-	mov al, r8b
-	call cos
-	sar rax, 15
-	mov [rdi].Asteroid.velocity.y, eax
-
-	shl [rdi].Asteroid.velocity.x, 1
-	shl [rdi].Asteroid.velocity.y, 1
+	call asteroid_setVelocity
 
 	; ...and then add another one
 	mov rax, qword ptr [rdi].Asteroid.pos
 	mov ebx, [rdi].Asteroid.mass
 	mov rsi, [rdi].Asteroid.shape_ptr
 	mov r8b, [rdi].Asteroid.dir
-	; add r8b, 40
+	add r8b, 40
 	mov r9b, [rdi].Asteroid.rot_speed
 	call asteroid_create
 
