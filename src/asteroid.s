@@ -133,9 +133,39 @@ asteroid_onHitByBullet proc
 	@@:
 	shl [rdi].Asteroid.velocity.x, 1
 	shl [rdi].Asteroid.velocity.y, 1
+	sub [rdi].Asteroid.rot, 20
 	add [rdi].Asteroid.rot_speed, 1
+	mov r8b, [rdi].Asteroid.rot
+
+	; (set velocity of that one)
+	; x
+	xor eax, eax ; clear upper bits
+	mov al, r8b
+	call sin
+	sar rax, 15
+	mov [rdi].Asteroid.velocity.x, eax
+	; y
+	xor rax, rax
+	mov al, r8b
+	call cos
+	sar rax, 15
+	mov [rdi].Asteroid.velocity.y, eax
 
 	; ...and then add another one
+	mov rax, qword ptr [rdi].Asteroid.pos
+	mov ebx, [rdi].Asteroid.mass
+	mov rsi, [rdi].Asteroid.shape_ptr
+	mov r8b, [rdi].Asteroid.rot
+	add r8b, 40
+	mov r9b, [rdi].Asteroid.rot_speed
+	call asteroid_create
+
+	; rax - pos
+	; ebx - mass
+	; rsi - shape_ptr
+	; r8b - rot (will be used for its velocity as well)
+	; r9b - rot_speed
+
 	jmp _end
 
 	destroy:
