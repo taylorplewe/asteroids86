@@ -69,7 +69,7 @@ Following is the source of truth for this codebase's style of code.
  		; rax - 1 if hit, 0 else
  	fire_doSomething
  	```
- - MASM's unnamed labels (`@@:`) are fine to use for short, single-level blocks. MASM itself will enforce the latter, since unlike other assemblers, it doesn't support jumping over unnamed labels to get to other unnamed labels, only the next one or prevoius one.
+- MASM's unnamed labels (`@@:`) are fine to use for short, single-level blocks. MASM itself will enforce the latter, since unlike other assemblers, it doesn't support jumping over unnamed labels to get to other unnamed labels, only the immediate next one or prevoius one.
 	```
 	dec [rdi].Bullet.ticks_to_live
 	jne @f
@@ -79,4 +79,13 @@ Following is the source of truth for this codebase's style of code.
 	jmp nextCmp
 	@@:
 	```
- - for simple words that happen to be reserved, such as `loop` and `end`, it is okay to prepend them with an underscore to appease the assembler: `_loop`, `_end`.
+- For simple words that happen to be reserved, such as `loop` and `end`, it is okay to prepend them with an underscore to appease the assembler: `_loop`, `_end`.
+- Omit `byte ptr`, `word ptr`, `dword ptr` and `qword ptr` unless it won't compile without them (size of memory is ambiguous or being casted to a different size)
+- Use `db`, `dw`, `dd` and `dq` instead of their spelled-out alternatives
+- File/scope names always refer to the singular tense of an object; "asteroid" instead of "asteroids".
+  - Procedure names should *default* to operating on a single instance of the object. Otherwise, `-All` should be appended:
+  ```
+  call asteroid_create    ; creates a single asteroid
+  call asteroid_update    ; updates a single asteroid
+  call asteroid_updateAll ; updates all asteroids
+  ```
