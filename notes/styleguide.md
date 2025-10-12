@@ -59,8 +59,11 @@ Following is the source of truth for this codebase's style of code.
   	bullets Bullet NUM_BULLETS dup (<>)
 	bullets_len dd 0
 	```
+- Tab characters (`\t`), as opposed to spaces, to represent tabs
+  - Anything where the horizontal alignment matters (like the previous point about contiguous definitions) is done with spaces
 - Procedures declare their arguments (`in`) and return values (`out`) as such:
 	```
+	; Description of the procedure
 	; in:
 		; r8  - point1 (as qword ptr)
 		; r10 - point2 (as qword ptr)
@@ -79,13 +82,13 @@ Following is the source of truth for this codebase's style of code.
 	jmp nextCmp
 	@@:
 	```
-- For simple words that happen to be reserved, such as `loop` and `end`, it is okay to prepend them with an underscore to appease the assembler: `_loop`, `_end`.
+- When simple words that happen to be reserved are needed, such as `loop` and `end`, it is okay to prepend them with an underscore to appease the assembler: `_loop`, `_end`.
 - Omit `byte ptr`, `word ptr`, `dword ptr` and `qword ptr` unless it won't compile without them (size of memory is ambiguous or being casted to a different size)
 - Use `db`, `dw`, `dd` and `dq` instead of their spelled-out alternatives
 - File/scope names always refer to the singular tense of an object; "asteroid" instead of "asteroids".
   - Procedure names should *default* to operating on a single instance of the object. Otherwise, `-All` should be appended:
-  ```
-  call asteroid_create    ; creates a single asteroid
-  call asteroid_update    ; updates a single asteroid
-  call asteroid_updateAll ; updates all asteroids
-  ```
+	```
+	call asteroid_create    ; creates a single asteroid
+	call asteroid_update    ; updates a single asteroid
+	call asteroid_updateAll ; updates all asteroids
+	```
