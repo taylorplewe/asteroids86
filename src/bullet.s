@@ -15,7 +15,7 @@ Bullet ends
 
 NUM_BULLETS          = 64
 BULLET_SPEED         = 10
-BULLET_TICKS_TO_LIVE = 60
+BULLET_TICKS_TO_LIVE = 90
 
 
 .data

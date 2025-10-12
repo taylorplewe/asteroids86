@@ -131,8 +131,6 @@ asteroid_onHitByBullet proc
 	lea rax, asteroid_shapes
 	mov [rdi].Asteroid.shape_ptr, rax
 	@@:
-	shl [rdi].Asteroid.velocity.x, 1
-	shl [rdi].Asteroid.velocity.y, 1
 	sub [rdi].Asteroid.rot, 20
 	add [rdi].Asteroid.rot_speed, 1
 	mov r8b, [rdi].Asteroid.rot
@@ -151,6 +149,9 @@ asteroid_onHitByBullet proc
 	sar rax, 15
 	mov [rdi].Asteroid.velocity.y, eax
 
+	shl [rdi].Asteroid.velocity.x, 1
+	shl [rdi].Asteroid.velocity.y, 1
+
 	; ...and then add another one
 	mov rax, qword ptr [rdi].Asteroid.pos
 	mov ebx, [rdi].Asteroid.mass
@@ -159,12 +160,6 @@ asteroid_onHitByBullet proc
 	add r8b, 40
 	mov r9b, [rdi].Asteroid.rot_speed
 	call asteroid_create
-
-	; rax - pos
-	; ebx - mass
-	; rsi - shape_ptr
-	; r8b - rot (will be used for its velocity as well)
-	; r9b - rot_speed
 
 	jmp _end
 
@@ -181,6 +176,7 @@ asteroid_onHitByBullet endp
 	; eax - 1 if hit, 0 else
 asteroid_checkBullets proc
 	push rsi
+	push rdx
 	push rcx
 	push rbx
 	push r8
@@ -232,6 +228,7 @@ asteroid_checkBullets proc
 	pop r8
 	pop rbx
 	pop rcx
+	pop rdx
 	pop rsi
 	ret
 asteroid_checkBullets endp
