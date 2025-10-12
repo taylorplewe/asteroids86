@@ -12,6 +12,7 @@ Asteroid struct
 	velocity  Vector <?> ; 16.16 fixed point
 	mass      dd     ?   ; 0 when dead ; 'size' is a reserved word
 	shape_ptr dq     ?
+	dir       db     ?   ; which way this asteroid is flying, in 256-based radians
 	rot       db     ?
 	rot_speed db     ?
 Asteroid ends
@@ -43,6 +44,7 @@ ASTEROID_MASS3 = 70
 asteroid_masses       dd 0, ASTEROID_MASS1,                ASTEROID_MASS2,                ASTEROID_MASS3
 asteroid_r_squareds   dd 0, ASTEROID_MASS1*ASTEROID_MASS1, ASTEROID_MASS2*ASTEROID_MASS2, ASTEROID_MASS3*ASTEROID_MASS3
 asteroid_mass_factors dd 0, 00008000h,                     00010000h,                     00018000h
+asteroid_speed_shifts db 0, 2,                             1,                             0
 
 
 .code
@@ -78,12 +80,45 @@ asteroid_test proc
 asteroid_test endp
 
 ; in:
+	; rdi - pointer to asteroid
+	; r8b - asteroid's dir
+asteroid_setVelocity proc
+	push rcx
+
+	xor eax, eax ; clear upper bits
+	mov al, r8b
+	call sin
+	sar rax, 15
+	mov [rdi].Asteroid.velocity.x, eax
+
+	xor rax, rax
+	mov al, r8b
+	call cos
+	sar rax, 15
+	mov [rdi].Asteroid.velocity.y, eax
+
+	; smaller asteroids double their velocity a few times
+	xor ecx, ecx
+	lea rax, asteroid_speed_shifts
+	add eax, [rdi].Asteroid.mass
+	mov cl, byte ptr [rax]
+	; shl [rdi].Asteroid.velocity.x, cl
+	; shl [rdi].Asteroid.velocity.y, cl
+
+	pop rcx
+	ret
+asteroid_setVelocity endp
+
+; in:
 	; rax - pos
 	; ebx - mass
 	; rsi - shape_ptr
-	; r8b - rot (will be used for its velocity as well)
+	; r8b - dir (will be used for its velocity as well)
 	; r9b - rot_speed
 asteroid_create proc
+	push rdi
+	push rcx
+
 	mov ecx, [asteroids_len]
 	cmp ecx, MAX_NUM_ASTEROIDS
 	jge _end
@@ -92,25 +127,18 @@ asteroid_create proc
 	imul ecx, sizeof Asteroid
 
 	lea rdi, asteroids
-	mov qword ptr [rdi + rcx].Asteroid.pos, rax
-	mov [rdi + rcx].Asteroid.mass, ebx
-	mov [rdi + rcx].Asteroid.shape_ptr, rsi
-	mov [rdi + rcx].Asteroid.rot, r8b
-	mov [rdi + rcx].Asteroid.rot_speed, r9b
+	add rdi, rcx
+	mov qword ptr [rdi].Asteroid.pos, rax
+	mov [rdi].Asteroid.mass, ebx
+	mov [rdi].Asteroid.shape_ptr, rsi
+	mov [rdi].Asteroid.dir, r8b
+	mov [rdi].Asteroid.rot_speed, r9b
 
-	xor eax, eax ; clear upper bits
-	mov al, r8b
-	call sin
-	sar rax, 15
-	mov [rdi + rcx].Asteroid.velocity.x, eax
-
-	xor rax, rax
-	mov al, r8b
-	call cos
-	sar rax, 15
-	mov [rdi + rcx].Asteroid.velocity.y, eax
+	call asteroid_setVelocity
 
 	_end:
+	pop rcx
+	pop rdi
 	ret
 asteroid_create endp
 
@@ -131,9 +159,9 @@ asteroid_onHitByBullet proc
 	lea rax, asteroid_shapes
 	mov [rdi].Asteroid.shape_ptr, rax
 	@@:
-	sub [rdi].Asteroid.rot, 20
+	; sub [rdi].Asteroid.dir, 20
 	add [rdi].Asteroid.rot_speed, 1
-	mov r8b, [rdi].Asteroid.rot
+	mov r8b, [rdi].Asteroid.dir
 
 	; (set velocity of that one)
 	; x
@@ -143,7 +171,7 @@ asteroid_onHitByBullet proc
 	sar rax, 15
 	mov [rdi].Asteroid.velocity.x, eax
 	; y
-	xor rax, rax
+	xor eax, eax
 	mov al, r8b
 	call cos
 	sar rax, 15
@@ -156,8 +184,8 @@ asteroid_onHitByBullet proc
 	mov rax, qword ptr [rdi].Asteroid.pos
 	mov ebx, [rdi].Asteroid.mass
 	mov rsi, [rdi].Asteroid.shape_ptr
-	mov r8b, [rdi].Asteroid.rot
-	add r8b, 40
+	mov r8b, [rdi].Asteroid.dir
+	; add r8b, 40
 	mov r9b, [rdi].Asteroid.rot_speed
 	call asteroid_create
 
