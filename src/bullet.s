@@ -15,7 +15,7 @@ Bullet ends
 
 NUM_BULLETS          = 6
 BULLET_SPEED         = 10
-BULLET_TICKS_TO_LIVE = 90
+BULLET_TICKS_TO_LIVE = 70
 
 
 .data
@@ -99,9 +99,6 @@ bullet_destroy proc
 bullet_destroy endp
 
 bullet_updateAll proc
-	mov r14d, SCREEN_WIDTH
-	mov r15d, SCREEN_HEIGHT
-
 	lea rdi, bullets
 	cmp [bullets_len], 0
 	je _end
@@ -115,8 +112,6 @@ bullet_updateAll proc
 		; wrap around screen
 		lea rsi, [rdi].Bullet.pos
 		call wrapPointAroundScreen
-		
-		call bullet_draw
 
 		dec [rdi].Bullet.ticks_to_live
 		jne @f
@@ -135,6 +130,27 @@ bullet_updateAll proc
 	_end:
 	ret
 bullet_updateAll endp
+
+bullet_drawAll proc
+	mov r14d, SCREEN_WIDTH
+	mov r15d, SCREEN_HEIGHT
+
+	lea rdi, bullets
+	cmp [bullets_len], 0
+	je _end
+	xor ecx, ecx
+	mainLoop:
+		call bullet_draw
+
+		add rdi, sizeof Bullet
+		inc ecx
+		nextCmp:
+		cmp ecx, [bullets_len]
+		jl mainLoop
+
+	_end:
+	ret
+bullet_drawAll endp
 
 ; in:
 	; rdi - pointer to bullet

@@ -126,7 +126,6 @@ main proc
 
 		xor eax, eax
 		mov [keys_down].fire, al
-		mov [is_paused], eax
 		pollLoop:
 			lea rcx, event
 			call SDL_PollEvent
@@ -195,7 +194,7 @@ main proc
 			@@:
 			cmp eax, SDLK_ESC
 			jne @f
-				inc [is_paused]
+				xor [is_paused], 1
 				; jmp pollLoopNext
 			@@:
 			keyUpCheckEnd:
@@ -207,13 +206,20 @@ main proc
 
 		call screen_clearPixelBuffer
 
+		cmp [is_paused], 0
+		jne draw
+
 		lea rdi, keys_down
 		call ship_update
-		call ship_draw
-
 		call bullet_updateAll
 		call asteroid_updateAll
 		call fire_updateAll
+
+		draw:
+		call ship_draw
+		call bullet_drawAll
+		call asteroid_drawAll
+		call fire_drawAll
 
 		call render
 

@@ -213,6 +213,20 @@ fire_updateAll proc
 		add [rdi].Fire.p1.y, eax
 		sub [rdi].Fire.p2.y, eax
 
+		next:
+		add rdi, sizeof Fire
+		dec ecx
+		jne mainLoop ; too far for LOOP instruction
+	ret
+fire_updateAll endp
+
+fire_drawAll proc
+	lea rdi, fires
+	mov ecx, MAX_NUM_FIRES
+	mainLoop:
+		cmp [rdi].Fire.is_alive, 0
+		je next
+
 		push rcx
 		push rdi
 		fire_draw
@@ -224,7 +238,7 @@ fire_updateAll proc
 		dec ecx
 		jne mainLoop ; too far for LOOP instruction
 	ret
-fire_updateAll endp
+fire_drawAll endp
 
 
 endif

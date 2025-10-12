@@ -369,7 +369,6 @@ screen_clearPixelBuffer proc
 	shl rdx, 32
 	or rdx, rax
 	sub rdx, r8
-	brk
 
 	ret
 screen_clearPixelBuffer endp

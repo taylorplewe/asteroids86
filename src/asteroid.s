@@ -273,6 +273,22 @@ asteroid_updateAll proc
 		test eax, eax
 		jne nextCmp
 
+		next:
+		add rdi, sizeof Asteroid
+		inc edx
+		nextCmp:
+		cmp edx, [asteroids_len]
+		jb mainLoop
+	_end:
+	ret
+asteroid_updateAll endp
+
+asteroid_drawAll proc
+	cmp [asteroids_len], 0
+	je _end
+	xor edx, edx
+	lea rdi, asteroids
+	mainLoop:
 		push rdi
 		push rdx
 		call asteroid_draw
@@ -287,7 +303,7 @@ asteroid_updateAll proc
 		jb mainLoop
 	_end:
 	ret
-asteroid_updateAll endp
+asteroid_drawAll endp
 
 ; in:
 	; rdi - pointer to asteroid to destroy
