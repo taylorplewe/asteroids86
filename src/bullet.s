@@ -13,7 +13,7 @@ Bullet struct
 	ticks_to_live dd ?
 Bullet ends
 
-NUM_BULLETS          = 64
+NUM_BULLETS          = 6
 BULLET_SPEED         = 10
 BULLET_TICKS_TO_LIVE = 90
 
@@ -152,7 +152,7 @@ bullet_draw proc
 	lea rdi, pixels
 	mov r8d, [fg_color]
 
-	screen_plotPoint
+	screen_drawCircle
 
 	pop rbx
 	pop rcx

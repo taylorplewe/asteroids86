@@ -66,6 +66,66 @@ screen_plotPoint macro
 	dec ecx
 endm
 
+; in:
+	; ebx - x
+	; ecx - y
+	; r8d - color
+	; rdi - point to pixels
+	; r14d - SCREEN_WIDTH
+	; r15d - SCREEN_HEIGHT
+screen_drawCircle macro
+	push r10
+	push r11
+	push r12
+	push r13
+	push rdx
+
+	CIRCLE_RADIUS = 4
+	CIRCLE_RSQ    = CIRCLE_RADIUS * CIRCLE_RADIUS
+
+	mov r12d, ebx ; center.x
+	mov r13d, ecx ; center.y
+	sub ebx, CIRCLE_RADIUS
+	sub ecx, CIRCLE_RADIUS
+
+	mov r11d, CIRCLE_RADIUS*2
+	rowLoop:
+		mov r10d, CIRCLE_RADIUS*2
+		colLoop:
+			; inside circle if (dx^2 + dy^2) <= r^2
+			mov eax, ebx
+			sub eax, r12d
+			imul eax, eax
+			mov edx, ecx
+			sub edx, r13d
+			imul edx, edx
+			add eax, edx
+			cmp eax, CIRCLE_RSQ
+			jg colLoopNext
+
+			push rdx
+			push r13
+			screen_setPixelWrapped
+			pop r13
+			pop rdx
+
+			colLoopNext:
+			inc ebx
+			dec r10d
+			jne colLoop
+		rowLoopNext:
+		sub ebx, CIRCLE_RADIUS*2
+		inc ecx
+		dec r11d
+		jne rowLoop
+
+	pop rdx
+	pop r13
+	pop r12
+	pop r11
+	pop r10
+endm
+
 screen_mDrawLine macro point1:req, point2:req
 	mov eax, [point1].Point.x
 	mov [screen_point1].x, eax
