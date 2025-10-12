@@ -3,7 +3,8 @@ include <sdl\defs.inc>
 
 include <ship.s>
 include <screen.s>
-include <asteroids.s>
+include <bullet.s>
+include <asteroid.s>
 
 
 .data
@@ -129,7 +130,7 @@ main proc
 	xor rax, rax
 	mov [frame_counter], rax
 
-	call asteroids_test
+	call asteroid_test
 
 	mainLoop:
 		call SDL_GetTicks
@@ -215,8 +216,8 @@ main proc
 		call ship_update
 		call ship_draw
 
-		call bullets_updateAll
-		call asteroids_updateAll
+		call bullet_updateAll
+		call asteroid_updateAll
 		call fire_updateAll
 
 		call render

@@ -1,5 +1,5 @@
-ifndef bullets_h
-bullets_h = 1
+ifndef bullet_h
+bullet_h = 1
 
 include <common.s>
 include <globaldefs.inc>
@@ -30,7 +30,7 @@ bullets_len dd     0
 	; r8d - X 16.16 fixed point
 	; r9d - Y 16.16 fixed point
 	; r10b - rotation in 256-based radians
-bullets_create proc
+bullet_create proc
 	mov ecx, [bullets_len]
 	cmp ecx, NUM_BULLETS
 	jge _end
@@ -61,11 +61,11 @@ bullets_create proc
 
 	_end:
 	ret
-bullets_create endp
+bullet_create endp
 
 ; in:
 	; eax - index to delete
-bullets_destroyBullet proc
+bullet_destroy proc
 	push rdi
 	push rsi
 	push rcx
@@ -96,9 +96,9 @@ bullets_destroyBullet proc
 	pop rsi
 	pop rdi
 	ret
-bullets_destroyBullet endp
+bullet_destroy endp
 
-bullets_updateAll proc
+bullet_updateAll proc
 	mov r14d, SCREEN_WIDTH
 	mov r15d, SCREEN_HEIGHT
 
@@ -116,13 +116,13 @@ bullets_updateAll proc
 		lea rsi, [rdi].Bullet.pos
 		call wrapPointAroundScreen
 		
-		call bullets_draw
+		call bullet_draw
 
 		dec [rdi].Bullet.ticks_to_live
 		jne @f
 		; destroy bullet
 		mov eax, ecx
-		call bullets_destroyBullet
+		call bullet_destroy
 		jmp nextCmp
 		@@:
 		
@@ -134,11 +134,11 @@ bullets_updateAll proc
 
 	_end:
 	ret
-bullets_updateAll endp
+bullet_updateAll endp
 
 ; in:
 	; rdi - pointer to bullet
-bullets_draw proc
+bullet_draw proc
 	push rdi
 	push r8
 	push rcx
@@ -160,7 +160,7 @@ bullets_draw proc
 	pop rdi
 
 	ret
-bullets_draw endp
+bullet_draw endp
 
 
 endif

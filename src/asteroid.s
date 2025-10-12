@@ -1,10 +1,10 @@
-ifndef asteroids_h
-asteroids_h = 1
+ifndef asteroid_h
+asteroid_h = 1
 
 include <globaldefs.inc>
 include <common.s>
 include <screen.s>
-include <bullets.s>
+include <bullet.s>
 
 
 Asteroid struct
@@ -23,7 +23,7 @@ MAX_NUM_ASTEROIDS = 64
 
 asteroids                Asteroid  MAX_NUM_ASTEROIDS dup (<>)
 asteroids_len            dd        0
-asteroids_current_points Point     2                 dup (<?>) ; for drawing
+asteroid_current_points Point     2                 dup (<?>) ; for drawing
 
 asteroid_shapes FatPtr {asteroid_shape1, asteroid_shape1_len}, {asteroid_shape2, asteroid_shape2_len}, {asteroid_shape3, asteroid_shape3_len}
 asteroid_shapes_end:
@@ -47,7 +47,7 @@ asteroid_mass_factors dd 0, 00008000h,                     00010000h,           
 
 .code
 
-asteroids_test proc
+asteroid_test proc
 	; rax - pos
 	; ebx - mass
 	; rsi - shape_ptr
@@ -58,24 +58,24 @@ asteroids_test proc
 	lea rsi, asteroid_shapes
 	xor r8, r8
 	mov r9, 1
-	call asteroids_create
+	call asteroid_create
 
 	mov rax, ((20) shl 48) or ((100) shl 16)
 	mov ebx, 3
 	lea rsi, asteroid_shapes + sizeof FatPtr
 	xor r8, r8
 	xor r9, r9
-	call asteroids_create
+	call asteroid_create
 
 	mov rax, ((200) shl 48) or ((900) shl 16)
 	mov ebx, 3
 	lea rsi, asteroid_shapes + sizeof FatPtr*2
 	mov r8, 50
 	xor r9, r9
-	call asteroids_create
+	call asteroid_create
 
 	ret
-asteroids_test endp
+asteroid_test endp
 
 ; in:
 	; rax - pos
@@ -83,7 +83,7 @@ asteroids_test endp
 	; rsi - shape_ptr
 	; r8b - rot (will be used for its velocity as well)
 	; r9b - rot_speed
-asteroids_create proc
+asteroid_create proc
 	mov ecx, [asteroids_len]
 	cmp ecx, MAX_NUM_ASTEROIDS
 	jge _end
@@ -112,13 +112,13 @@ asteroids_create proc
 
 	_end:
 	ret
-asteroids_create endp
+asteroid_create endp
 
 ; If this asteroid has a mass greater than 1, destroy this asteroid and spawn 2 smaller ones in its place.
 ; Otherwise, just destroy it.
 ; in:
 	; rdi - pointer to asteroid just hit
-asteroids_onHitByBullet proc
+asteroid_onHitByBullet proc
 	cmp [rdi].Asteroid.mass, 1
 	je destroy
 
@@ -139,17 +139,17 @@ asteroids_onHitByBullet proc
 	jmp _end
 
 	destroy:
-	call asteroids_destroyAsteroid
+	call asteroid_destroy
 
 	_end:
 	ret
-asteroids_onHitByBullet endp
+asteroid_onHitByBullet endp
 
 ; in:
 	; rdi - pointer to current asteroid
 ; out:
 	; eax - 1 if hit, 0 else
-asteroids_checkBullets proc
+asteroid_checkBullets proc
 	push rsi
 	push rcx
 	push rbx
@@ -184,8 +184,8 @@ asteroids_checkBullets proc
 
 		; hit!
 		mov eax, ecx
-		call bullets_destroyBullet
-		call asteroids_onHitByBullet
+		call bullet_destroy
+		call asteroid_onHitByBullet
 		mov eax, 1
 		jmp _end
 
@@ -204,9 +204,9 @@ asteroids_checkBullets proc
 	pop rcx
 	pop rsi
 	ret
-asteroids_checkBullets endp
+asteroid_checkBullets endp
 
-asteroids_updateAll proc
+asteroid_updateAll proc
 	cmp [asteroids_len], 0
 	je _end
 	xor edx, edx
@@ -226,13 +226,13 @@ asteroids_updateAll proc
 		lea rsi, [rdi].Asteroid.pos
 		call wrapPointAroundScreen
 
-		call asteroids_checkBullets
+		call asteroid_checkBullets
 		test eax, eax
 		jne nextCmp
 
 		push rdi
 		push rdx
-		call asteroids_draw
+		call asteroid_draw
 		pop rdx
 		pop rdi
 
@@ -244,11 +244,11 @@ asteroids_updateAll proc
 		jb mainLoop
 	_end:
 	ret
-asteroids_updateAll endp
+asteroid_updateAll endp
 
 ; in:
 	; rdi - pointer to asteroid to destroy
-asteroids_destroyAsteroid proc
+asteroid_destroy proc
 	push rsi
 	push rcx
 
@@ -274,11 +274,11 @@ asteroids_destroyAsteroid proc
 	pop rcx
 	pop rsi
 	ret
-asteroids_destroyAsteroid endp
+asteroid_destroy endp
 
 ; in:
 	; rdi - pointer to current asteroid
-asteroids_draw proc
+asteroid_draw proc
 	; for shrinking the asteroids based on their mass
 	lea r12, asteroid_mass_factors
 	mov eax, [rdi].Asteroid.mass
@@ -292,7 +292,7 @@ asteroids_draw proc
 	mainLoop:
 		lea r10, [rdi].Asteroid.pos
 		mov r11b, [rdi].Asteroid.rot
-		lea r9, asteroids_current_points
+		lea r9, asteroid_current_points
 		push rcx
 		call applyBasePointToPoint
 		pop rcx
@@ -301,7 +301,7 @@ asteroids_draw proc
 		cmp rcx, 1
 		cmove r8, rsi ; on the last one, wrap back to first point to finish the shape
 
-		lea r9, asteroids_current_points + sizeof Point
+		lea r9, asteroid_current_points + sizeof Point
 		push rcx
 		call applyBasePointToPoint
 		pop rcx
@@ -310,7 +310,7 @@ asteroids_draw proc
 		push rcx
 		push r8
 		mov r8d, [fg_color]
-		screen_mDrawLine asteroids_current_points, asteroids_current_points + sizeof Point
+		screen_mDrawLine asteroid_current_points, asteroid_current_points + sizeof Point
 		pop r8
 		pop rcx
 		pop rdi
@@ -319,7 +319,7 @@ asteroids_draw proc
 		dec ecx
 		jne mainLoop
 	ret
-asteroids_draw endp
+asteroid_draw endp
 
 
 endif

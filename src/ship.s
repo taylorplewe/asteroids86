@@ -2,7 +2,7 @@ ifndef ship_h
 ship_h = 1
 
 include <fire.s>
-include <bullets.s>
+include <bullet.s>
 include <screen.s>
 
 
@@ -65,7 +65,7 @@ ship_update proc
 		shl r9d, 16
 		mov r10b, [ship].rot
 		push rdi
-		call bullets_create
+		call bullet_create
 		pop rdi
 
 		; kick
