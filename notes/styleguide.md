@@ -77,10 +77,10 @@ Following is the source of truth for this codebase's style of code.
 	```
 	dec [rdi].Bullet.ticks_to_live
 	jne @f
-	; destroy bullet
-	mov eax, ecx
-	call bullets_destroyBullet
-	jmp nextCmp
+		; destroy bullet
+		mov eax, ecx
+		call bullets_destroyBullet
+		jmp nextCmp
 	@@:
 	```
 - When simple words that happen to be reserved are needed, such as `loop` and `end`, it is okay to prepend them with an underscore to appease the assembler: `_loop`, `_end`.
