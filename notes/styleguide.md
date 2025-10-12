@@ -11,6 +11,7 @@ Following is the source of truth for this codebase's style of code.
     - numerical constants
   - `.data`
   - `.code`
+  
   Each section is separated by 2 empty lines. `.data` and `.code` are followed by 1 empty line.
 - Name casing
   - `MyStruct`
