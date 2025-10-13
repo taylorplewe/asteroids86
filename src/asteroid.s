@@ -197,6 +197,7 @@ asteroid_checkBullets proc
 	push r9
 
 	mov eax, [bullets_arr].Array.data.len
+	; bullets_arr.data.len is NOT zero here hwen it should be
 	cmp [bullets_arr].Array.data.len, 0
 	je noHit
 	xor ecx, ecx
