@@ -59,10 +59,10 @@ array_removeAt endp
 	; rsi - point to Array
 	; rdi - point to destination element slot in Array's memory
 array_removeEl proc
-	brk
 	dec [rsi].Array.data.len
 	je _end
 
+	mov rcx, [rsi].Array.el_size
 	mov eax, [rsi].Array.data.len
 	imul eax, ecx
 	mov rsi, [rsi].Array.data.pntr

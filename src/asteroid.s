@@ -143,6 +143,11 @@ asteroid_create endp
 ; in:
 	; rdi - pointer to asteroid just hit
 asteroid_onHitByBullet proc
+	push rsi
+	push rdi
+	push r8
+	push r9
+
 	cmp [rdi].Asteroid.mass, 1
 	je destroy
 
@@ -162,25 +167,28 @@ asteroid_onHitByBullet proc
 	; (set velocity of that one)
 	sub [rdi].Asteroid.dir, 20
 	mov r8b, [rdi].Asteroid.dir
+	mov rsi, rdi
 	call asteroid_setVelocity
 
 	; ...and then add another one
-	mov rax, qword ptr [rdi].Asteroid.pos
-	mov ebx, [rdi].Asteroid.mass
-	mov rsi, [rdi].Asteroid.shape_ptr
+	mov rbx, qword ptr [rdi].Asteroid.pos
+	mov ecx, [rdi].Asteroid.mass
 	add r8b, 40
 	mov r9b, [rdi].Asteroid.rot_speed
+	mov rdi, [rdi].Asteroid.shape_ptr
 	call asteroid_create
 
 	jmp _end
 
 	destroy:
-	push rsi
 	lea rsi, asteroids_arr
 	call array_removeEl
-	pop rsi
 
 	_end:
+	pop r9
+	pop r8
+	pop rdi
+	pop rsi
 	ret
 asteroid_onHitByBullet endp
 
@@ -225,12 +233,13 @@ asteroid_checkBullets proc
 		jg next
 
 		; hit!
-		mov eax, ecx
+		push rsi
 		lea rsi, bullets_arr
+		mov eax, ecx
 		call array_removeAt
+		pop rsi
 		call asteroid_onHitByBullet
 		mov eax, 1
-		; brk
 		jmp _end
 
 		next:
