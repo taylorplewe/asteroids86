@@ -1,23 +1,22 @@
 Array struct
     data    FatPtr <?>
     cap     dd     ?
-    el_size dd     ?
+    el_size dq     ?
 Array ends
 
 ; in:
-	; rdi - pointer to Array
+	; rsi - pointer to Array
 ; out:
     ; rax - pointer to new element if successful, 0 otherwise
 array_push proc
-	mov eax, [rdi].Array.data.len
-	cmp eax, [rdi].Array.cap
+	mov eax, [rsi].Array.data.len
+	cmp eax, [rsi].Array.cap
 	jge atCapacity
 
-	inc [rdi].Array.data.len
-    imul eax, [rdi].Array.el_size
-    mov rdi, [rdi].Array.data.pntr
-    add rdi, rax
-    mov rax, rdi
+	inc [rsi].Array.data.len
+    imul rax, [rsi].Array.el_size
+    mov rsi, [rsi].Array.data.pntr
+	add rax, rsi
 	ret
 
 	atCapacity:
@@ -26,23 +25,23 @@ array_push proc
 array_push endp
 
 ; in:
-	; rdi - pointer to array
+	; rsi - pointer to array
 	; eax - index to delete
-array_remove proc
-	push rsi
+array_removeAt proc
+	push rdi
 	push rcx
 
-	dec [rdi].Array.data.len
+	dec [rsi].Array.data.len
 	je _end
 
-	mov ecx, [rdi].Array.el_size
+	mov rcx, [rsi].Array.el_size
 	imul eax, ecx
-	mov rdi, [rdi].Array.data.pntr
+	mov rdi, [rsi].Array.data.pntr
 	add rdi, rax
 
-	mov eax, [rdi].Array.data.len
+	mov eax, [rsi].Array.data.len
 	imul eax, ecx
-	mov rsi, [rdi].Array.data.pntr
+	mov rsi, [rsi].Array.data.pntr
 	add rsi, rax
 
 	xor eax, eax
@@ -55,7 +54,32 @@ array_remove proc
 
 	_end:
 	pop rcx
-	pop rsi
+	pop rdi
 	ret
-array_remove endp
+array_removeAt endp
+
+; in:
+	; rsi - pointer to Array
+	; r8  - pointer to callback routine
+	;       (will pass rdi as the pointer to the element)
+	;       (should return eax=1 if element was deleted during the callback, 0 otherwise)
+array_forEach proc
+	cmp [rsi].Array.data.len, 0
+	je _end
+	mov rdi, [rsi].Array.data.pntr
+	xor ecx, ecx
+	_loop:
+		call r8
+		test eax, eax
+		jne nextCmp
+		
+		add rdi, [rsi].Array.el_size
+		inc ecx
+		nextCmp:
+		cmp ecx, [rsi].Array.data.len
+		jl _loop
+
+	_end:
+	ret
+array_forEach endp
 

@@ -199,7 +199,7 @@ asteroid_checkBullets proc
 	push r8
 	push r9
 
-	cmp [bullets_len], 0
+	cmp [bullets_arr].Array.data.len, 0
 	je noHit
 	xor ecx, ecx
 	lea rsi, bullets
@@ -227,7 +227,8 @@ asteroid_checkBullets proc
 
 		; hit!
 		mov eax, ecx
-		call bullet_destroy
+		lea rsi, bullets_arr
+		call array_removeAt
 		call asteroid_onHitByBullet
 		mov eax, 1
 		jmp _end
@@ -235,7 +236,7 @@ asteroid_checkBullets proc
 		next:
 		add rsi, sizeof Bullet
 		inc ecx
-		cmp ecx, [bullets_len]
+		cmp ecx, [bullets_arr].Array.data.len
 		jb mainLoop
 
 	noHit:

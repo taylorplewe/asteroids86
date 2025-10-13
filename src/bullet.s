@@ -33,129 +33,91 @@ bullets_arr Array  { { bullets, 0 }, NUM_BULLETS }
 	; r9d - Y 16.16 fixed point
 	; r10b - rotation in 256-based radians
 bullet_create proc
-	mov ecx, [bullets_len]
-	cmp ecx, NUM_BULLETS
-	jge _end
+	lea rsi, bullets_arr
+	call array_push
+	test rax, rax
+	je _end
 
-	inc [bullets_len]
-	imul ecx, sizeof Bullet
+	mov rsi, rax
+	mov [rsi].Bullet.ticks_to_live, BULLET_TICKS_TO_LIVE
+	mov [rsi].Bullet.pos.x, r8d
+	mov [rsi].Bullet.pos.y, r9d
 
-	lea rdi, bullets
-	mov [rdi + rcx].Bullet.ticks_to_live, BULLET_TICKS_TO_LIVE
-	mov [rdi + rcx].Bullet.pos.x, r8d
-	mov [rdi + rcx].Bullet.pos.y, r9d
-
-	xor rax, rax
+	xor eax, eax
 	mov al, r10b
 	call sin
 	cdqe
 	imul rax, BULLET_SPEED
 	sar rax, 15
-	mov [rdi + rcx].Bullet.velocity.x, eax
+	mov [rsi].Bullet.velocity.x, eax
 
-	xor rax, rax
+	xor eax, eax
 	mov al, r10b
 	call cos
 	cdqe
 	imul rax, BULLET_SPEED
 	sar rax, 15
-	mov [rdi + rcx].Bullet.velocity.y, eax
+	mov [rsi].Bullet.velocity.y, eax
 
 	_end:
 	ret
 bullet_create endp
 
-; in:
-	; eax - index to delete
-bullet_destroy proc
-	push rdi
-	push rsi
-	push rcx
-
-	dec [bullets_len]
-	je _end
-
-	imul eax, sizeof Bullet
-	lea rdi, bullets
-	add rdi, rax
-
-	mov eax, [bullets_len]
-	imul eax, sizeof Bullet
-	lea rsi, bullets
-	add rsi, rax
-
-	mov ecx, sizeof Bullet
-	xor eax, eax
-	copyLoop:
-		mov al, [rsi]
-		mov [rdi], al
-		inc rsi
-		inc rdi
-		loop copyLoop
-
-	_end:
-	pop rcx
-	pop rsi
-	pop rdi
-	ret
-bullet_destroy endp
-
 bullet_updateAll proc
-	lea rdi, bullets
-	cmp [bullets_len], 0
-	je _end
-	xor ecx, ecx
-	mainLoop:
-		mov eax, [rdi].Bullet.velocity.x
-		add [rdi].Bullet.pos.x, eax
-		mov eax, [rdi].Bullet.velocity.y
-		sub [rdi].Bullet.pos.y, eax
+	lea rsi, bullets_arr
+	lea r8, bullet_update
+	jmp array_forEach
+bullet_updateAll endp
 
-		; wrap around screen
-		lea rsi, [rdi].Bullet.pos
-		call wrapPointAroundScreen
+; Callback function
+; in:
+	; rdi - pointer to bullet
+; out:
+	; eax - 1 if bullet was deleted, 0 otherwise
+bullet_update proc
+	push rsi
 
-		dec [rdi].Bullet.ticks_to_live
-		jne @f
-		; destroy bullet
-		mov eax, ecx
-		call bullet_destroy
-		jmp nextCmp
-		@@:
-		
-		add rdi, sizeof Bullet
-		inc ecx
-		nextCmp:
-		cmp ecx, [bullets_len]
-		jl mainLoop
+	mov eax, [rdi].Bullet.velocity.x
+	add [rdi].Bullet.pos.x, eax
+	mov eax, [rdi].Bullet.velocity.y
+	sub [rdi].Bullet.pos.y, eax
+
+	; wrap around screen
+	lea rsi, [rdi].Bullet.pos
+	call wrapPointAroundScreen
+
+	dec [rdi].Bullet.ticks_to_live
+	jne normalEnd
+
+	; destroy bullet
+	mov eax, ecx
+	lea rsi, bullets_arr
+	call array_removeAt
+	mov eax, 1
+	jmp _end
+
+	normalEnd:
+	xor eax, eax
 
 	_end:
+	pop rsi
 	ret
-bullet_updateAll endp
+bullet_update endp
 
 bullet_drawAll proc
 	mov r14d, SCREEN_WIDTH
 	mov r15d, SCREEN_HEIGHT
 
-	lea rdi, bullets
-	cmp [bullets_len], 0
-	je _end
-	xor ecx, ecx
-	mainLoop:
-		call bullet_draw
-
-		add rdi, sizeof Bullet
-		inc ecx
-		nextCmp:
-		cmp ecx, [bullets_len]
-		jl mainLoop
-
-	_end:
-	ret
+	lea rsi, bullets_arr
+	lea r8, bullet_draw
+	jmp array_forEach
 bullet_drawAll endp
 
+; Callback routine
 ; in:
 	; rdi - pointer to bullet
+; out:
+	; eax - 0
 bullet_draw proc
 	push rdi
 	push r8
@@ -177,6 +139,7 @@ bullet_draw proc
 	pop r8
 	pop rdi
 
+	xor eax, eax
 	ret
 bullet_draw endp
 
