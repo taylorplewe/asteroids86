@@ -1,7 +1,9 @@
 ifndef ship_h
 ship_h = 1
 
-include <fire.s>
+include <globaldefs.inc>
+
+include <fx\fire.s>
 include <bullet.s>
 include <screen.s>
 

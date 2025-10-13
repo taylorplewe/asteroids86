@@ -1,9 +1,11 @@
 ifndef bullet_h
 bullet_h = 1
 
-include <common.s>
 include <globaldefs.inc>
+
+include <common.s>
 include <global.s>
+include <array.s>
 include <screen.s>
 
 
@@ -21,7 +23,7 @@ BULLET_TICKS_TO_LIVE = 70
 .data
 
 bullets     Bullet NUM_BULLETS dup (<>)
-bullets_len dd     0
+bullets_arr Array  { { bullets, 0 }, NUM_BULLETS }
 
 
 .code

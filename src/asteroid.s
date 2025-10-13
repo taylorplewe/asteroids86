@@ -2,6 +2,7 @@ ifndef asteroid_h
 asteroid_h = 1
 
 include <globaldefs.inc>
+
 include <common.s>
 include <screen.s>
 include <bullet.s>
@@ -24,7 +25,7 @@ MAX_NUM_ASTEROIDS = 64
 
 asteroids                Asteroid  MAX_NUM_ASTEROIDS dup (<>)
 asteroids_len            dd        0
-asteroid_current_points Point     2                 dup (<?>) ; for drawing
+asteroid_current_points  Point     2                 dup (<?>) ; for drawing
 
 asteroid_shapes FatPtr {asteroid_shape1, asteroid_shape1_len}, {asteroid_shape2, asteroid_shape2_len}, {asteroid_shape3, asteroid_shape3_len}
 asteroid_shapes_end:

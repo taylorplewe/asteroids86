@@ -162,6 +162,26 @@ main proc
 				mov [keys_down].right, 1
 				jmp pollLoopNext
 			@@:
+			cmp eax, SDLK_UP
+			jne @f
+				mov [keys_down].up, 1
+				jmp pollLoopNext
+			@@:
+			cmp eax, SDLK_DOWN
+			jne @f
+				mov [keys_down].down, 1
+				jmp pollLoopNext
+			@@:
+			cmp eax, SDLK_LEFT
+			jne @f
+				mov [keys_down].left, 1
+				jmp pollLoopNext
+			@@:
+			cmp eax, SDLK_RIGHT
+			jne @f
+				mov [keys_down].right, 1
+				jmp pollLoopNext
+			@@:
 			cmp eax, SDLK_Q
 			je quit
 			keyDownCheckEnd:
@@ -190,7 +210,32 @@ main proc
 				mov [keys_down].right, 0
 				jmp pollLoopNext
 			@@:
+			cmp eax, SDLK_UP
+			jne @f
+				mov [keys_down].up, 0
+				jmp pollLoopNext
+			@@:
+			cmp eax, SDLK_DOWN
+			jne @f
+				mov [keys_down].down, 0
+				jmp pollLoopNext
+			@@:
+			cmp eax, SDLK_LEFT
+			jne @f
+				mov [keys_down].left, 0
+				jmp pollLoopNext
+			@@:
+			cmp eax, SDLK_RIGHT
+			jne @f
+				mov [keys_down].right, 0
+				jmp pollLoopNext
+			@@:
 			cmp eax, SDLK_SPACE
+			jne @f
+				mov [keys_down].fire, 1
+				jmp pollLoopNext
+			@@:
+			cmp eax, SDLK_L
 			jne @f
 				mov [keys_down].fire, 1
 				jmp pollLoopNext
