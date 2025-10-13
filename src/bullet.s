@@ -69,7 +69,7 @@ bullet_updateAll proc
 	jmp array_forEach
 bullet_updateAll endp
 
-; Callback function
+; Callback routine
 ; in:
 	; rdi - pointer to bullet
 ; out:
@@ -139,7 +139,7 @@ bullet_draw proc
 	pop r8
 	pop rdi
 
-	xor eax, eax
+	xor eax, eax ; bullet was not destroyed
 	ret
 bullet_draw endp
 

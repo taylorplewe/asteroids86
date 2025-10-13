@@ -4,6 +4,7 @@ asteroid_h = 1
 include <globaldefs.inc>
 
 include <common.s>
+include <array.s>
 include <screen.s>
 include <bullet.s>
 
@@ -24,7 +25,7 @@ MAX_NUM_ASTEROIDS = 64
 .data
 
 asteroids                Asteroid  MAX_NUM_ASTEROIDS dup (<>)
-asteroids_len            dd        0
+asteroids_arr            Array     { { asteroids, 0 }, MAX_NUM_ASTEROIDS, sizeof Asteroid }
 asteroid_current_points  Point     2                 dup (<?>) ; for drawing
 
 asteroid_shapes FatPtr {asteroid_shape1, asteroid_shape1_len}, {asteroid_shape2, asteroid_shape2_len}, {asteroid_shape3, asteroid_shape3_len}
@@ -56,23 +57,23 @@ asteroid_test proc
 	; rsi - shape_ptr
 	; r8b - rot (will be used for its velocity as well)
 	; r9b - rot_speed
-	mov rax, ((SCREEN_HEIGHT/2) shl 48) or ((SCREEN_WIDTH/2) shl 16)
-	mov ebx, 3
-	lea rsi, asteroid_shapes
+	mov rbx, ((SCREEN_HEIGHT/2) shl 48) or ((SCREEN_WIDTH/2) shl 16)
+	mov ecx, 3
+	lea rdi, asteroid_shapes
 	mov r8, -5
 	mov r9, 1
 	call asteroid_create
 
-	mov rax, ((20) shl 48) or ((100) shl 16)
-	mov ebx, 3
-	lea rsi, asteroid_shapes + sizeof FatPtr
+	mov rbx, ((20) shl 48) or ((100) shl 16)
+	mov ecx, 3
+	lea rdi, asteroid_shapes + sizeof FatPtr
 	xor r8, r8
 	xor r9, r9
 	call asteroid_create
 
-	mov rax, ((200) shl 48) or ((900) shl 16)
-	mov ebx, 3
-	lea rsi, asteroid_shapes + sizeof FatPtr*2
+	mov rbx, ((200) shl 48) or ((900) shl 16)
+	mov ecx, 3
+	lea rdi, asteroid_shapes + sizeof FatPtr*2
 	mov r8, 50
 	xor r9, r9
 	call asteroid_create
@@ -81,7 +82,7 @@ asteroid_test proc
 asteroid_test endp
 
 ; in:
-	; rdi - pointer to asteroid
+	; rsi - pointer to asteroid
 	; r8b - asteroid's dir
 asteroid_setVelocity proc
 	push rcx
@@ -90,57 +91,50 @@ asteroid_setVelocity proc
 	mov al, r8b
 	call sin
 	sar eax, 15
-	mov [rdi].Asteroid.velocity.x, eax
+	mov [rsi].Asteroid.velocity.x, eax
 
 	xor rax, rax
 	mov al, r8b
 	call cos
 	sar eax, 15
 	neg eax
-	mov [rdi].Asteroid.velocity.y, eax
+	mov [rsi].Asteroid.velocity.y, eax
 
 	; smaller asteroids double their velocity a few times
-	mov ecx, [rdi].Asteroid.mass
+	mov ecx, [rsi].Asteroid.mass
 	lea rax, asteroid_speed_shifts
 	add rax, rcx
 	mov cl, byte ptr [rax]
-	shl [rdi].Asteroid.velocity.x, cl
-	shl [rdi].Asteroid.velocity.y, cl
+	shl [rsi].Asteroid.velocity.x, cl
+	shl [rsi].Asteroid.velocity.y, cl
 
 	pop rcx
 	ret
 asteroid_setVelocity endp
 
 ; in:
-	; rax - pos
-	; ebx - mass
-	; rsi - shape_ptr
+	; rbx - pos
+	; ecx - mass
+	; rdi - shape_ptr
 	; r8b - dir (will be used for its velocity as well)
 	; r9b - rot_speed
 asteroid_create proc
-	push rdi
-	push rcx
+	lea rsi, asteroids_arr
+	call array_push
+	test rax, rax
+	je _end
 
-	mov ecx, [asteroids_len]
-	cmp ecx, MAX_NUM_ASTEROIDS
-	jge _end
+	mov rsi, rax
 
-	inc [asteroids_len]
-	imul ecx, sizeof Asteroid
-
-	lea rdi, asteroids
-	add rdi, rcx
-	mov qword ptr [rdi].Asteroid.pos, rax
-	mov [rdi].Asteroid.mass, ebx
-	mov [rdi].Asteroid.shape_ptr, rsi
-	mov [rdi].Asteroid.dir, r8b
-	mov [rdi].Asteroid.rot_speed, r9b
+	mov qword ptr [rsi].Asteroid.pos, rbx
+	mov [rsi].Asteroid.mass, ecx
+	mov [rsi].Asteroid.shape_ptr, rdi
+	mov [rsi].Asteroid.dir, r8b
+	mov [rsi].Asteroid.rot_speed, r9b
 
 	call asteroid_setVelocity
 
 	_end:
-	pop rcx
-	pop rdi
 	ret
 asteroid_create endp
 
@@ -181,7 +175,10 @@ asteroid_onHitByBullet proc
 	jmp _end
 
 	destroy:
-	call asteroid_destroy
+	push rsi
+	lea rsi, asteroids_arr
+	call array_removeEl
+	pop rsi
 
 	_end:
 	ret
@@ -199,6 +196,7 @@ asteroid_checkBullets proc
 	push r8
 	push r9
 
+	mov eax, [bullets_arr].Array.data.len
 	cmp [bullets_arr].Array.data.len, 0
 	je noHit
 	xor ecx, ecx
@@ -231,6 +229,7 @@ asteroid_checkBullets proc
 		call array_removeAt
 		call asteroid_onHitByBullet
 		mov eax, 1
+		; brk
 		jmp _end
 
 		next:
@@ -252,105 +251,69 @@ asteroid_checkBullets proc
 asteroid_checkBullets endp
 
 asteroid_updateAll proc
-	cmp [asteroids_len], 0
-	je _end
-	xor edx, edx
-	lea rdi, asteroids
-	mainLoop:
-		; rotate asteroid
-		mov al, [rdi].Asteroid.rot_speed
-		add [rdi].Asteroid.rot, al
-
-		; move asteroid
-		mov eax, [rdi].Asteroid.velocity.x
-		add [rdi].Asteroid.pos.x, eax
-		mov eax, [rdi].Asteroid.velocity.y
-		add [rdi].Asteroid.pos.y, eax
-
-		; wrap position
-		lea rsi, [rdi].Asteroid.pos
-		call wrapPointAroundScreen
-
-		call asteroid_checkBullets
-		test eax, eax
-		jne nextCmp
-
-		next:
-		add rdi, sizeof Asteroid
-		inc edx
-		nextCmp:
-		cmp edx, [asteroids_len]
-		jb mainLoop
-	_end:
-	ret
+	lea rsi, asteroids_arr
+	lea r8, asteroid_update
+	jmp array_forEach
 asteroid_updateAll endp
 
-asteroid_drawAll proc
-	cmp [asteroids_len], 0
-	je _end
-	xor edx, edx
-	lea rdi, asteroids
-	mainLoop:
-		push rdi
-		push rdx
-		call asteroid_draw
-		pop rdx
-		pop rdi
-
-		next:
-		add rdi, sizeof Asteroid
-		inc edx
-		nextCmp:
-		cmp edx, [asteroids_len]
-		jb mainLoop
-	_end:
-	ret
-asteroid_drawAll endp
-
+; Callback routine
 ; in:
-	; rdi - pointer to asteroid to destroy
-asteroid_destroy proc
+	; rdi - pointer to asteroid
+; out:
+	; eax - 1 if asteroid was deleted, 0 otherwise
+asteroid_update proc
 	push rsi
 	push rcx
+	push r8
 
-	dec [asteroids_len]
-	je _end
+	; rotate asteroid
+	mov al, [rdi].Asteroid.rot_speed
+	add [rdi].Asteroid.rot, al
 
-	; move the last element in the list to this newly opened up one
-	mov eax, [asteroids_len]
-	imul eax, sizeof Asteroid
-	lea rsi, asteroids
-	add rsi, rax
+	; move asteroid
+	mov eax, [rdi].Asteroid.velocity.x
+	add [rdi].Asteroid.pos.x, eax
+	mov eax, [rdi].Asteroid.velocity.y
+	add [rdi].Asteroid.pos.y, eax
 
-	mov ecx, sizeof Asteroid
-	xor eax, eax
-	copyLoop:
-		mov al, [rsi]
-		mov [rdi], al
-		inc rsi
-		inc rdi
-		loop copyLoop
+	; wrap position
+	lea rsi, [rdi].Asteroid.pos
+	call wrapPointAroundScreen
 
-	_end:
+	call asteroid_checkBullets ; returns 1 if hit, 0 else
+
+	pop r8
 	pop rcx
 	pop rsi
 	ret
-asteroid_destroy endp
+asteroid_update endp
+
+asteroid_drawAll proc
+	lea rsi, asteroids_arr
+	lea r8, asteroid_draw
+	jmp array_forEach
+asteroid_drawAll endp
 
 ; in:
 	; rdi - pointer to current asteroid
+; out:
+	; eax - 0 (asteroid not destroyed)
 asteroid_draw proc
+	push rsi
+	push rcx
+	push r8
+
 	; for shrinking the asteroids based on their mass
 	lea r12, asteroid_mass_factors
 	mov eax, [rdi].Asteroid.mass
-	shl eax, 2
+	shl eax, 2 ; dwords
 	mov r12d, [r12 + rax]
 	; draw all the points of this asteroid's shape
 	mov rax, [rdi].Asteroid.shape_ptr
 	mov ecx, [rax].FatPtr.len
 	mov r8, [rax].FatPtr.pntr
 	mov rsi, r8
-	mainLoop:
+	_loop:
 		lea r10, [rdi].Asteroid.pos
 		mov r11b, [rdi].Asteroid.rot
 		lea r9, asteroid_current_points
@@ -377,8 +340,12 @@ asteroid_draw proc
 		pop rdi
 
 		next:
-		dec ecx
-		jne mainLoop
+		loop _loop
+
+	pop r8
+	pop rcx
+	pop rsi
+	xor eax, eax
 	ret
 asteroid_draw endp
 

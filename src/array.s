@@ -1,3 +1,7 @@
+ifndef array_h
+array_h = 1
+
+
 Array struct
     data    FatPtr <?>
     cap     dd     ?
@@ -32,19 +36,32 @@ array_push proc
 array_push endp
 
 ; in:
-	; rsi - pointer to array
+	; rsi - pointer to Array
 	; eax - index to delete
 array_removeAt proc
 	push rdi
 	push rcx
 
-	dec [rsi].Array.data.len
-	je _end
-
 	mov rcx, [rsi].Array.el_size
 	imul eax, ecx
 	mov rdi, [rsi].Array.data.pntr
 	add rdi, rax
+
+	call array_removeEl
+	
+	pop rcx
+	pop rdi
+	ret
+array_removeAt endp
+
+; Takes the last element in an Array and copies it to a certain slot inside the Array; presumably when an element was just deleted.
+; in:
+	; rsi - point to Array
+	; rdi - point to destination element slot in Array's memory
+array_removeEl proc
+	brk
+	dec [rsi].Array.data.len
+	je _end
 
 	mov eax, [rsi].Array.data.len
 	imul eax, ecx
@@ -60,10 +77,8 @@ array_removeAt proc
 		loop copyLoop
 
 	_end:
-	pop rcx
-	pop rdi
 	ret
-array_removeAt endp
+array_removeEl endp
 
 ; in:
 	; rsi - pointer to Array
@@ -90,3 +105,5 @@ array_forEach proc
 	ret
 array_forEach endp
 
+
+endif
