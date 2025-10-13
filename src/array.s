@@ -4,6 +4,9 @@ Array struct
     el_size dq     ?
 Array ends
 
+
+.code
+
 ; in:
 	; rsi - pointer to Array
 ; out:
@@ -13,10 +16,14 @@ array_push proc
 	cmp eax, [rsi].Array.cap
 	jge atCapacity
 
+	push rsi
+
 	inc [rsi].Array.data.len
     imul rax, [rsi].Array.el_size
     mov rsi, [rsi].Array.data.pntr
 	add rax, rsi
+
+	pop rsi
 	ret
 
 	atCapacity:
