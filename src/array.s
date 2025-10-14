@@ -57,6 +57,8 @@ array_removeAt endp
 	; rdi - point to destination element slot in Array's memory
 array_removeEl proc
 	push rcx
+	push rsi
+	push rdi
 
 	dec [rsi].Array.data.len
 	je _end
@@ -76,6 +78,8 @@ array_removeEl proc
 		loop copyLoop
 
 	_end:
+	pop rdi
+	pop rsi
 	pop rcx
 	ret
 array_removeEl endp

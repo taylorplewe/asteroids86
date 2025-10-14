@@ -10,12 +10,15 @@ include <screen.s>
 
 
 Ship struct
-	x           dd     ?   ; 16.16 fixed point
-	y           dd     ?   ; 16.16 fixed point
-	rot         db     ?
-	is_boosting db     ?
-	velocity    Vector <?> ; 16.16 fixed point
+	x                dd     ?   ; 16.16 fixed point
+	y                dd     ?   ; 16.16 fixed point
+	rot              db     ?
+	is_boosting      db     ?
+	ticks_to_respawn dd     ?
+	velocity         Vector <?> ; 16.16 fixed point
 Ship ends
+
+SHIP_TICKS_TO_RESPAWN = 60 * 4
 
 
 .data
@@ -34,7 +37,7 @@ SHIP_VELOCITY_KICK  = 00008000h ; 16.16 fixed point
 
 .code
 
-ship_init proc
+ship_respawn proc
 	mov [ship].x, SCREEN_WIDTH/2 shl 16
 	mov [ship].y, SCREEN_HEIGHT/2 shl 16
 	xor eax, eax
@@ -43,11 +46,20 @@ ship_init proc
 	mov [ship].velocity.y, eax
 
 	ret
-ship_init endp
+ship_respawn endp
 
 ; in:
 	; rdi - pointer to keys_down: Keys struct
 ship_update proc
+	cmp [ship].ticks_to_respawn, 0
+	je normalUpdate
+		dec [ship].ticks_to_respawn
+		jne @f
+		call ship_respawn
+		call ship_setAllPoints
+		@@:
+		ret
+	normalUpdate:
 	cmp [rdi].Keys.left, 0
 	je @f
 		sub [ship].rot, 2
@@ -220,13 +232,73 @@ ship_setAllPoints proc
 	ret
 ship_setAllPoints endp
 
+ship_destroy proc
+	push rbx
+	push rcx
+	push rdx
+
+	mov [ship].ticks_to_respawn, SHIP_TICKS_TO_RESPAWN
+
+	mov rbx, qword ptr [ship]
+	mov edx, [ship].velocity.y
+	sub edx, SHIP_SHARD_VELOCITY_DIFF
+	mov rcx, rdx
+	shl rcx, 32
+	mov edx, [ship].velocity.x
+	sub edx, SHIP_SHARD_VELOCITY_DIFF
+	or rcx, rdx
+	mov edx, 36
+	call shipShard_create
+
+	mov rbx, qword ptr [ship]
+	mov edx, [ship].velocity.y
+	sub edx, SHIP_SHARD_VELOCITY_DIFF
+	mov rcx, rdx
+	shl rcx, 32
+	mov edx, [ship].velocity.x
+	add edx, SHIP_SHARD_VELOCITY_DIFF
+	or rcx, rdx
+	mov edx, 22
+	call shipShard_create
+
+	mov rbx, qword ptr [ship]
+	mov edx, [ship].velocity.y
+	add edx, SHIP_SHARD_VELOCITY_DIFF
+	mov rcx, rdx
+	shl rcx, 32
+	mov edx, [ship].velocity.x
+	sub edx, SHIP_SHARD_VELOCITY_DIFF
+	or rcx, rdx
+	mov edx, 34
+	call shipShard_create
+
+	mov rbx, qword ptr [ship]
+	mov edx, [ship].velocity.y
+	add edx, SHIP_SHARD_VELOCITY_DIFF
+	mov rcx, rdx
+	shl rcx, 32
+	mov edx, [ship].velocity.x
+	add edx, SHIP_SHARD_VELOCITY_DIFF
+	or rcx, rdx
+	mov edx, 20
+	call shipShard_create
+
+	pop rdx
+	pop rcx
+	pop rbx
+	ret
+ship_destroy endp
+
 ship_draw proc
+	cmp [ship].ticks_to_respawn, 0
+	jne _end
 	mov r8d, [fg_color]
 
 	screen_mDrawLine ship_points + sizeof Point*0, ship_points + sizeof Point*1
 	screen_mDrawLine ship_points + sizeof Point*0, ship_points + sizeof Point*2
 	screen_mDrawLine ship_points + sizeof Point*3, ship_points + sizeof Point*4
 
+	_end:
 	ret
 ship_draw endp
 

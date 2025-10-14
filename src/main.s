@@ -75,7 +75,7 @@ main proc
 	mov rbp, rsp
 	sub rsp, 200h
 
-	call ship_init
+	call ship_respawn
 	call asteroid_test
 
 	mov ecx, SDL_INIT_VIDEO

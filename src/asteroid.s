@@ -57,7 +57,7 @@ asteroid_test proc
 	; rsi - shape_ptr
 	; r8b - rot (will be used for its velocity as well)
 	; r9b - rot_speed
-	mov rbx, ((SCREEN_HEIGHT/2) shl 48) or ((SCREEN_WIDTH/2) shl 16)
+	mov rbx, ((20) shl 48) or ((900) shl 16)
 	mov ecx, 3
 	lea rdi, asteroid_shapes
 	mov r8, -5
@@ -263,6 +263,52 @@ asteroid_checkBullets proc
 	ret
 asteroid_checkBullets endp
 
+; Check for collision with ship, destroy it if so
+asteroid_checkShip proc
+	cmp [ship].ticks_to_respawn, 0
+	je @f
+		xor eax, eax
+		ret
+	@@:
+
+	push rbx
+	push r8
+	push r9
+
+	; hit if (dx^2 + dy^2) <= r^2
+	xor eax, eax ; clear upper bits
+	mov ax, word ptr [ship].x + 2
+	sub ax, word ptr [rdi].Asteroid.pos.x + 2
+	cwde
+	imul eax, eax
+	mov r8d, eax
+	mov ax, word ptr [ship].y + 2
+	sub ax, word ptr [rdi].Asteroid.pos.y + 2
+	cwde
+	imul eax, eax
+	mov r9d, eax
+
+	add r8d, r9d
+	lea r9, asteroid_r_squareds
+	mov ebx, [rdi].Asteroid.mass
+	shl ebx, 2 ; dwords
+	cmp r8d, [r9 + rbx]
+	jle hit
+	xor eax, eax
+	jmp _end
+
+	hit:
+	call ship_destroy
+	call asteroid_onHitByBullet
+	mov eax, 1
+
+	_end:
+	pop r9
+	pop r8
+	pop rbx
+	ret
+asteroid_checkShip endp
+
 asteroid_updateAll proc
 	lea rsi, asteroids_arr
 	lea r8, asteroid_update
@@ -292,7 +338,11 @@ asteroid_update proc
 	call wrapPointAroundScreen
 
 	call asteroid_checkBullets ; returns 1 if hit, 0 else
+	test eax, eax
+	jne _end
+	call asteroid_checkShip
 
+	_end:
 	pop rsi
 	ret
 asteroid_update endp
