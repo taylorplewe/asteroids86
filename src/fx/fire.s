@@ -31,7 +31,6 @@ fire_color Pixel <0ffh, 0, 0, 0ffh>
 	; r10 - point2 (as qword ptr)
 	; bl  - rotation in 256-based radians
 fire_create proc
-	push rbx
 	push rsi
 	push r9
 	push r11
@@ -113,7 +112,6 @@ fire_create proc
 	pop r11
 	pop r9
 	pop rsi
-	pop rbx
 
 	ret
 fire_create endp

@@ -1,3 +1,5 @@
+extern ExitProcess : proto
+
 include <globaldefs.inc>
 include <sdl\defs.inc>
 
@@ -93,6 +95,7 @@ main proc
 	sub rsp, 200h
 
 	call ship_init
+	call asteroid_test
 
 	mov ecx, SDL_INIT_VIDEO
 	call SDL_Init
@@ -120,8 +123,6 @@ main proc
 
 	xor rax, rax
 	mov [frame_counter], rax
-
-	call asteroid_test
 
 	mainLoop:
 		call SDL_GetTicks
@@ -284,17 +285,18 @@ main proc
 		jmp mainLoop
 	
 	quit:
-	mov rcx, [window]
-	call SDL_DestroyWindow
-	mov rcx, [renderer]
-	call SDL_DestroyRenderer
 	mov rcx, [surface]
 	call SDL_DestroySurface
+	mov rcx, [renderer]
+	call SDL_DestroyRenderer
+	mov rcx, [window]
+	call SDL_DestroyWindow
 	call SDL_Quit
 
 	mov rsp, rbp
 	pop rbp
 	xor eax, eax
+	call ExitProcess
 	ret
 main endp
 

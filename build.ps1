@@ -30,6 +30,7 @@ ml64 `
     src\main.s `
     /link `
     SDL3.lib `
+    kernel32.lib `
     /debug:full `
     /entry:main `
     "/out:.\bin\$gameName.exe"
