@@ -16,6 +16,7 @@ Following is the source of truth for this codebase's style of code.
   
   Each section is separated by 2 empty lines. `.data` and `.code` are followed by 1 empty line.
 - Name casing
+  - `myScope`
   - `MyStruct`
   - `MyUnion`
   - `my_struct_member`
@@ -26,7 +27,7 @@ Following is the source of truth for this codebase's style of code.
   - `MY_CONSTANT`
 - Since MASM has no concept of namespaces/custom scopes, each symbol pattern in a file must follow the pattern:
 
-  `<filename>_<symbolname>`
+  `<scopename>_<symbolname>`
 
   For example:
 

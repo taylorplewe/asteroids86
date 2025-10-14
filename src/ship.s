@@ -4,6 +4,7 @@ ship_h = 1
 include <globaldefs.inc>
 
 include <fx\fire.s>
+include <fx\ship-shard.s>
 include <bullet.s>
 include <screen.s>
 

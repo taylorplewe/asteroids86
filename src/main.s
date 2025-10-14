@@ -244,12 +244,14 @@ main proc
 		call bullet_updateAll
 		call asteroid_updateAll
 		call fire_updateAll
+		call shipShard_updateAll
 
 		draw:
 		call ship_draw
 		call bullet_drawAll
 		call asteroid_drawAll
 		call fire_drawAll
+		call shipShard_drawAll
 
 		call render
 
