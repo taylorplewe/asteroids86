@@ -16,7 +16,7 @@ Following is a list of various code patterns this codebase employs for consisten
     - `rdi`
     - `r8`-`r15`
   - Example:
-  ```
+	```
 	fire_create proc
 		push rsi
 		push r9
@@ -31,4 +31,4 @@ Following is a list of various code patterns this codebase employs for consisten
 		pop rsi
 		ret
 	fire_create endp
-  ```
+	```
