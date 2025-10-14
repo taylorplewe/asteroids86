@@ -1,3 +1,5 @@
+# Style Guide
+
 Following is the source of truth for this codebase's style of code.
 
 - Each file `include`s all the files it needs; as opposed to `main.s` importing all files itself, in the proper order.
@@ -78,10 +80,10 @@ Following is the source of truth for this codebase's style of code.
 		; r8  - point1 (as qword ptr)
 		; r10 - point2 (as qword ptr)
 		; al  - rotation in 256-based radians
- 	; out:
- 		; rax - 1 if hit, 0 else
- 	fire_doSomething
- 	```
+	; out:
+		; rax - 1 if hit, 0 else
+	fire_doSomething
+	```
 - MASM's unnamed labels (`@@:`) are fine to use for short, single-level blocks. MASM itself will enforce the latter, since unlike other assemblers, it doesn't support jumping over unnamed labels to get to other unnamed labels, only the immediate next one or previous one.
 	```
 	dec [rdi].Bullet.ticks_to_live
