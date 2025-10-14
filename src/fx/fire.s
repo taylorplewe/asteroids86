@@ -127,6 +127,7 @@ fire_updateAll endp
 ; out:
 	; eax - 1 if fire was destroyed
 fire_update proc
+	push rsi
 	push rcx
 
 	inc [rdi].Fire.num_frames_alive
@@ -136,7 +137,6 @@ fire_update proc
 		lea rsi, fires_arr
 		call array_removeEl
 		mov eax, 1
-		; brk
 		jmp _end
 	@@:
 
@@ -173,6 +173,7 @@ fire_update proc
 
 	_end:
 	pop rcx
+	pop rsi
 	ret
 fire_update endp
 
@@ -187,6 +188,7 @@ fire_drawAll endp
 ; out:
 	; eax - 0 (fire wasn't destroyed)
 fire_draw proc
+	push rdi
 	push rbx
 	push rcx
 	push rdx
@@ -207,7 +209,6 @@ fire_draw proc
 	; alpha
 	sub ebx, eax
 	add ebx, 15
-	; mov ebx, 0ffffffffh
 	shl ebx, 24 + 2
 	or r8d, ebx
 
@@ -247,12 +248,14 @@ fire_draw proc
 
 	call screen_drawLine
 
+	xor eax, eax ; fire not destroyed
 	pop r10
 	pop r9
 	pop r8
 	pop rdx
 	pop rcx
 	pop rbx
+	pop rdi
 	ret
 fire_draw endp
 

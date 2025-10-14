@@ -47,7 +47,6 @@ ship_init endp
 ; in:
 	; rdi - pointer to keys_down: Keys struct
 ship_update proc
-	; rotate
 	cmp [rdi].Keys.left, 0
 	je @f
 		sub [ship].rot, 2
@@ -166,6 +165,8 @@ ship_update proc
 	lea rsi, ship
 	call wrapPointAroundScreen
 
+	call ship_setAllPoints
+
 	; draw fire lines
 	cmp [ship].is_boosting, 0
 	je @f
@@ -179,12 +180,11 @@ ship_update proc
 	mov r10, qword ptr [ship_points + 4 * sizeof Point]
 	and r10, rax
 	shl r10, 16
+	xor ebx, ebx
 	mov bl, [ship].rot
 	add bl, 128
 	call fire_create
 	@@:
-
-	call ship_setAllPoints
 
 	ret
 ship_update endp
