@@ -179,11 +179,10 @@ ship_update proc
 	mov r10, qword ptr [ship_points + 4 * sizeof Point]
 	and r10, rax
 	shl r10, 16
-	mov al, [ship].rot
-	add al, 128
+	mov bl, [ship].rot
+	add bl, 128
 	call fire_create
 	@@:
-
 
 	call ship_setAllPoints
 
