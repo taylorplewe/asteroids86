@@ -48,11 +48,14 @@ sin proc
 	inc al
 
 	quadrant:
+	push rdx
+
 	shl eax, 2 ; 4-byte values
 
 	lea rdx, sintab
 	mov eax, dword ptr [rdx + rax]
 
+	pop rdx
 	ret
 sin endp
 

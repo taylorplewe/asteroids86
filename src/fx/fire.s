@@ -127,8 +127,8 @@ fire_updateAll endp
 ; out:
 	; eax - 1 if fire was destroyed
 fire_update proc
-	push rsi
 	push rcx
+	push rsi
 
 	inc [rdi].Fire.num_frames_alive
 	cmp [rdi].Fire.num_frames_alive, FIRE_MAX_NUM_FRAMES
@@ -172,8 +172,8 @@ fire_update proc
 	mov eax, 0
 
 	_end:
-	pop rcx
 	pop rsi
+	pop rcx
 	ret
 fire_update endp
 
@@ -188,10 +188,10 @@ fire_drawAll endp
 ; out:
 	; eax - 0 (fire wasn't destroyed)
 fire_draw proc
-	push rdi
 	push rbx
 	push rcx
 	push rdx
+	push rdi
 	push r8
 	push r9
 	push r10
@@ -252,10 +252,10 @@ fire_draw proc
 	pop r10
 	pop r9
 	pop r8
+	pop rdi
 	pop rdx
 	pop rcx
 	pop rbx
-	pop rdi
 	ret
 fire_draw endp
 

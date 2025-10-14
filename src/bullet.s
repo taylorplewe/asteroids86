@@ -119,10 +119,10 @@ bullet_drawAll endp
 ; out:
 	; eax - 0
 bullet_draw proc
+	push rbx
+	push rcx
 	push rdi
 	push r8
-	push rcx
-	push rbx
 
 	xor ebx, ebx ; clear upper bits
 	xor ecx, ecx ; clear upper bits
@@ -134,10 +134,10 @@ bullet_draw proc
 
 	screen_drawCircle
 
-	pop rbx
-	pop rcx
 	pop r8
 	pop rdi
+	pop rcx
+	pop rbx
 
 	xor eax, eax ; bullet was not destroyed
 	ret

@@ -119,6 +119,8 @@ asteroid_setVelocity endp
 	; r8b - dir (will be used for its velocity as well)
 	; r9b - rot_speed
 asteroid_create proc
+	push rsi
+
 	lea rsi, asteroids_arr
 	call array_push
 	test rax, rax
@@ -135,6 +137,7 @@ asteroid_create proc
 	call asteroid_setVelocity
 
 	_end:
+	pop rsi
 	ret
 asteroid_create endp
 
@@ -143,6 +146,7 @@ asteroid_create endp
 ; in:
 	; rdi - pointer to asteroid just hit
 asteroid_onHitByBullet proc
+	push rbx
 	push rsi
 	push rdi
 	push r8
@@ -189,6 +193,7 @@ asteroid_onHitByBullet proc
 	pop r8
 	pop rdi
 	pop rsi
+	pop rbx
 	ret
 asteroid_onHitByBullet endp
 
@@ -197,10 +202,9 @@ asteroid_onHitByBullet endp
 ; out:
 	; eax - 1 if hit, 0 else
 asteroid_checkBullets proc
-	push rsi
-	push rdx
-	push rcx
 	push rbx
+	push rcx
+	push rsi
 	push r8
 	push r9
 
@@ -253,10 +257,9 @@ asteroid_checkBullets proc
 	_end:
 	pop r9
 	pop r8
-	pop rbx
-	pop rcx
-	pop rdx
 	pop rsi
+	pop rcx
+	pop rbx
 	ret
 asteroid_checkBullets endp
 
@@ -273,8 +276,6 @@ asteroid_updateAll endp
 	; eax - 1 if asteroid was deleted, 0 otherwise
 asteroid_update proc
 	push rsi
-	push rcx
-	push r8
 
 	; rotate asteroid
 	mov al, [rdi].Asteroid.rot_speed
@@ -292,8 +293,6 @@ asteroid_update proc
 
 	call asteroid_checkBullets ; returns 1 if hit, 0 else
 
-	pop r8
-	pop rcx
 	pop rsi
 	ret
 asteroid_update endp
@@ -309,9 +308,10 @@ asteroid_drawAll endp
 ; out:
 	; eax - 0 (asteroid not destroyed)
 asteroid_draw proc
-	push rsi
 	push rcx
+	push rsi
 	push r8
+	push r12
 
 	; for shrinking the asteroids based on their mass
 	lea r12, asteroid_mass_factors
@@ -352,9 +352,10 @@ asteroid_draw proc
 		next:
 		loop _loop
 
+	pop r12
 	pop r8
-	pop rcx
 	pop rsi
+	pop rcx
 	xor eax, eax
 	ret
 asteroid_draw endp

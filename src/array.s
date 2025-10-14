@@ -20,14 +20,11 @@ array_push proc
 	cmp eax, [rsi].Array.cap
 	jge atCapacity
 
-	push rsi
-
 	inc [rsi].Array.data.len
     imul rax, [rsi].Array.el_size
     mov rsi, [rsi].Array.data.pntr
 	add rax, rsi
 
-	pop rsi
 	ret
 
 	atCapacity:
@@ -39,8 +36,8 @@ array_push endp
 	; rsi - pointer to Array
 	; eax - index to delete
 array_removeAt proc
-	push rdi
 	push rcx
+	push rdi
 
 	mov rcx, [rsi].Array.el_size
 	imul eax, ecx
@@ -49,8 +46,8 @@ array_removeAt proc
 
 	call array_removeEl
 	
-	pop rcx
 	pop rdi
+	pop rcx
 	ret
 array_removeAt endp
 
@@ -59,6 +56,8 @@ array_removeAt endp
 	; rsi - point to Array
 	; rdi - point to destination element slot in Array's memory
 array_removeEl proc
+	push rcx
+
 	dec [rsi].Array.data.len
 	je _end
 
@@ -77,6 +76,7 @@ array_removeEl proc
 		loop copyLoop
 
 	_end:
+	pop rcx
 	ret
 array_removeEl endp
 
@@ -86,6 +86,9 @@ array_removeEl endp
 	;       (will pass rdi as the pointer to the element)
 	;       (should return eax=1 if element was deleted during the callback, 0 otherwise)
 array_forEach proc
+	push rcx
+	push rdi
+
 	cmp [rsi].Array.data.len, 0
 	je _end
 	mov rdi, [rsi].Array.data.pntr
@@ -102,6 +105,8 @@ array_forEach proc
 		jl _loop
 
 	_end:
+	pop rdi
+	pop rcx
 	ret
 array_forEach endp
 
