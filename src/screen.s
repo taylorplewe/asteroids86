@@ -347,7 +347,6 @@ screen_drawLine proc
 	ret
 screen_drawLine endp
 
-zero64 db 64 dup (0)
 screen_clearPixelBuffer proc
 	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT*4)/32
 	lea rdi, [pixels]

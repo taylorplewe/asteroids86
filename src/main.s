@@ -70,25 +70,6 @@ render proc
 	ret
 render endp
 
-; in:
-	; rdi = destination ptr
-	; rsi = source ptr
-	; ecx = count of qwords
-memcpyAligned32 proc
-	mainLoop:
-		vmovdqa ymm0, ymmword ptr [rsi]
-		vmovdqa ymmword ptr [rdi], ymm0
-		add rsi, 32
-		add rdi, 32
-		loop mainLoop
-	ret
-
-	; loop duration (in clock cycles) moving 8 bytes at a time with RAX:
-		; 7,340,032 cycles
-	; loop duration (in clock cycles) moving 32 bytes at a time with YMM0 (SIMD):
-		; 2,246,728 cycles
-memcpyAligned32 endp
-
 main proc
 	push rbp
 	mov rbp, rsp
