@@ -25,9 +25,7 @@ MAX_NUM_ASTEROIDS = 64
 
 .data
 
-asteroids                Asteroid  MAX_NUM_ASTEROIDS dup (<>)
-asteroids_arr            Array     { { asteroids, 0 }, MAX_NUM_ASTEROIDS, sizeof Asteroid }
-asteroid_current_points  Point     2                 dup (<?>) ; for drawing
+asteroids_arr           Array    { { asteroids, 0 }, MAX_NUM_ASTEROIDS, sizeof Asteroid }
 
 asteroid_shapes FatPtr {asteroid_shape1, asteroid_shape1_len}, {asteroid_shape2, asteroid_shape2_len}, {asteroid_shape3, asteroid_shape3_len}
 asteroid_shapes_end:
@@ -48,6 +46,12 @@ asteroid_masses       dd 0, ASTEROID_MASS1,                ASTEROID_MASS2,      
 asteroid_r_squareds   dd 0, ASTEROID_MASS1*ASTEROID_MASS1, ASTEROID_MASS2*ASTEROID_MASS2, ASTEROID_MASS3*ASTEROID_MASS3
 asteroid_mass_factors dd 0, 00008000h,                     00010000h,                     00018000h
 asteroid_speed_shifts db 0, 2,                             1,                             0
+
+
+.data?
+
+asteroids               Asteroid MAX_NUM_ASTEROIDS dup (<>)
+asteroid_current_points Point    2                 dup (<?>) ; for drawing
 
 
 .code

@@ -4,7 +4,7 @@ screen_h = 1
 include <globaldefs.inc>
 
 
-.data
+.data?
 
 pixels        Pixel SCREEN_WIDTH*SCREEN_HEIGHT dup (<?>)
 screen_point1 Point <?>

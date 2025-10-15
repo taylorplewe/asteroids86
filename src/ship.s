@@ -19,20 +19,21 @@ Ship struct
 Ship ends
 
 SHIP_TICKS_TO_RESPAWN = 60 * 4
-
-
-.data
-
-ship             Ship   {0}
-ship_points      Point  5 dup ({0})
-
-ship_base_points      BasePoint {32, 0}, {16, 96}, {16, 160}, {11, 90}, {11, 166}
-
-; readonly
 SHIP_VELOCITY_ACCEL = 00005000h ; 16.16 fixed point
 SHIP_VELOCITY_MAX   = 00080000h ; 16.16 fixed point
 SHIP_VELOCITY_DRAG  = 0000fa00h ; 16.16 fixed point
 SHIP_VELOCITY_KICK  = 00008000h ; 16.16 fixed point
+
+
+.data
+
+ship_base_points BasePoint {32, 0}, {16, 96}, {16, 160}, {11, 90}, {11, 166}
+
+
+.data?
+
+ship        Ship  <>
+ship_points Point 5 dup (<>)
 
 
 .code

@@ -17,7 +17,7 @@ Ufo ends
 MAX_NUM_UFOS = 4
 
 
-.data
+.data?
 
 ufos     Ufo   MAX_NUM_UFOS dup (<>)
 ufos_arr Array { { ufos, 0 }, MAX_NUM_UFOS, sizeof Ufo }

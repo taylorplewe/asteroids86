@@ -16,6 +16,9 @@ include <asteroid.s>
 
 window_title byte "ASTEROIDS 86", 0
 
+
+.data?
+
 ; SDL stuff
 window   qword ?
 renderer qword ?
@@ -25,7 +28,7 @@ event    byte 2048 dup (?)
 
 ticks     qword ?
 keys_down Keys  <?>
-is_paused dd    0
+is_paused dd    ?
 
 
 .code
