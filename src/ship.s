@@ -258,7 +258,7 @@ ship_destroy proc
 	mov edx, [ship].velocity.x
 	add edx, SHIP_SHARD_VELOCITY_DIFF
 	or rcx, rdx
-	mov edx, 22
+	mov edx, 20
 	call shipShard_create
 
 	mov rbx, qword ptr [ship]
@@ -269,7 +269,7 @@ ship_destroy proc
 	mov edx, [ship].velocity.x
 	sub edx, SHIP_SHARD_VELOCITY_DIFF
 	or rcx, rdx
-	mov edx, 34
+	mov edx, 12
 	call shipShard_create
 
 	mov rbx, qword ptr [ship]
@@ -280,7 +280,7 @@ ship_destroy proc
 	mov edx, [ship].velocity.x
 	add edx, SHIP_SHARD_VELOCITY_DIFF
 	or rcx, rdx
-	mov edx, 20
+	mov edx, 34
 	call shipShard_create
 
 	pop rdx

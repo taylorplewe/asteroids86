@@ -18,7 +18,7 @@ ShipShard ends
 
 MAX_NUM_SHIP_SHARDS          = 8
 SHIP_SHARD_MIN_TICKS_TO_LIVE = 120
-SHIP_SHARD_VELOCITY_DIFF     = 6000h
+SHIP_SHARD_VELOCITY_DIFF     = 24000h
 
 
 .data
@@ -43,15 +43,23 @@ shipShard_create proc
 	mov rsi, rax
 	mov qword ptr [rsi].ShipShard.pos, rbx
 	mov qword ptr [rsi].ShipShard.velocity, rcx
+	sar [rsi].ShipShard.velocity.x, 2
+	sar [rsi].ShipShard.velocity.y, 2
 	mov [rsi].ShipShard.len, edx
 
-	; rot and rot_velocity are random
+	; randomize values
 	xor eax, eax
-	rdrand ax
+	rdrand eax
 	mov [rsi].ShipShard.rot, ax
-	rdrand ax
-	and ax, 01ffh
+	sar eax, 16 + 6 ; upper word of eax, then "and" it with 00000011.11111111b (but signed)
 	mov [rsi].ShipShard.rot_velocity, ax
+	@@:
+	rdrand ax
+	jnc @b ; random value ready? (https://www.felixcloutier.com/x86/rdrand#description)
+	bt ax, 1
+	je @f
+	shl [rsi].ShipShard.rot_velocity, 1
+	@@:
 
 	; ticks_to_live = also random
 	rdrand eax
@@ -171,9 +179,9 @@ shipShard_draw proc
 
 	; fade out
 	mov ebx, [rdi].ShipShard.ticks_to_live
-	cmp ebx, 16
+	cmp ebx, 32
 	jge @f
-		shl ebx, 28
+		shl ebx, 24 + 3
 		and ebx, 0ff000000h
 		and r8d, 00ffffffh
 		or r8d, ebx
