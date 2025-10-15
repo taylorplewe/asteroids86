@@ -8,11 +8,11 @@ include <array.s>
 
 
 ShipShard struct
-	pos          Point  <?> ; 16.16 fixed point
-	velocity     Vector <?> ; 16.16 fixed point
-	len          dd     ?
-	rot          dw     ?   ; 8.8 fixed point
-	rot_velocity dw     ?   ; 8.8 fixed point
+	pos           Point  <?> ; 16.16 fixed point
+	velocity      Vector <?> ; 16.16 fixed point
+	len           dd     ?
+	rot           dw     ?   ; 8.8 fixed point
+	rot_velocity  dw     ?   ; 8.8 fixed point
 	ticks_to_live dd ?
 ShipShard ends
 
@@ -61,6 +61,8 @@ shipShard_create proc
 	add eax, SHIP_SHARD_MIN_TICKS_TO_LIVE
 	mov [rsi].ShipShard.ticks_to_live, eax
 
+	; apply velocity rotation
+	; x
 	xor eax, eax
 	mov al, r8b
 	call sin
@@ -68,7 +70,7 @@ shipShard_create proc
 	imul rax, SHIP_SHARD_VELOCITY_DIFF
 	sar rax, 32
 	add [rsi].ShipShard.velocity.x, eax
-
+	; y
 	xor eax, eax
 	mov al, r8b
 	call cos
