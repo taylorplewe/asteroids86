@@ -146,7 +146,7 @@ asteroid_create endp
 ; Otherwise, just destroy it.
 ; in:
 	; rdi - pointer to asteroid just hit
-asteroid_onHitByBullet proc
+asteroid_onHit proc
 	push rbx
 	push rcx
 	push rsi
@@ -163,8 +163,9 @@ asteroid_onHitByBullet proc
 
 	xor r8, r8
 
-	; replace this asteroid with a smaller one...
 	dec [rdi].Asteroid.mass
+	add [rdi].Asteroid.rot_speed, 1
+	; replace this asteroid with a smaller one...
 	add [rdi].Asteroid.shape_ptr, sizeof FatPtr
 	lea rax, asteroid_shapes_end
 	cmp [rdi].Asteroid.shape_ptr, rax
@@ -172,7 +173,6 @@ asteroid_onHitByBullet proc
 	lea rax, asteroid_shapes
 	mov [rdi].Asteroid.shape_ptr, rax
 	@@:
-	add [rdi].Asteroid.rot_speed, 1
 
 	; (set velocity of that one)
 	sub [rdi].Asteroid.dir, 20
@@ -186,6 +186,14 @@ asteroid_onHitByBullet proc
 	add r8b, 40
 	mov r9b, [rdi].Asteroid.rot_speed
 	mov rdi, [rdi].Asteroid.shape_ptr
+	; replace this asteroid with a smaller one...
+	add rdi, sizeof FatPtr
+	lea rax, asteroid_shapes_end
+	cmp rdi, rax
+	jb @f
+	lea rax, asteroid_shapes
+	mov rdi, rax
+	@@:
 	call asteroid_create
 
 	jmp _end
@@ -202,7 +210,7 @@ asteroid_onHitByBullet proc
 	pop rcx
 	pop rbx
 	ret
-asteroid_onHitByBullet endp
+asteroid_onHit endp
 
 ; in:
 	; rdi - pointer to current asteroid
@@ -249,7 +257,7 @@ asteroid_checkBullets proc
 		mov eax, ecx
 		call array_removeAt
 		pop rsi
-		call asteroid_onHitByBullet
+		call asteroid_onHit
 		mov eax, 1
 		jmp _end
 
@@ -306,7 +314,7 @@ asteroid_checkShip proc
 
 	hit:
 	call ship_destroy
-	call asteroid_onHitByBullet
+	call asteroid_onHit
 	mov eax, 1
 
 	_end:

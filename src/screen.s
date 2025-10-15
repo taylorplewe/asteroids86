@@ -43,6 +43,7 @@ screen_setPixelWrapped macro
 	add r13d, edx
 	; plot pixel
 	mov [rdi + r13], r8d
+	; NOTE: I tried changing the above instruction to an 'add' to get transparent objects on top of each other to work. It mostly worked, but is funky with colors, like the fire.
 endm
 
 ; in:
