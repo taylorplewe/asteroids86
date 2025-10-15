@@ -236,53 +236,41 @@ ship_destroy proc
 	push rbx
 	push rcx
 	push rdx
+	push r8
 
 	mov [ship].ticks_to_respawn, SHIP_TICKS_TO_RESPAWN
 
 	mov rbx, qword ptr [ship]
-	mov edx, [ship].velocity.y
-	sub edx, SHIP_SHARD_VELOCITY_DIFF
-	mov rcx, rdx
-	shl rcx, 32
-	mov edx, [ship].velocity.x
-	sub edx, SHIP_SHARD_VELOCITY_DIFF
-	or rcx, rdx
+	mov rcx, qword ptr [ship].velocity
 	mov edx, 36
+	mov r8b, [ship].rot
 	call shipShard_create
 
 	mov rbx, qword ptr [ship]
-	mov edx, [ship].velocity.y
-	sub edx, SHIP_SHARD_VELOCITY_DIFF
-	mov rcx, rdx
-	shl rcx, 32
-	mov edx, [ship].velocity.x
-	add edx, SHIP_SHARD_VELOCITY_DIFF
-	or rcx, rdx
-	mov edx, 20
+	mov rcx, qword ptr [ship].velocity
+	mov edx, 16
+	add r8b, 256/5
 	call shipShard_create
 
 	mov rbx, qword ptr [ship]
-	mov edx, [ship].velocity.y
-	add edx, SHIP_SHARD_VELOCITY_DIFF
-	mov rcx, rdx
-	shl rcx, 32
-	mov edx, [ship].velocity.x
-	sub edx, SHIP_SHARD_VELOCITY_DIFF
-	or rcx, rdx
+	mov rcx, qword ptr [ship].velocity
+	mov edx, 25
+	add r8b, 256/5
+	call shipShard_create
+
+	mov rbx, qword ptr [ship]
+	mov rcx, qword ptr [ship].velocity
 	mov edx, 12
+	add r8b, 256/5
 	call shipShard_create
 
 	mov rbx, qword ptr [ship]
-	mov edx, [ship].velocity.y
-	add edx, SHIP_SHARD_VELOCITY_DIFF
-	mov rcx, rdx
-	shl rcx, 32
-	mov edx, [ship].velocity.x
-	add edx, SHIP_SHARD_VELOCITY_DIFF
-	or rcx, rdx
-	mov edx, 34
+	mov rcx, qword ptr [ship].velocity
+	mov edx, 20
+	add r8b, 256/5
 	call shipShard_create
 
+	pop r8
 	pop rdx
 	pop rcx
 	pop rbx

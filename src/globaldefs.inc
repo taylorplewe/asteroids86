@@ -50,5 +50,12 @@ brk macro
 	int 3
 endm
 
+rand macro reg:req
+	local randCheck
+	randCheck:
+	rdrand reg
+	jnc randCheck ; random value ready? (https://www.felixcloutier.com/x86/rdrand#description)
+endm
+
 
 endif

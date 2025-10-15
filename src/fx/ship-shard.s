@@ -33,6 +33,7 @@ ship_shards_arr Array     { { ship_shards, 0 }, MAX_NUM_SHIP_SHARDS, sizeof Ship
 	; rbx - pos
 	; rcx - velocity
 	; edx - len
+	; r8b - rotation added to base velocity to fly in
 shipShard_create proc
 	lea rsi, ship_shards_arr
 	call array_push
@@ -49,23 +50,32 @@ shipShard_create proc
 
 	; randomize values
 	xor eax, eax
-	rdrand eax
+	rand eax
 	mov [rsi].ShipShard.rot, ax
-	sar eax, 16 + 6 ; upper word of eax, then "and" it with 00000011.11111111b (but signed)
+	sar eax, 16 + 5 ; upper word of eax, then "and" it with 00000111.11111111b (but signed)
 	mov [rsi].ShipShard.rot_velocity, ax
-	@@:
-	rdrand ax
-	jnc @b ; random value ready? (https://www.felixcloutier.com/x86/rdrand#description)
-	bt ax, 1
-	je @f
-	shl [rsi].ShipShard.rot_velocity, 1
-	@@:
 
 	; ticks_to_live = also random
 	rdrand eax
 	and eax, 64 - 1 ; 0 - 64 (just over one second)
 	add eax, SHIP_SHARD_MIN_TICKS_TO_LIVE
 	mov [rsi].ShipShard.ticks_to_live, eax
+
+	xor eax, eax
+	mov al, r8b
+	call sin
+	cdqe
+	imul rax, SHIP_SHARD_VELOCITY_DIFF
+	sar rax, 32
+	add [rsi].ShipShard.velocity.x, eax
+
+	xor eax, eax
+	mov al, r8b
+	call cos
+	cdqe
+	imul rax, SHIP_SHARD_VELOCITY_DIFF
+	sar rax, 32
+	sub [rsi].ShipShard.velocity.y, eax
 	
 	_end:
 	ret
