@@ -3,9 +3,12 @@ extern ExitProcess : proto
 include <globaldefs.inc>
 include <sdl\defs.inc>
 
-include <ship.s>
 include <screen.s>
+include <fx\shard.s>
+include <fx\ship-shard.s>
+include <fx\fire.s>
 include <bullet.s>
+include <ship.s>
 include <asteroid.s>
 
 
@@ -244,6 +247,7 @@ main proc
 		call bullet_updateAll
 		call asteroid_updateAll
 		call fire_updateAll
+		call shard_updateAll
 		call shipShard_updateAll
 
 		draw:
@@ -251,6 +255,7 @@ main proc
 		call bullet_drawAll
 		call asteroid_drawAll
 		call fire_drawAll
+		call shard_drawAll
 		call shipShard_drawAll
 
 		call render

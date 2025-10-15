@@ -8,13 +8,13 @@ Following is a list of various code patterns this codebase employs for consisten
 
   You may think this is wasteful and could be omitted if you're careful, but I cannot express to you how many headaches and impossible-to-track-down bugs this saves. It just makes everything safer and more contained.
   - The order in which the registers should be pushed is:
-    - stack registers, if the procedure also uses a stack frame
     - `rbx`
     - `rcx`
     - `rdx`
     - `rsi`
     - `rdi`
     - `r8`-`r15`
+    - stack registers, if the procedure also uses a stack frame (pushing other stuff after this point would mess up the stack frame indexes)
   - Example:
 	```
 	fire_create proc
@@ -33,3 +33,4 @@ Following is a list of various code patterns this codebase employs for consisten
 		ret
 	fire_create endp
 	```
+- There is an `Array` API which every list-of-thing should use. See `array.s`, and see `bullet.s`, `asteroid.s` and anything in `fx\` for examples of use.

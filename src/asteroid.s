@@ -148,10 +148,15 @@ asteroid_create endp
 	; rdi - pointer to asteroid just hit
 asteroid_onHitByBullet proc
 	push rbx
+	push rcx
 	push rsi
 	push rdi
 	push r8
 	push r9
+
+	mov rbx, qword ptr [rdi].Asteroid.pos
+	mov rcx, qword ptr [rdi].Asteroid.velocity
+	call shard_createBurst
 
 	cmp [rdi].Asteroid.mass, 1
 	je destroy
@@ -194,6 +199,7 @@ asteroid_onHitByBullet proc
 	pop r8
 	pop rdi
 	pop rsi
+	pop rcx
 	pop rbx
 	ret
 asteroid_onHitByBullet endp

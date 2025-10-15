@@ -121,7 +121,6 @@ bullet_drawAll endp
 bullet_draw proc
 	push rbx
 	push rcx
-	push rdi
 	push r8
 
 	xor ebx, ebx ; clear upper bits
@@ -129,17 +128,15 @@ bullet_draw proc
 	mov bx, word ptr [rdi].Bullet.pos.x + 2
 	mov cx, word ptr [rdi].Bullet.pos.y + 2
 
-	lea rdi, pixels
 	mov r8d, [fg_color]
+	mov edx, 4
 
-	screen_drawCircle
-
-	pop r8
-	pop rdi
-	pop rcx
-	pop rbx
+	call screen_drawCircle
 
 	xor eax, eax ; bullet was not destroyed
+	pop r8
+	pop rcx
+	pop rbx
 	ret
 bullet_draw endp
 

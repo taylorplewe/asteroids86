@@ -66,31 +66,36 @@ screen_plotPoint macro
 	dec ecx
 endm
 
+; TODO: this routine is pretty gnarly with the stack frame. Can probably be improved.
 ; in:
 	; ebx - x
 	; ecx - y
+	; edx - circle radius
 	; r8d - color
-	; rdi - point to pixels
 	; r14d - SCREEN_WIDTH
 	; r15d - SCREEN_HEIGHT
-screen_drawCircle macro
+screen_drawCircle proc
 	push rbp
+	push rdi
 	mov rbp, rsp
-	sub rsp, 16
+	sub rsp, 24
 
-	push rdx
-
-	CIRCLE_RADIUS = 4
-	CIRCLE_RSQ    = CIRCLE_RADIUS * CIRCLE_RADIUS
+	lea rdi, pixels
 
 	mov dword ptr [rsp + 8], ebx
 	mov dword ptr [rsp + 12], ecx
-	sub ebx, CIRCLE_RADIUS
-	sub ecx, CIRCLE_RADIUS
+	sub ebx, edx
+	sub ecx, edx
 
-	mov dword ptr [rsp + 4], CIRCLE_RADIUS*2
+	mov dword ptr [rsp + 20], edx
+	shl dword ptr [rsp + 20], 1
+	imul edx, edx
+	mov dword ptr [rsp + 16], edx
+	mov edx, dword ptr [rsp + 20]
+
+	mov dword ptr [rsp + 4], edx
 	rowLoop:
-		mov dword ptr [rsp], CIRCLE_RADIUS*2
+		mov dword ptr [rsp], edx
 		colLoop:
 			; inside circle if (dx^2 + dy^2) <= r^2
 			mov eax, ebx
@@ -100,28 +105,27 @@ screen_drawCircle macro
 			sub edx, dword ptr [rsp + 12]
 			imul edx, edx
 			add eax, edx
-			cmp eax, CIRCLE_RSQ
+			cmp eax, dword ptr [rsp + 16]
 			jg colLoopNext
 
-			push rdx
 			screen_setPixelWrapped
-			pop rdx
 
 			colLoopNext:
 			inc ebx
 			dec dword ptr [rsp]
 			jne colLoop
 		rowLoopNext:
-		sub ebx, CIRCLE_RADIUS*2
+		mov edx, dword ptr [rsp + 20]
+		sub ebx, edx
 		inc ecx
 		dec dword ptr [rsp + 4]
 		jne rowLoop
 
-	pop rdx
-
 	mov rsp, rbp
+	pop rdi
 	pop rbp
-endm
+	ret
+screen_drawCircle endp
 
 screen_mDrawLine macro point1:req, point2:req
 	mov eax, [point1].Point.x
