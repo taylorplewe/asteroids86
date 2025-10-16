@@ -14,7 +14,8 @@ include <asteroid.s>
 
 .data
 
-window_title byte "ASTEROIDS 86", 0
+window_title byte "asteroids86", 0
+icon_path    byte "asteroid_512.bmp", 0
 
 
 .data?
@@ -24,10 +25,11 @@ window   qword ?
 renderer qword ?
 surface  qword ?
 texture  qword ?
+icon     qword ?
 event    byte 2048 dup (?)
 
 ticks     qword ?
-keys_down Keys  <?>
+keys_down Keys  <>
 is_paused dd    ?
 
 
@@ -76,6 +78,19 @@ render proc
 	ret
 render endp
 
+setWindowIcon macro
+	lea rcx, icon_path
+	call SDL_LoadBMP
+	; rax = *SDL_Surface
+
+	mov [icon], rax
+
+	mov rdx, rax
+	mov rcx, [window]
+	call SDL_SetWindowIcon
+	
+endm
+
 main proc
 	push rbp
 	mov rbp, rsp
@@ -94,6 +109,8 @@ main proc
 	xor r9d, r9d
 	call SDL_CreateWindow
 	mov qword ptr [window], rax
+
+	setWindowIcon
 
 	; SDL_CreateRenderer
 	mov rcx, rax ; still has &window
@@ -282,6 +299,8 @@ main proc
 	call SDL_DestroyRenderer
 	mov rcx, [window]
 	call SDL_DestroyWindow
+	mov rcx, [icon]
+	call SDL_DestroySurface
 	call SDL_Quit
 
 	mov rsp, rbp
@@ -290,5 +309,6 @@ main proc
 	call ExitProcess
 	ret
 main endp
+
 
 end
