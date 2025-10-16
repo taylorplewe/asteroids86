@@ -3,6 +3,7 @@ extern ExitProcess : proto
 include <globaldefs.inc>
 include <sdl\defs.inc>
 
+include <common.s>
 include <screen.s>
 include <fx\shard.s>
 include <fx\ship-shard.s>
@@ -51,6 +52,7 @@ render proc
 	mov rdi, [rbx].SDL_Surface.pixels
 	lea rsi, pixels
 	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 32
+	; brk
 	call memcpyAligned32
 
 	mov rcx, [renderer]

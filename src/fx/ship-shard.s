@@ -23,8 +23,12 @@ SHIP_SHARD_VELOCITY_DIFF     = 24000h
 
 .data
 
-ship_shards     ShipShard MAX_NUM_SHIP_SHARDS dup (<>)
-ship_shards_arr Array     { { ship_shards, 0 }, MAX_NUM_SHIP_SHARDS, sizeof ShipShard }
+ship_shards_arr Array { { ship_shards, 0 }, MAX_NUM_SHIP_SHARDS, sizeof ShipShard }
+
+
+.data?
+
+ship_shards ShipShard MAX_NUM_SHIP_SHARDS dup (<>)
 
 
 .code

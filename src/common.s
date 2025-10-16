@@ -13,8 +13,8 @@ include <data\sintab.inc>
 	; ecx = count of qwords
 memcpyAligned32 proc
 	mainLoop:
-		vmovdqa ymm0, ymmword ptr [rsi]
-		vmovdqa ymmword ptr [rdi], ymm0
+		vmovdqu ymm0, ymmword ptr [rsi]
+		vmovdqu ymmword ptr [rdi], ymm0
 		add rsi, 32
 		add rdi, 32
 		loop mainLoop
