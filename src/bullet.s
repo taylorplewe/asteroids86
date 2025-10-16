@@ -20,10 +20,14 @@ BULLET_SPEED         = 10
 BULLET_TICKS_TO_LIVE = 70
 
 
+.data
+
+bullets_arr Array { { bullets, 0 }, NUM_BULLETS, sizeof Bullet }
+
+
 .data?
 
-bullets     Bullet NUM_BULLETS dup (<>)
-bullets_arr Array  { { bullets, 0 }, NUM_BULLETS, sizeof Bullet }
+bullets Bullet NUM_BULLETS dup (<>)
 
 
 .code
