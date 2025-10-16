@@ -20,6 +20,8 @@ extern SDL_RenderClear              : proto :ptr
 extern SDL_RenderPresent            : proto :ptr
 extern SDL_LockSurface              : proto :ptr
 extern SDL_UnlockSurface            : proto :ptr
+extern SDL_LoadBMP                  : proto :ptr
+extern SDL_SetWindowIcon            : proto :ptr, :ptr
 SDL_INIT_VIDEO = 20h
 
 SDL_EVENT_QUIT     = 100h

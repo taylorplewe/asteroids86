@@ -40,7 +40,6 @@ shipShard_create proc
 	test eax, eax
 	je _end
 
-	; brk
 	mov rsi, rax
 	mov qword ptr [rsi].ShipShard.pos, rbx
 	mov qword ptr [rsi].ShipShard.velocity, rcx
@@ -148,7 +147,6 @@ shipShard_draw proc
 	push r8
 
 	; x
-	; brk
 	xor eax, eax
 	mov al, byte ptr [rdi].ShipShard.rot + 1
 	call sin

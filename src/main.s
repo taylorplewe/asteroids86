@@ -21,15 +21,15 @@ icon_path    byte "asteroid_512.bmp", 0
 .data?
 
 ; SDL stuff
-window   qword ?
-renderer qword ?
-surface  qword ?
-texture  qword ?
-icon     qword ?
-event    byte 2048 dup (?)
+window   dq ?
+renderer dq ?
+surface  dq ?
+texture  dq ?
+icon     dq ?
+event    db 2048 dup (?)
 
-ticks     qword ?
-keys_down Keys  <>
+ticks     dq    ?
+keys_down Keys  <?>
 is_paused dd    ?
 
 
@@ -110,13 +110,13 @@ main proc
 	call SDL_CreateWindow
 	mov qword ptr [window], rax
 
-	setWindowIcon
-
 	; SDL_CreateRenderer
 	mov rcx, rax ; still has &window
 	xor rdx, rdx
 	call SDL_CreateRenderer
 	mov qword ptr [renderer], rax
+
+	setWindowIcon
 
 	; SDL_CreateSurface
 	mov rcx, SCREEN_WIDTH
