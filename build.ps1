@@ -31,6 +31,7 @@ ml64 `
     /link `
     SDL3.lib `
     kernel32.lib `
+    .\resources\ufo.res `
     /debug:full `
     /entry:main `
     "/out:.\bin\$gameName.exe"

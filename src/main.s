@@ -1,5 +1,4 @@
-extern ExitProcess : proto
-
+include <windows.inc>
 include <globaldefs.inc>
 include <sdl\defs.inc>
 
@@ -11,12 +10,13 @@ include <fx\fire.s>
 include <bullet.s>
 include <ship.s>
 include <asteroid.s>
+include <ufo.s>
 
 
 .data
 
 window_title byte "asteroids86", 0
-icon_path    byte "asteroid_512.bmp", 0
+icon_path    byte "art\asteroid_512.bmp", 0
 
 
 .data?
@@ -100,6 +100,10 @@ main proc
 
 	call ship_respawn
 	call asteroid_test
+	call ufo_init
+
+	mov rbx, (200 shl (32 + 16)) or (200 shl 16)
+	call ufo_create
 
 	mov ecx, SDL_INIT_VIDEO
 	call SDL_Init
@@ -268,6 +272,7 @@ main proc
 		call ship_update
 		call bullet_updateAll
 		call asteroid_updateAll
+		call ufo_updateAll
 		call fire_updateAll
 		call shard_updateAll
 		call shipShard_updateAll
@@ -276,6 +281,7 @@ main proc
 		call ship_draw
 		call bullet_drawAll
 		call asteroid_drawAll
+		call ufo_drawAll
 		call fire_drawAll
 		call shard_drawAll
 		call shipShard_drawAll

@@ -67,6 +67,17 @@ screen_plotPoint macro
 	dec ecx
 endm
 
+; Draws a sprite comprised of bytes as pixels, where a value of 0 is drawn as 0 alpha, and !0 is drawn as 1.0 alpha.
+; Position should be in the center of the drawn sprite.
+; in:
+	; rbx - pointer to Pos
+	; rsi - pointer to sprite data
+	; rdi - pointer to sprite Dim
+screen_draw1bppSprite proc
+	
+	ret
+screen_draw1bppSprite endp
+
 ; TODO: this routine is pretty gnarly with the stack frame. Can probably be improved.
 ; in:
 	; ebx - x

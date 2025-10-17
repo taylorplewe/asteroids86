@@ -22,6 +22,10 @@ Point struct
 	y dd ?
 Point ends
 Vector typedef Point ; ??
+Dim struct
+	w dd ?
+	h dd ?
+Dim ends
 
 ; rotations and line lengths for drawing things
 BasePoint struct
