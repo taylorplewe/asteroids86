@@ -26,6 +26,9 @@ is_ydiff_neg  db ?
 	; rdi  - point to pixels
 	; r14d - SCREEN_WIDTH
 	; r15d - SCREEN_HEIGHT
+; clobbers:
+	; rdx
+	; r13
 screen_setPixelWrapped macro
 	; wrap x
 	mov eax, ebx
@@ -70,11 +73,65 @@ endm
 ; Draws a sprite comprised of bytes as pixels, where a value of 0 is drawn as 0 alpha, and !0 is drawn as 1.0 alpha.
 ; Position should be in the center of the drawn sprite.
 ; in:
-	; rbx - pointer to Pos
+	; rdx - pointer to Pos
 	; rsi - pointer to sprite data
-	; rdi - pointer to sprite Dim
+	; r9  - pointer to sprite Dim
+	; r8d - color
 screen_draw1bppSprite proc
-	
+	push rbx
+	push rcx
+	push rsi
+	push rdi
+	push r10
+	push r11
+	push r14
+	push r15
+
+	mov r14d, SCREEN_WIDTH
+	mov r15d, SCREEN_HEIGHT
+	lea rdi, pixels
+
+	; set x
+	xor ebx, ebx
+	mov bx, word ptr [rdx].Point.x + 2
+	mov eax, [r9].Dim.w
+	sar eax, 1
+	sub ebx, eax
+	; set y
+	xor ecx, ecx
+	mov cx, word ptr [rdx].Point.y + 2
+	mov eax, [r9].Dim.h
+	sar eax, 1
+	sub ecx, eax
+	; w and h counters
+	mov r10d, [r9].Dim.w
+	mov r11d, [r9].Dim.h
+
+	rowLoop:
+		colLoop:
+			cmp byte ptr [rsi], 0
+			je colNext
+			screen_setPixelWrapped
+			colNext:
+			inc ebx
+			inc rsi
+			dec r10d
+			jne colLoop
+		rowNext:	
+		sub ebx, [r9].Dim.w
+		mov r10d, [r9].Dim.w
+		inc ecx
+		dec r11d
+		jne rowLoop
+
+	pop r15
+	pop r14
+	pop r11
+	pop r10
+	pop rdi
+	pop rsi
+	pop rcx
+	pop rbx
 	ret
 screen_draw1bppSprite endp
 

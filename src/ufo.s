@@ -104,8 +104,26 @@ ufo_drawAll endp
 ; out:
 	; eax - 0 (UFO was not destroyed)
 ufo_draw proc
+	; rdx - pointer to Pos
+	; rsi - pointer to sprite data
+	; r9  - pointer to sprite Dim
+	; r8d - color
+	push rdx
+	push rsi
+	push r8
+	push r9
 
+	lea rdx, [rdi].Ufo.pos
+	mov rsi, [ufo_bin_ptr]
+	lea r9, ufo_sprite_dim
+	mov r8d, [fg_color]
+	call screen_draw1bppSprite
 
+	xor eax, eax
+	pop r9
+	pop r8
+	pop rsi
+	pop rdx
 	ret
 ufo_draw endp
 
