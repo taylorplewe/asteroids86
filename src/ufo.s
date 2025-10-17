@@ -90,6 +90,7 @@ ufo_updateAll endp
 ; out:
 	; eax - 1 if UFO was destroyed, 0 else
 ufo_update proc
+	xor eax, eax
 	ret
 ufo_update endp
 
