@@ -70,7 +70,7 @@ screen_plotPoint macro
 	dec ecx
 endm
 
-; Draws a sprite comprised of bytes as pixels, where a value of 0 is drawn as 0 alpha, and !0 is drawn as 1.0 alpha.
+; Draws a 1bpp sprite comprised of a bitplane; one byte represents 8 pixels in a row.
 ; Position should be in the center of the drawn sprite.
 ; in:
 	; rdx - pointer to Pos
@@ -84,6 +84,7 @@ screen_draw1bppSprite proc
 	push rdi
 	push r10
 	push r11
+	push r12
 	push r14
 	push r15
 
@@ -107,14 +108,24 @@ screen_draw1bppSprite proc
 	mov r10d, [r9].Dim.w
 	mov r11d, [r9].Dim.h
 
+	xor r12d, r12d ; bit position index
+
 	rowLoop:
 		colLoop:
-			cmp byte ptr [rsi], 0
-			je colNext
+			; cmp byte ptr [rsi], 0
+			bt word ptr [rsi], r12w
+			jnc colNext
 			screen_setPixelWrapped
+			
 			colNext:
+			inc r12w
+			cmp r12w, 8
+			jl @f
+				xor r12w, r12w
+				inc rsi
+			@@:
+
 			inc ebx
-			inc rsi
 			dec r10d
 			jne colLoop
 		rowNext:	
@@ -126,6 +137,7 @@ screen_draw1bppSprite proc
 
 	pop r15
 	pop r14
+	pop r12
 	pop r11
 	pop r10
 	pop rdi
