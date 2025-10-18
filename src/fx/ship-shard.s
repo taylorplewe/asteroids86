@@ -39,6 +39,8 @@ ship_shards ShipShard MAX_NUM_SHIP_SHARDS dup (<>)
 	; edx - len
 	; r8b - rotation added to base velocity to fly in
 shipShard_create proc
+	push rsi
+
 	lea rsi, ship_shards_arr
 	call array_push
 	test eax, eax
@@ -83,6 +85,7 @@ shipShard_create proc
 	sub [rsi].ShipShard.velocity.y, eax
 	
 	_end:
+	pop rsi
 	ret
 shipShard_create endp
 
