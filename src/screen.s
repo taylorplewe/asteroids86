@@ -75,7 +75,6 @@ endm
 ; in:
 	; rdx - pointer to Pos
 	; rsi - pointer to sprite data
-	; r9  - pointer to sprite Dim
 	; r8d - color
 screen_draw1bppSprite proc
 	push rbx
@@ -91,6 +90,9 @@ screen_draw1bppSprite proc
 	mov r14d, SCREEN_WIDTH
 	mov r15d, SCREEN_HEIGHT
 	lea rdi, pixels
+
+	mov r9, rsi
+	add rsi, sizeof Dim
 
 	; set x
 	xor ebx, ebx

@@ -20,16 +20,21 @@ MAX_NUM_UFOS = 4
 
 .data
 
-ufos_arr          Array { { ufos, 0 }, MAX_NUM_UFOS, sizeof Ufo }
-ufo_resource_name byte  "UFOBIN", 0
-ufo_resource_type byte  "BIN", 0
+ufos_arr                Array { { ufos, 0 }, MAX_NUM_UFOS, sizeof Ufo }
+ufo_spr_resource_name_0 byte  "UFOBIN0", 0
+ufo_spr_resource_name_1 byte  "UFOBIN1", 0
+ufo_spr_resource_name_2 byte  "UFOBIN2", 0
+ufo_spr_resource_name_3 byte  "UFOBIN3", 0
+ufo_resource_type       byte  "BIN", 0
 
 
 .data?
 
-ufos           Ufo MAX_NUM_UFOS dup (<>)
-ufo_bin_ptr    dq  ?
-ufo_sprite_dim Dim {}
+ufos         Ufo MAX_NUM_UFOS dup (<>)
+ufo_spr_data dq  ?
+             dq  ?
+             dq  ?
+             dq  ?
 
 
 .code
@@ -40,7 +45,7 @@ ufo_init proc
 	sub rsp, 200h
 
 	xor rcx, rcx
-	lea rdx, ufo_resource_name
+	lea rdx, ufo_spr_resource_name_0
 	lea r8, ufo_resource_type
 	call FindResourceA
 
@@ -51,14 +56,8 @@ ufo_init proc
 	mov rcx, rax
 	call LockResource
 
-	mov rsi, rax
-	mov eax, [rsi].Dim.w
-	mov [ufo_sprite_dim].w, eax
-	mov eax, [rsi].Dim.h
-	mov [ufo_sprite_dim].h, eax
-	add rsi, sizeof Dim
-	mov [ufo_bin_ptr], rsi
-
+	mov [ufo_spr_data], rax
+ 
 	mov rsp, rbp
 	pop rbp
 	ret
@@ -115,8 +114,7 @@ ufo_draw proc
 	push r9
 
 	lea rdx, [rdi].Ufo.pos
-	mov rsi, [ufo_bin_ptr]
-	lea r9, ufo_sprite_dim
+	mov rsi, [ufo_spr_data]
 	mov r8d, [fg_color]
 	call screen_draw1bppSprite
 
