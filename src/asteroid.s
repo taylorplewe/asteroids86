@@ -8,6 +8,7 @@ include <array.s>
 include <fx\shard.s>
 include <screen.s>
 include <bullet.s>
+include <ufo.s>
 
 
 Asteroid struct
@@ -69,7 +70,7 @@ asteroid_test proc
 	mov r9, 1
 	call asteroid_create
 
-	mov rbx, ((20) shl 48) or ((100) shl 16)
+	mov rbx, ((20) shl 48) or ((200) shl 16)
 	mov ecx, 3
 	lea rdi, asteroid_shapes + sizeof FatPtr
 	xor r8, r8
@@ -281,6 +282,70 @@ asteroid_checkBullets proc
 	ret
 asteroid_checkBullets endp
 
+; in:
+	; rdi - pointer to current asteroid
+; out:
+	; eax - 1 if hit, 0 else
+asteroid_checkUfos proc
+	push rbx
+	push rcx
+	push rsi
+	push r8
+	push r9
+
+	mov eax, [ufos_arr].Array.data.len
+	test eax, eax
+	je noHit
+	xor ecx, ecx
+	lea rsi, ufos
+	mainLoop:
+		; check if bullet is inside this asteroid's circular hitbox, dictacted by it's 'mass'
+		; hit if (dx^2 + dy^2) <= r^2
+		xor eax, eax ; clear upper bits
+		mov ax, word ptr [rsi].Ufo.pos.x + 2
+		sub ax, word ptr [rdi].Asteroid.pos.x + 2
+		cwde
+		imul eax, eax
+		mov r8d, eax
+		mov ax, word ptr [rsi].Ufo.pos.y + 2
+		sub ax, word ptr [rdi].Asteroid.pos.y + 2
+		cwde
+		imul eax, eax
+		mov r9d, eax
+
+		add r8d, r9d
+		lea r9, asteroid_r_squareds
+		mov ebx, [rdi].Asteroid.mass
+		shl ebx, 2 ; dwords
+		cmp r8d, [r9 + rbx]
+		jg next
+
+		; hit!
+		push rdi
+		mov rdi, rsi
+		call ufo_destroy
+		pop rdi
+		call asteroid_onHit
+		mov eax, 1
+		jmp _end
+
+		next:
+		add rsi, sizeof Ufo
+		inc ecx
+		cmp ecx, [ufos_arr].Array.data.len
+		jb mainLoop
+
+	noHit:
+	xor eax, eax
+	_end:
+	pop r9
+	pop r8
+	pop rsi
+	pop rcx
+	pop rbx
+	ret
+asteroid_checkUfos endp
+
 ; Check for collision with ship, destroy it if so
 asteroid_checkShip proc
 	cmp [ship].ticks_to_respawn, 0
@@ -358,7 +423,10 @@ asteroid_update proc
 	call asteroid_checkBullets ; returns 1 if hit, 0 else
 	test eax, eax
 	jne _end
-	call asteroid_checkShip
+	call asteroid_checkUfos    ; returns 1 if hit, 0 else
+	test eax, eax
+	jne _end
+	call asteroid_checkShip    ; returns 1 if hit, 0 else
 
 	_end:
 	pop rsi
