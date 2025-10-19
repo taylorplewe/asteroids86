@@ -126,6 +126,7 @@ ufo_updateAll endp
 ; out:
 	; eax - 1 if UFO was destroyed, 0 else
 ufo_update proc
+	; advance frame
 	dec [rdi].Ufo.frame_ctr
 	jne frameCtrIncEnd
 		mov [rdi].Ufo.frame_ctr, UFO_FRAME_CTR_AMT
@@ -133,15 +134,75 @@ ufo_update proc
 		and [rdi].Ufo.frame_ind, 11b
 	frameCtrIncEnd:
 
+	; check for bullets
+
 	xor eax, eax
 	ret
 ufo_update endp
 
-ufo_drawAll proc
-	lea rsi, ufos_arr
-	lea r8, ufo_draw
-	jmp array_forEach
-ufo_drawAll endp
+; in:
+	; rdi - pointer to UFO
+ufo_checkBullets proc
+	push rbx
+	push rcx
+	push rsi
+	push r8
+	push r9
+
+	mov eax, [bullets_arr].Array.data.len
+	; bullets_arr.data.len is NOT zero here hwen it should be
+	cmp [bullets_arr].Array.data.len, 0
+	je noHit
+	xor ecx, ecx
+	lea rsi, bullets
+	mainLoop:
+		; check if bullet is inside this asteroid's circular hitbox, dictacted by it's 'mass'
+		; hit if (dx^2 + dy^2) <= r^2
+		xor eax, eax ; clear upper bits
+		mov ax, word ptr [rsi].Bullet.pos.x + 2
+		sub ax, word ptr [rdi].Asteroid.pos.x + 2
+		cwde
+		imul eax, eax
+		mov r8d, eax
+		mov ax, word ptr [rsi].Bullet.pos.y + 2
+		sub ax, word ptr [rdi].Asteroid.pos.y + 2
+		cwde
+		imul eax, eax
+		mov r9d, eax
+
+		add r8d, r9d
+		lea r9, asteroid_r_squareds
+		mov ebx, [rdi].Asteroid.mass
+		shl ebx, 2 ; dwords
+		cmp r8d, [r9 + rbx]
+		jg next
+
+		; hit!
+		push rsi
+		lea rsi, bullets_arr
+		mov eax, ecx
+		call array_removeAt
+		pop rsi
+		call asteroid_onHit
+		mov eax, 1
+		jmp _end
+
+		next:
+		add rsi, sizeof Bullet
+		inc ecx
+		cmp ecx, [bullets_arr].Array.data.len
+		jb mainLoop
+
+	noHit:
+	xor eax, eax
+	_end:
+	pop r9
+	pop r8
+	pop rsi
+	pop rcx
+	pop rbx
+	ret
+ufo_checkBullets endp
 
 ; in:
 	; rdi - pointer to ufo
@@ -191,6 +252,12 @@ ufo_destroy proc
 	pop rbx
 	ret
 ufo_destroy endp
+
+ufo_drawAll proc
+	lea rsi, ufos_arr
+	lea r8, ufo_draw
+	jmp array_forEach
+ufo_drawAll endp
 
 ; in:
 	; rdi - pointer to UFO
