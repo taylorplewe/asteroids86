@@ -21,6 +21,8 @@ Ufo ends
 MAX_NUM_UFOS      = 4
 UFO_NUM_FRAMES    = 4
 UFO_FRAME_CTR_AMT = 6
+UFO_BBOX_WIDTH    = 84
+UFO_BBOX_HEIGHT   = 124
 
 
 .data
@@ -109,6 +111,7 @@ ufo_create proc
 	mov rsi, rax
 	mov qword ptr [rsi].Ufo.pos, rbx
 	mov [rsi].Ufo.frame_ind, 0
+	mov [rsi].Ufo.velocity, 0
 	mov [rsi].Ufo.frame_ctr, UFO_FRAME_CTR_AMT
 	
 	_end:
@@ -135,47 +138,44 @@ ufo_update proc
 	frameCtrIncEnd:
 
 	; check for bullets
+	call ufo_checkBullets
 
-	xor eax, eax
 	ret
 ufo_update endp
 
 ; in:
 	; rdi - pointer to UFO
 ufo_checkBullets proc
-	push rbx
 	push rcx
 	push rsi
-	push r8
-	push r9
 
 	mov eax, [bullets_arr].Array.data.len
-	; bullets_arr.data.len is NOT zero here hwen it should be
-	cmp [bullets_arr].Array.data.len, 0
+	test eax, eax
 	je noHit
 	xor ecx, ecx
 	lea rsi, bullets
 	mainLoop:
-		; check if bullet is inside this asteroid's circular hitbox, dictacted by it's 'mass'
-		; hit if (dx^2 + dy^2) <= r^2
-		xor eax, eax ; clear upper bits
-		mov ax, word ptr [rsi].Bullet.pos.x + 2
-		sub ax, word ptr [rdi].Asteroid.pos.x + 2
-		cwde
-		imul eax, eax
-		mov r8d, eax
-		mov ax, word ptr [rsi].Bullet.pos.y + 2
-		sub ax, word ptr [rdi].Asteroid.pos.y + 2
-		cwde
-		imul eax, eax
-		mov r9d, eax
-
-		add r8d, r9d
-		lea r9, asteroid_r_squareds
-		mov ebx, [rdi].Asteroid.mass
-		shl ebx, 2 ; dwords
-		cmp r8d, [r9 + rbx]
+		; check if bullet is inside UFO's rectangular hitbox
+		; < x
+		xor eax, eax
+		mov ax, word ptr [rdi].Ufo.pos.x + 2
+		sub eax, UFO_BBOX_WIDTH / 2
+		cmp ax, word ptr [rsi].Bullet.pos.x + 2
 		jg next
+		; > x
+		add eax, UFO_BBOX_WIDTH
+		cmp ax, word ptr [rsi].Bullet.pos.x + 2
+		jl next
+		; < y
+		xor eax, eax
+		mov ax, word ptr [rdi].Ufo.pos.y + 2
+		sub eax, UFO_BBOX_HEIGHT / 2
+		cmp ax, word ptr [rsi].Bullet.pos.y + 2
+		jg next
+		; > y
+		add eax, UFO_BBOX_HEIGHT
+		cmp ax, word ptr [rsi].Bullet.pos.y + 2
+		jl next
 
 		; hit!
 		push rsi
@@ -183,7 +183,7 @@ ufo_checkBullets proc
 		mov eax, ecx
 		call array_removeAt
 		pop rsi
-		call asteroid_onHit
+		call ufo_destroy
 		mov eax, 1
 		jmp _end
 
@@ -196,11 +196,8 @@ ufo_checkBullets proc
 	noHit:
 	xor eax, eax
 	_end:
-	pop r9
-	pop r8
 	pop rsi
 	pop rcx
-	pop rbx
 	ret
 ufo_checkBullets endp
 
@@ -212,36 +209,59 @@ ufo_destroy proc
 	push rdx
 	push r8
 
-	xor r8, r8
+	UFO_DESTROY_Y_DIFF = UFO_BBOX_HEIGHT / 9
+	UFO_DESTROY_X_DIFF = UFO_BBOX_WIDTH / 6
 
-	mov rbx, [rdi].Ufo.pos
-	mov rcx, [rdi].Ufo.velocity
-	mov edx, 36
-	call shipShard_create
-
-	mov rbx, [rdi].Ufo.pos
-	mov rcx, [rdi].Ufo.velocity
-	mov edx, 16
-	add r8b, 256/5
-	call shipShard_create
-
-	mov rbx, [rdi].Ufo.pos
-	mov rcx, [rdi].Ufo.velocity
-	mov edx, 25
-	add r8b, 256/5
-	call shipShard_create
-
-	mov rbx, [rdi].Ufo.pos
-	mov rcx, [rdi].Ufo.velocity
-	mov edx, 12
-	add r8b, 256/5
-	call shipShard_create
-
-	mov rbx, [rdi].Ufo.pos
-	mov rcx, [rdi].Ufo.velocity
+	mov r8b, -20
+	mov rcx, ((UFO_DESTROY_Y_DIFF) shl 48) or ((UFO_DESTROY_X_DIFF) shl 16)
+	mov rbx, qword ptr [rdi].Ufo.pos
+	sub rbx, rcx
+	mov rcx, qword ptr [rdi].Ufo.velocity
 	mov edx, 20
-	add r8b, 256/5
 	call shipShard_create
+
+	add r8b, 20
+	mov rcx, (UFO_DESTROY_Y_DIFF) shl 48
+	sub rbx, rcx
+	mov rcx, (UFO_DESTROY_X_DIFF) shl 16
+	add rbx, rcx
+	mov rcx, qword ptr [rdi].Ufo.velocity
+	mov edx, 20
+	call shipShard_create
+
+	add r8b, 20
+	mov rcx, ((UFO_DESTROY_Y_DIFF) shl 48) or ((UFO_DESTROY_X_DIFF) shl 16)
+	add rbx, rcx
+	mov rcx, qword ptr [rdi].Ufo.velocity
+	mov edx, 20
+	call shipShard_create
+
+	mov r8b, 128 - 20
+	mov rcx, (UFO_DESTROY_Y_DIFF * 2) shl 48
+	add rbx, rcx
+	mov rcx, qword ptr [rdi].Ufo.velocity
+	mov edx, 20
+	call shipShard_create
+
+	add r8b, 20
+	mov rcx, (UFO_DESTROY_Y_DIFF) shl 48
+	add rbx, rcx
+	mov rcx, (UFO_DESTROY_X_DIFF) shl 16
+	sub rbx, rcx
+	mov rcx, qword ptr [rdi].Ufo.velocity
+	mov edx, 20
+	call shipShard_create
+
+	add r8b, 20
+	mov rcx, ((UFO_DESTROY_Y_DIFF) shl 48) or ((UFO_DESTROY_X_DIFF) shl 16)
+	sub rbx, rcx
+	mov rcx, qword ptr [rdi].Ufo.velocity
+	mov edx, 20
+	call shipShard_create
+
+	mov rbx, qword ptr [rdi].Ufo.pos
+	mov rcx, qword ptr [rdi].Ufo.velocity
+	call shard_createBurst
 
 	lea rsi, ufos_arr
 	call array_removeEl
