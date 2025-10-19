@@ -6,6 +6,8 @@ include <windows.inc>
 
 include <array.s>
 include <screen.s>
+include <bullet.s>
+include <ship.s>
 
 
 Ufo struct
@@ -111,8 +113,9 @@ ufo_create proc
 	mov rsi, rax
 	mov qword ptr [rsi].Ufo.pos, rbx
 	mov [rsi].Ufo.frame_ind, 0
-	mov [rsi].Ufo.velocity, 0
 	mov [rsi].Ufo.frame_ctr, UFO_FRAME_CTR_AMT
+	mov [rsi].Ufo.velocity.x, 10000h
+	mov [rsi].Ufo.velocity.y, 10000h
 	
 	_end:
 	ret
@@ -136,6 +139,12 @@ ufo_update proc
 		inc [rdi].Ufo.frame_ind
 		and [rdi].Ufo.frame_ind, 11b
 	frameCtrIncEnd:
+
+	; move
+	movd xmm0, [rdi].Ufo.pos
+	movd xmm1, [rdi].Ufo.velocity
+	paddd xmm0, xmm1
+	movd [rdi].Ufo.pos, xmm0
 
 	; check for bullets
 	call ufo_checkBullets ; returns 1 if hit, 0 else

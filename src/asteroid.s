@@ -9,6 +9,7 @@ include <fx\shard.s>
 include <screen.s>
 include <bullet.s>
 include <ufo.s>
+include <ship.s>
 
 
 Asteroid struct
