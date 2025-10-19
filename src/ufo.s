@@ -138,8 +138,12 @@ ufo_update proc
 	frameCtrIncEnd:
 
 	; check for bullets
-	call ufo_checkBullets
+	call ufo_checkBullets ; returns 1 if hit, 0 else
+	test eax, eax
+	jne _end
+	call ufo_checkShip ; returns 1 if hit, 0 else
 
+	_end:
 	ret
 ufo_update endp
 
@@ -201,6 +205,39 @@ ufo_checkBullets proc
 	ret
 ufo_checkBullets endp
 
+ufo_checkShip proc
+	; check if bullet is inside UFO's rectangular hitbox
+	; < x
+	xor eax, eax
+	mov ax, word ptr [rdi].Ufo.pos.x + 2
+	sub eax, UFO_BBOX_WIDTH / 2
+	cmp ax, word ptr [ship].x + 2
+	jg noHit
+	; > x
+	add eax, UFO_BBOX_WIDTH
+	cmp ax, word ptr [ship].x + 2
+	jl noHit
+	; < y
+	xor eax, eax
+	mov ax, word ptr [rdi].Ufo.pos.y + 2
+	sub eax, UFO_BBOX_HEIGHT / 2
+	cmp ax, word ptr [ship].y + 2
+	jg noHit
+	; > y
+	add eax, UFO_BBOX_HEIGHT
+	cmp ax, word ptr [ship].y + 2
+	jl noHit
+
+	call ship_destroy
+	call ufo_destroy
+	mov eax, 1
+	ret
+
+	noHit:
+	xor eax, eax
+	ret
+ufo_checkShip endp
+
 ; in:
 	; rdi - pointer to ufo
 ufo_destroy proc
@@ -211,8 +248,9 @@ ufo_destroy proc
 
 	UFO_DESTROY_Y_DIFF = UFO_BBOX_HEIGHT / 9
 	UFO_DESTROY_X_DIFF = UFO_BBOX_WIDTH / 6
+	UFO_DESTROY_ROT    = 30
 
-	mov r8b, -20
+	mov r8b, -UFO_DESTROY_ROT
 	mov rcx, ((UFO_DESTROY_Y_DIFF) shl 48) or ((UFO_DESTROY_X_DIFF) shl 16)
 	mov rbx, qword ptr [rdi].Ufo.pos
 	sub rbx, rcx
@@ -220,7 +258,7 @@ ufo_destroy proc
 	mov edx, 20
 	call shipShard_create
 
-	add r8b, 20
+	add r8b, UFO_DESTROY_ROT
 	mov rcx, (UFO_DESTROY_Y_DIFF) shl 48
 	sub rbx, rcx
 	mov rcx, (UFO_DESTROY_X_DIFF) shl 16
@@ -229,21 +267,21 @@ ufo_destroy proc
 	mov edx, 20
 	call shipShard_create
 
-	add r8b, 20
+	add r8b, UFO_DESTROY_ROT
 	mov rcx, ((UFO_DESTROY_Y_DIFF) shl 48) or ((UFO_DESTROY_X_DIFF) shl 16)
 	add rbx, rcx
 	mov rcx, qword ptr [rdi].Ufo.velocity
 	mov edx, 20
 	call shipShard_create
 
-	mov r8b, 128 - 20
+	mov r8b, 128 - UFO_DESTROY_ROT
 	mov rcx, (UFO_DESTROY_Y_DIFF * 2) shl 48
 	add rbx, rcx
 	mov rcx, qword ptr [rdi].Ufo.velocity
 	mov edx, 20
 	call shipShard_create
 
-	add r8b, 20
+	add r8b, UFO_DESTROY_ROT
 	mov rcx, (UFO_DESTROY_Y_DIFF) shl 48
 	add rbx, rcx
 	mov rcx, (UFO_DESTROY_X_DIFF) shl 16
@@ -252,7 +290,7 @@ ufo_destroy proc
 	mov edx, 20
 	call shipShard_create
 
-	add r8b, 20
+	add r8b, UFO_DESTROY_ROT
 	mov rcx, ((UFO_DESTROY_Y_DIFF) shl 48) or ((UFO_DESTROY_X_DIFF) shl 16)
 	sub rbx, rcx
 	mov rcx, qword ptr [rdi].Ufo.velocity
