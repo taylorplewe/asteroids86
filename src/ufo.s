@@ -146,6 +146,12 @@ ufo_update proc
 	paddd xmm0, xmm1
 	movd [rdi].Ufo.pos, xmm0
 
+	; wrap around screen
+	push rsi
+	lea rsi, [rdi].Bullet.pos
+	call wrapPointAroundScreen
+	pop rsi
+
 	; check for bullets
 	call ufo_checkBullets ; returns 1 if hit, 0 else
 	test eax, eax
