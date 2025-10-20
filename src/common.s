@@ -173,6 +173,7 @@ atan2 proc
 			div r8d
 			mov ebx, 128
 			sub ebx, eax
+			mov eax, ebx
 			jmp _end
 	yGreaterThanZeroEnd:
 
