@@ -37,6 +37,8 @@ bullets Bullet NUM_BULLETS dup (<>)
 	; r9d - Y 16.16 fixed point
 	; r10b - rotation in 256-based radians
 bullet_create proc
+	push rsi
+
 	lea rsi, bullets_arr
 	call array_push
 	test rax, rax
@@ -64,6 +66,7 @@ bullet_create proc
 	mov [rsi].Bullet.velocity.y, eax
 
 	_end:
+	pop rsi
 	ret
 bullet_create endp
 

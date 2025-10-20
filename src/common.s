@@ -104,7 +104,7 @@ atan2 proc
 	cmp ecx, 0
 	jl xGreaterThanZeroEnd
 	    ; if (y > 0)
-		test ebx, ebx
+		cmp ebx, 0
 		jl xGreaterThanZeroYGreaterThanZeroEnd
 		    ; if (ax < ay)
 			cmp r8d, r9d
@@ -198,6 +198,7 @@ atan2 proc
 		; jmp _end
 
 	_end:
+	add al, 64
 	pop r9
 	pop r8
 	pop rdx

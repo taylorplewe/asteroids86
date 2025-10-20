@@ -44,10 +44,12 @@ Keys struct
 Keys ends
 
 abseax macro
+	push rbx
 	mov ebx, eax
 	sar ebx, 31 ; 00000000h or 0ffffffffh
 	xor eax, ebx
 	sub eax, ebx
+	pop rbx
 endm
 
 brk macro
