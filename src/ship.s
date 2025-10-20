@@ -63,12 +63,12 @@ ship_update proc
 	normalUpdate:
 	cmp [rdi].Keys.left, 0
 	je @f
-		sub [ship].rot, 2
+		sub [ship].rot, 3
 		jmp fireCheck
 	@@:
 	cmp [rdi].Keys.right, 0
 	je @f
-		add [ship].rot, 2
+		add [ship].rot, 3
 	@@:
 
 	fireCheck:
