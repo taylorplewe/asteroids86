@@ -13,6 +13,7 @@ Bullet struct
 	pos           Point  <?> ; 16.16 fixed point x and y
 	velocity      Vector <?> ; 16.16 fixed point x and y
 	ticks_to_live dd ?
+	is_evil       dd ?
 Bullet ends
 
 NUM_BULLETS          = 6
@@ -33,9 +34,10 @@ bullets Bullet NUM_BULLETS dup (<>)
 .code
 
 ; in:
-	; r8d - X 16.16 fixed point
-	; r9d - Y 16.16 fixed point
+	; r8d  - X 16.16 fixed point
+	; r9d  - Y 16.16 fixed point
 	; r10b - rotation in 256-based radians
+	; r11  - is_evil
 bullet_create proc
 	push rsi
 
@@ -48,6 +50,7 @@ bullet_create proc
 	mov [rsi].Bullet.ticks_to_live, BULLET_TICKS_TO_LIVE
 	mov [rsi].Bullet.pos.x, r8d
 	mov [rsi].Bullet.pos.y, r9d
+	mov [rsi].Bullet.is_evil, r11d
 
 	xor eax, eax
 	mov al, r10b
@@ -135,7 +138,14 @@ bullet_draw proc
 	mov bx, word ptr [rdi].Bullet.pos.x + 2
 	mov cx, word ptr [rdi].Bullet.pos.y + 2
 
-	mov r8d, [fg_color]
+	cmp [rdi].Bullet.is_evil, 0
+	je @f
+		mov r8d, [evil_color]
+		jmp decideColorEnd
+	@@:
+		mov r8d, [fg_color]
+	decideColorEnd:
+
 	mov edx, 4
 
 	call screen_drawCircle

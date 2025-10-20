@@ -19,10 +19,12 @@ Ship struct
 Ship ends
 
 SHIP_TICKS_TO_RESPAWN = 60 * 4
-SHIP_VELOCITY_ACCEL = 00005000h ; 16.16 fixed point
-SHIP_VELOCITY_MAX   = 00080000h ; 16.16 fixed point
-SHIP_VELOCITY_DRAG  = 0000fa00h ; 16.16 fixed point
-SHIP_VELOCITY_KICK  = 00008000h ; 16.16 fixed point
+SHIP_VELOCITY_ACCEL   = 00005000h ; 16.16 fixed point
+SHIP_VELOCITY_MAX     = 00080000h ; 16.16 fixed point
+SHIP_VELOCITY_DRAG    = 0000fa00h ; 16.16 fixed point
+SHIP_VELOCITY_KICK    = 00008000h ; 16.16 fixed point
+SHIP_RADIUS           = 40
+SHIP_R_SQ             = SHIP_RADIUS * SHIP_RADIUS
 
 
 .data
@@ -79,6 +81,7 @@ ship_update proc
 		mov r9d, [ship_points].y
 		shl r9d, 16
 		mov r10b, [ship].rot
+		xor r11d, r11d ; not evil
 		push rdi
 		call bullet_create
 		pop rdi
@@ -200,6 +203,8 @@ ship_update proc
 	call fire_create
 	@@:
 
+	call ship_checkBullets
+
 	ret
 ship_update endp
 
@@ -277,6 +282,66 @@ ship_destroy proc
 	pop rbx
 	ret
 ship_destroy endp
+
+ship_checkBullets proc
+	push rbx
+	push rcx
+	push rsi
+	push r8
+	push r9
+
+	mov eax, [bullets_arr].Array.data.len
+	test eax, eax
+	je _end
+	xor ecx, ecx
+	lea rsi, bullets
+	mainLoop:
+		cmp [rsi].Bullet.is_evil, 0
+		je next
+
+		; check if bullet is inside this ship's circular hitbox, dictacted by it's 'mass'
+		; hit if (dx^2 + dy^2) <= r^2
+		xor eax, eax ; clear upper bits
+		mov ax, word ptr [rsi].Bullet.pos.x + 2
+		sub ax, word ptr [ship].x + 2
+		cwde
+		imul eax, eax
+		mov r8d, eax
+		mov ax, word ptr [rsi].Bullet.pos.y + 2
+		sub ax, word ptr [ship].y + 2
+		cwde
+		imul eax, eax
+		mov r9d, eax
+
+		add r8d, r9d
+		cmp r8d, SHIP_R_SQ
+		jg next
+
+		; hit!
+		push rsi
+		lea rsi, bullets_arr
+		mov eax, ecx
+		call array_removeAt
+		pop rsi
+		call ship_destroy
+		mov eax, 1
+		jmp _end
+
+		next:
+		add rsi, sizeof Bullet
+		inc ecx
+		cmp ecx, [bullets_arr].Array.data.len
+		jb mainLoop
+
+	_end:
+	pop r9
+	pop r8
+	pop rsi
+	pop rcx
+	pop rbx
+	ret
+ship_checkBullets endp
+
 
 ship_draw proc
 	cmp [ship].ticks_to_respawn, 0

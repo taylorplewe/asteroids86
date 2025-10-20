@@ -26,7 +26,7 @@ UFO_NUM_FRAMES      = 4
 UFO_FRAME_CTR_AMT   = 6
 UFO_BBOX_WIDTH      = 84
 UFO_BBOX_HEIGHT     = 124
-UFO_SHOOT_TIMER_AMT = 20
+UFO_SHOOT_TIMER_AMT = 64
 
 
 .data
@@ -181,6 +181,7 @@ ufo_update proc
 		
 		mov r8d, [rdi].Ufo.pos.x
 		mov r9d, [rdi].Ufo.pos.y
+		mov r11d, 1
 
 		call bullet_create
 
@@ -188,9 +189,9 @@ ufo_update proc
 	@@:
 
 	; check for bullets
-	; call ufo_checkBullets ; returns 1 if hit, 0 else
-	; test eax, eax
-	; jne _end
+	call ufo_checkBullets ; returns 1 if hit, 0 else
+	test eax, eax
+	jne _end
 	call ufo_checkShip ; returns 1 if hit, 0 else
 
 	_end:
@@ -214,6 +215,10 @@ ufo_checkBullets proc
 	xor ecx, ecx
 	lea rsi, bullets
 	mainLoop:
+		; must not be evil to hit
+		cmp [rsi].Bullet.is_evil, 0
+		jne next
+	
 		; check if bullet is inside UFO's rectangular hitbox
 		; < x
 		xor eax, eax
