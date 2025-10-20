@@ -59,71 +59,150 @@ sin proc
 	ret
 sin endp
 
+; This is a translation of a "FastAtan2" method from a disassembly of Legacy of Kain: Soul Reaver (https://github.com/FedericoMilesi/soul-re/blob/8d859e8a3885e8c57f51e42bdb299fa2180258cc/src/Game/MATH3D.c#L132)
 ; in:
 	; ebx - y
 	; ecx - x
+; out:
+	; al - angle in 256-based radians
 atan2 proc
-	ret
-atan2 endp
-
-	; atan2(long y, long x):
-
-    ; long ax;
-    ; long ay;
+	push rdx
+	push r8
+	push r9
 
     ; if (x == 0) {
     ;     x = 1;
     ; }
+	test ecx, ecx
+	jne @f
+		inc ecx
+	@@:
 
     ; if (y == 0) {
-    ;     return (x < 1) * 2048;
+    ;     return (x < 1) * 128;
     ; }
-
+    test ebx, ebx
+	jne @f
+		xor eax, eax
+		sub ecx, 1
+		sar ecx, 24
+		and ecx, 80h
+		mov eax, ecx
+		jmp _end
+	@@:
+	
     ; ax = abs(x);
     ; ay = abs(y);
+	mov eax, ecx
+	abseax
+	mov r8d, eax
+	mov eax, ebx
+	abseax
+	mov r9d, eax
 
-    ; if (x > 0) {
-    ;     if (y > 0)
-    ;     {
-    ;         if (ax < ay)
-    ;         {
-    ;             return (1024 - ((ax * 512) / ay));
-    ;         }
-    ;         else
-    ;         {
-    ;             return ((ay * 512) / ax);
-    ;         }
-    ;     }
-    ;     else
-    ;     {
-    ;         if (ay < ax)
-    ;         {
-    ;             return (4096 - ((ay * 512) / ax));
-    ;         }
-    ;         else
-    ;         {
-    ;             return (((ax * 512) / ay) + 3072);
-    ;         }
-    ;     }
-    ; }
+    ; if (x > 0)
+	cmp ecx, 0
+	jl xGreaterThanZeroEnd
+	    ; if (y > 0)
+		test ebx, ebx
+		jl xGreaterThanZeroYGreaterThanZeroEnd
+		    ; if (ax < ay)
+			cmp r8d, r9d
+			jge @f
+        		; return (64 - ((ax * 32) / ay));
+				shl r8d, 5
+				mov eax, r8d
+				cdq
+				div r9d
+				mov ebx, 64
+				sub ebx, eax
+				mov eax, ebx
+				jmp _end
+			@@:
+				; return ((ay * 32) / ax);
+				shl r9d, 5
+				mov eax, r9d
+				cdq
+				div r8d
+				jmp _end
+		xGreaterThanZeroYGreaterThanZeroEnd:
+		    ; if (ay < ax)
+		    cmp r9d, r8d
+			jge @f
+				; return (256 - ((ay * 32) / ax));
+				shl r9d, 5
+				mov eax, r9d
+				cdq
+				div r8d
+				mov ebx, 256
+				sub ebx, eax
+				mov eax, ebx
+				; could be 256 (al would be 0 which is very wrong)
+				cmp eax, 256
+				jl _end
+				dec eax
+				jmp _end
+			@@:
+				; return (((ax * 32) / ay) + 196);
+				shl r8d, 5
+				mov eax, r8d
+				cdq
+				div r9d
+				add eax, 196
+				jmp _end
+    xGreaterThanZeroEnd:
 
-    ; if (y > 0) {
-    ;     if (ax < ay)
-    ;     {
-    ;         return (((ax * 512) / ay) + 1024);
-    ;     }
-    ;     else
-    ;     {
-    ;         return (2048 - ((ay * 512) / ax));
-    ;     }
-    ; }
+    ; if (y > 0)
+	cmp ebx, 0
+	jl yGreaterThanZeroEnd
+		; if (ax < ay)
+		cmp r8d, r9d
+		jge @f
+			; return (((ax * 32) / ay) + 64);
+			shl r8d, 5
+			mov eax, r8d
+			cdq
+			div r9d
+			add eax, 64
+			jmp _end
+		@@:
+			; return (128 - ((ay * 32) / ax));
+			shl r9d, 5
+			mov eax, r9d
+			cdq
+			div r8d
+			mov ebx, 128
+			sub ebx, eax
+			jmp _end
+	yGreaterThanZeroEnd:
 
-    ; if (ay < ax) {
-    ;     return (((ay * 512) / ax) + 2048);
-    ; }
-    ; else {
-    ;     return (3072 - ((ax * 512) / ay));
-    ; }
+    ; if (ay < ax)
+    cmp r9d, r8d
+	jge @f
+		; return (((ay * 32) / ax) + 128);
+		shl r9d, 5
+		mov eax, r9d
+		cdq
+		div r8d
+		add eax, 128
+		jmp _end
+	@@:
+		; return (196 - ((ax * 32) / ay));
+		shl r8d, 5
+		mov eax, r8d
+		cdq
+		div r9d
+		mov ebx, 196
+		sub ebx, eax
+		mov eax, ebx
+		; jmp _end
+
+	_end:
+	pop r9
+	pop r8
+	pop rdx
+	ret
+atan2 endp
 
 ; in:
 	; r8   - pointer to source BasePoint

@@ -4,6 +4,7 @@ ufo_h = 1
 include <globaldefs.inc>
 include <windows.inc>
 
+include <common.s>
 include <array.s>
 include <screen.s>
 include <bullet.s>
@@ -20,11 +21,12 @@ Ufo struct
 	; turn_timer  dd    ?
 Ufo ends
 
-MAX_NUM_UFOS      = 4
-UFO_NUM_FRAMES    = 4
-UFO_FRAME_CTR_AMT = 6
-UFO_BBOX_WIDTH    = 84
-UFO_BBOX_HEIGHT   = 124
+MAX_NUM_UFOS        = 4
+UFO_NUM_FRAMES      = 4
+UFO_FRAME_CTR_AMT   = 6
+UFO_BBOX_WIDTH      = 84
+UFO_BBOX_HEIGHT     = 124
+UFO_SHOOT_TIMER_AMT = 20
 
 
 .data
@@ -116,6 +118,7 @@ ufo_create proc
 	mov [rsi].Ufo.frame_ctr, UFO_FRAME_CTR_AMT
 	mov [rsi].Ufo.velocity.x, 10000h
 	mov [rsi].Ufo.velocity.y, 10000h
+	mov [rsi].Ufo.shoot_timer, UFO_SHOOT_TIMER_AMT
 	
 	_end:
 	ret
@@ -132,6 +135,12 @@ ufo_updateAll endp
 ; out:
 	; eax - 1 if UFO was destroyed, 0 else
 ufo_update proc
+	push rbx
+	push rcx
+	push r8
+	push r9
+	push r10
+
 	; advance frame
 	dec [rdi].Ufo.frame_ctr
 	jne frameCtrIncEnd
@@ -148,17 +157,45 @@ ufo_update proc
 
 	; wrap around screen
 	push rsi
-	lea rsi, [rdi].Bullet.pos
+	lea rsi, [rdi].Ufo.pos
 	call wrapPointAroundScreen
 	pop rsi
 
+	; shoot
+	dec [rdi].Ufo.shoot_timer
+	jne @f
+		; r8d - X 16.16 fixed point
+		; r9d - Y 16.16 fixed point
+		; r10b - rotation in 256-based radians
+
+		mov ebx, [ship].y
+		sub ebx, [rdi].Ufo.pos.y
+		mov ecx, [ship].x
+		sub ecx, [rdi].Ufo.pos.x
+		call atan2
+		xor r10, r10
+		mov r10b, al
+		
+		mov r8d, [rdi].Ufo.pos.x
+		mov r9d, [rdi].Ufo.pos.y
+
+		call bullet_create
+
+		mov [rdi].Ufo.shoot_timer, UFO_SHOOT_TIMER_AMT
+	@@:
+
 	; check for bullets
-	call ufo_checkBullets ; returns 1 if hit, 0 else
-	test eax, eax
-	jne _end
+	; call ufo_checkBullets ; returns 1 if hit, 0 else
+	; test eax, eax
+	; jne _end
 	call ufo_checkShip ; returns 1 if hit, 0 else
 
 	_end:
+	pop r10
+	pop r9
+	pop r8
+	pop rcx
+	pop rbx
 	ret
 ufo_update endp
 
