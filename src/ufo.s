@@ -205,8 +205,10 @@ ufo_update proc
 	pop rsi
 
 	; shoot
+	cmp [ship].ticks_to_respawn, 0
+	jne shootEnd
 	dec [rdi].Ufo.shoot_timer
-	jne @f
+	jne shootEnd
 		; r8d - X 16.16 fixed point
 		; r9d - Y 16.16 fixed point
 		; r10b - rotation in 256-based radians
@@ -229,7 +231,7 @@ ufo_update proc
 		call bullet_create
 
 		mov [rdi].Ufo.shoot_timer, UFO_SHOOT_TIMER_AMT
-	@@:
+	shootEnd:
 
 	; check for bullets
 	call ufo_checkBullets ; returns 1 if hit, 0 else
