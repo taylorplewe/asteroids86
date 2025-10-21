@@ -198,12 +198,6 @@ ufo_update proc
 	paddd xmm0, xmm1
 	movd [rdi].Ufo.pos, xmm0
 
-	; wrap around screen
-	push rsi
-	lea rsi, [rdi].Ufo.pos
-	call wrapPointAroundScreen
-	pop rsi
-
 	; shoot
 	cmp [ship].ticks_to_respawn, 0
 	jne shootEnd
