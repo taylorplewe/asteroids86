@@ -54,6 +54,38 @@ endm
 	; ecx  - y
 	; r8d  - color
 	; rdi  - point to pixels
+screen_setPixelClipped macro
+	local _end
+
+	push rbx
+	push rcx
+
+	test ebx, ebx
+	js _end
+	cmp ebx, SCREEN_WIDTH
+	jge _end
+
+	test ecx, ecx
+	js _end
+	cmp ecx, SCREEN_HEIGHT
+	jge _end
+
+	imul ebx, sizeof Pixel
+	imul ecx, SCREEN_WIDTH * sizeof Pixel
+	add ebx, ecx
+
+	; plot pixel
+	mov [rdi + rbx], r8d
+	_end:
+	pop rcx
+	pop rbx
+endm
+
+; in:
+	; ebx  - x
+	; ecx  - y
+	; r8d  - color
+	; rdi  - point to pixels
 	; r14d - SCREEN_WIDTH
 	; r15d - SCREEN_HEIGHT
 screen_plotPoint macro
@@ -87,8 +119,6 @@ screen_draw1bppSprite proc
 	push r14
 	push r15
 
-	mov r14d, SCREEN_WIDTH
-	mov r15d, SCREEN_HEIGHT
 	lea rdi, pixels
 
 	mov r9, rsi
@@ -117,7 +147,7 @@ screen_draw1bppSprite proc
 			; cmp byte ptr [rsi], 0
 			bt word ptr [rsi], r12w
 			jnc colNext
-			screen_setPixelWrapped
+			screen_setPixelClipped
 			
 			colNext:
 			inc r12w

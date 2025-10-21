@@ -99,7 +99,7 @@ main proc
 	sub rsp, 200h
 
 	call ship_respawn
-	call asteroid_test
+	; call asteroid_test
 	call ufo_init
 
 	mov rbx, (200 shl (32 + 16)) or (200 shl 16)

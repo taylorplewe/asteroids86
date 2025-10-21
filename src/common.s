@@ -272,5 +272,38 @@ wrapPointAroundScreen proc
 	ret
 wrapPointAroundScreen endp
 
+; Get a 16.16 fixed point X and Y velocity (together in one 64-bit register) from an 8-bit rotation value and a speed scaling vector
+; in:
+	; r10b - rotation in 256-based radians
+	; ecx  - speed vector
+; out:
+	; rax  - (velocity.y << 32) | (velocity.x) (16.16 fixed point each)
+getVelocityFromRotAndSpeed proc
+	push rdx
+
+	; x
+	xor eax, eax
+	mov al, r10b
+	call sin
+	cdqe
+	imul rax, rcx
+	sar rax, 15
+	mov edx, eax
+
+	; y
+	xor eax, eax
+	mov al, r10b
+	call cos
+	cdqe
+	imul rax, rcx
+	sar rax, 15
+
+	shl rax, 32
+	or rax, rdx
+
+	pop rdx
+	ret
+getVelocityFromRotAndSpeed endp
+
 
 endif

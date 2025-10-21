@@ -39,6 +39,7 @@ bullets Bullet NUM_BULLETS dup (<>)
 	; r10b - rotation in 256-based radians
 	; r11  - is_evil
 bullet_create proc
+	push rcx
 	push rsi
 
 	lea rsi, bullets_arr
@@ -52,24 +53,13 @@ bullet_create proc
 	mov [rsi].Bullet.pos.y, r9d
 	mov [rsi].Bullet.is_evil, r11d
 
-	xor eax, eax
-	mov al, r10b
-	call sin
-	cdqe
-	imul rax, BULLET_SPEED
-	sar rax, 15
-	mov [rsi].Bullet.velocity.x, eax
-
-	xor eax, eax
-	mov al, r10b
-	call cos
-	cdqe
-	imul rax, BULLET_SPEED
-	sar rax, 15
-	mov [rsi].Bullet.velocity.y, eax
+	mov ecx, BULLET_SPEED
+	call getVelocityFromRotAndSpeed
+	mov qword ptr [rsi].Bullet.velocity, rax
 
 	_end:
 	pop rsi
+	pop rcx
 	ret
 bullet_create endp
 

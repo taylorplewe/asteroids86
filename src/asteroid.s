@@ -67,21 +67,21 @@ asteroid_test proc
 	mov rbx, ((20) shl 48) or ((900) shl 16)
 	mov ecx, 3
 	lea rdi, asteroid_shapes
-	mov r8, -5
+	mov r10, -5
 	mov r9, 1
 	call asteroid_create
 
 	mov rbx, ((20) shl 48) or ((200) shl 16)
 	mov ecx, 3
 	lea rdi, asteroid_shapes + sizeof FatPtr
-	xor r8, r8
+	xor r10, r10
 	xor r9, r9
 	call asteroid_create
 
 	mov rbx, ((200) shl 48) or ((900) shl 16)
 	mov ecx, 3
 	lea rdi, asteroid_shapes + sizeof FatPtr*2
-	mov r8, 50
+	mov r10, 50
 	xor r9, r9
 	call asteroid_create
 
@@ -90,22 +90,13 @@ asteroid_test endp
 
 ; in:
 	; rsi - pointer to asteroid
-	; r8b - asteroid's dir
+	; r10b - asteroid's dir
 asteroid_setVelocity proc
 	push rcx
 
-	xor eax, eax ; clear upper bits
-	mov al, r8b
-	call sin
-	sar eax, 15
-	mov [rsi].Asteroid.velocity.x, eax
-
-	xor rax, rax
-	mov al, r8b
-	call cos
-	sar eax, 15
-	neg eax
-	mov [rsi].Asteroid.velocity.y, eax
+	mov ecx, 1
+	call getVelocityFromRotAndSpeed
+	mov qword ptr [rsi].Asteroid.velocity, rax
 
 	; smaller asteroids double their velocity a few times
 	mov ecx, [rsi].Asteroid.mass
@@ -123,7 +114,7 @@ asteroid_setVelocity endp
 	; rbx - pos
 	; ecx - mass
 	; rdi - shape_ptr
-	; r8b - dir (will be used for its velocity as well)
+	; r10b - dir (will be used for its velocity as well)
 	; r9b - rot_speed
 asteroid_create proc
 	push rsi
@@ -138,7 +129,7 @@ asteroid_create proc
 	mov qword ptr [rsi].Asteroid.pos, rbx
 	mov [rsi].Asteroid.mass, ecx
 	mov [rsi].Asteroid.shape_ptr, rdi
-	mov [rsi].Asteroid.dir, r8b
+	mov [rsi].Asteroid.dir, r10b
 	mov [rsi].Asteroid.rot_speed, r9b
 
 	call asteroid_setVelocity
@@ -157,8 +148,8 @@ asteroid_onHit proc
 	push rcx
 	push rsi
 	push rdi
-	push r8
 	push r9
+	push r10
 
 	mov rbx, qword ptr [rdi].Asteroid.pos
 	mov rcx, qword ptr [rdi].Asteroid.velocity
@@ -167,7 +158,7 @@ asteroid_onHit proc
 	cmp [rdi].Asteroid.mass, 1
 	je destroy
 
-	xor r8, r8
+	xor r10, r10
 
 	dec [rdi].Asteroid.mass
 	add [rdi].Asteroid.rot_speed, 1
@@ -182,14 +173,14 @@ asteroid_onHit proc
 
 	; (set velocity of that one)
 	sub [rdi].Asteroid.dir, 20
-	mov r8b, [rdi].Asteroid.dir
+	mov r10b, [rdi].Asteroid.dir
 	mov rsi, rdi
 	call asteroid_setVelocity
 
 	; ...and then add another one
 	mov rbx, qword ptr [rdi].Asteroid.pos
 	mov ecx, [rdi].Asteroid.mass
-	add r8b, 40
+	add r10b, 40
 	mov r9b, [rdi].Asteroid.rot_speed
 	mov rdi, [rdi].Asteroid.shape_ptr
 	; replace this asteroid with a smaller one...
@@ -209,8 +200,8 @@ asteroid_onHit proc
 	call array_removeEl
 
 	_end:
+	pop r10
 	pop r9
-	pop r8
 	pop rdi
 	pop rsi
 	pop rcx

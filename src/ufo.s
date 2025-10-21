@@ -18,15 +18,20 @@ Ufo struct
 	shoot_timer dd     ?
 	frame_ind   dd     ?
 	frame_ctr   dd     ?
-	; turn_timer  dd    ?
+	turn_timer  dd     ?
+	rot         db     ?
 Ufo ends
 
-MAX_NUM_UFOS        = 4
-UFO_NUM_FRAMES      = 4
-UFO_FRAME_CTR_AMT   = 6
-UFO_BBOX_WIDTH      = 84
-UFO_BBOX_HEIGHT     = 124
-UFO_SHOOT_TIMER_AMT = 64
+MAX_NUM_UFOS           = 4
+UFO_NUM_FRAMES         = 4
+UFO_FRAME_CTR_AMT      = 6
+UFO_BBOX_WIDTH         = 84
+UFO_BBOX_HEIGHT        = 124
+UFO_SHOOT_TIMER_AMT    = 64
+UFO_TURN_TIMER_MIN_AMT = 60 * 1
+UFO_TURN_TIMER_MAX_AMT = 60 * 6
+UFO_TURN_ROT           = 32
+UFO_SPEED              = 2
 
 
 .data
@@ -117,8 +122,16 @@ ufo_create proc
 	mov [rsi].Ufo.frame_ind, 0
 	mov [rsi].Ufo.frame_ctr, UFO_FRAME_CTR_AMT
 	mov [rsi].Ufo.velocity.x, 10000h
-	mov [rsi].Ufo.velocity.y, 10000h
+	mov [rsi].Ufo.velocity.y, 0
 	mov [rsi].Ufo.shoot_timer, UFO_SHOOT_TIMER_AMT
+	mov [rsi].Ufo.turn_timer, UFO_TURN_TIMER_MIN_AMT
+
+	mov [rsi].Ufo.rot, 64
+	xor r10, r10
+	mov r10b, [rsi].Ufo.rot
+	mov ecx, UFO_SPEED
+	call getVelocityFromRotAndSpeed
+	mov qword ptr [rsi].Ufo.velocity, rax
 	
 	_end:
 	ret
@@ -148,6 +161,36 @@ ufo_update proc
 		inc [rdi].Ufo.frame_ind
 		and [rdi].Ufo.frame_ind, 11b
 	frameCtrIncEnd:
+
+	; turn
+	xor r10, r10
+	dec [rdi].Ufo.turn_timer
+	jne turnEnd
+		mov [rdi].Ufo.turn_timer, UFO_TURN_TIMER_MIN_AMT
+		cmp [rdi].Ufo.velocity.y, 0
+		jne turnStraight
+			mov r10b, [rdi].Ufo.rot
+			rand eax
+			and eax, 1
+			dec eax
+			or eax, 1 ; eax = -1 or 1
+			imul eax, UFO_TURN_ROT
+			add r10b, al
+			jmp doTurn
+		turnStraight:
+		cmp [rdi].Ufo.velocity.x, 0
+		jge turnRight
+		; turnLeft:
+			mov r10b, 196
+			jmp doTurn
+		turnRight:
+			mov r10b, 64
+		doTurn:
+		mov [rdi].Ufo.rot, r10b
+		mov ecx, UFO_SPEED
+		call getVelocityFromRotAndSpeed
+		mov qword ptr [rdi].Ufo.velocity, rax
+	turnEnd:
 
 	; move
 	movd xmm0, [rdi].Ufo.pos
