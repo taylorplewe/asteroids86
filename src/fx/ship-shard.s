@@ -16,7 +16,7 @@ ShipShard struct
 	ticks_to_live dd ?
 ShipShard ends
 
-MAX_NUM_SHIP_SHARDS          = 12
+MAX_NUM_SHIP_SHARDS          = 64
 SHIP_SHARD_MIN_TICKS_TO_LIVE = 120
 SHIP_SHARD_VELOCITY_DIFF     = 24000h
 

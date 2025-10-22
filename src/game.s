@@ -1,0 +1,224 @@
+ifndef game_h
+game_h = 1
+
+include <fx\shard.s>
+include <fx\ship-shard.s>
+include <fx\fire.s>
+include <bullet.s>
+include <ship.s>
+include <asteroid.s>
+include <ufo.s>
+
+
+WaveData struct
+	num_large_asteroids  dd ?
+	num_medium_asteroids dd ?
+	num_small_asteroids  dd ?
+	num_ufos             dd ?
+WaveData ends
+
+NUM_FLASHES                    = 8
+FLASH_COUNTER_AMT              = 9
+GAME_NEXT_WAVE_COUNTER_AMT     = 60 * 3
+GAME_UFO_GEN_COUNTER_MIN_AMT   = 60 * 3
+GAME_UFO_GEN_COUNTER_RAND_MASK = 01ffh
+GAME_UFO_GEN_YPOS_LEEWAY       = (SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4) ; SCREEN_HEIGHT * 0.75
+
+
+.data
+
+waves     WaveData { 3, 0, 0, 0 }, { 4, 1, 0, 1 }, { 3, 3, 0, 2 }, { 1, 5, 2, 2 }, { 1, 5, 5, 2 }, { 1, 3, 9, 2 }
+waves_end = $
+
+
+.data?
+
+current_wave      dq ?
+flash_counter     dd ?
+num_flashes_left  dd ?
+ufo_gen_counter   dd ?
+next_wave_counter dd ?
+
+
+.code
+
+game_init proc
+	call ufo_init
+	call ship_respawn
+	lea rax, waves
+	mov [current_wave], rax
+	mov eax, [fg_color]
+	mov [flash_color], eax
+	; fall thru
+game_init endp
+
+game_initWave proc
+	push rbx
+	push rdx
+	push rsi
+	push rdi
+	push r15
+
+	; mov rbx, (100 shl (32 + 16)) or (500 shl 16)
+	; call ufo_create
+
+	mov rsi, [current_wave]
+
+	lea rdi, asteroid_shapes
+	lea r15, asteroid_shapes_end
+
+	game_initWave_incAsteroidShapePtr macro
+		local _end
+		add rdi, sizeof FatPtr
+		cmp rdi, r15
+		jl _end
+		lea rdi, asteroid_shapes
+		_end:
+	endm
+
+	mov ecx, 3
+	mov edx, [rsi].WaveData.num_large_asteroids
+	test edx, edx
+	je createLargeAsteroidsLoopEnd
+	createLargeAsteroidsLoop:
+		call asteroid_createRand
+		game_initWave_incAsteroidShapePtr
+		dec edx
+		jne createLargeAsteroidsLoop
+	createLargeAsteroidsLoopEnd:
+
+	dec ecx
+	mov edx, [rsi].WaveData.num_medium_asteroids
+	test edx, edx
+	je createMediumAsteroidsLoopEnd
+	createMediumAsteroidsLoop:
+		call asteroid_createRand
+		game_initWave_incAsteroidShapePtr
+		dec edx
+		jne createMediumAsteroidsLoop
+	createMediumAsteroidsLoopEnd:
+
+	dec ecx
+	mov edx, [rsi].WaveData.num_small_asteroids
+	test edx, edx
+	je createSmallAsteroidsLoopEnd
+	createSmallAsteroidsLoop:
+		call asteroid_createRand
+		game_initWave_incAsteroidShapePtr
+		dec edx
+		jne createSmallAsteroidsLoop
+	createSmallAsteroidsLoopEnd:
+
+	mov eax, [rsi].WaveData.num_ufos
+	mov [ufos_arr].cap, eax
+
+	mov [flash_counter], FLASH_COUNTER_AMT
+	mov [num_flashes_left], NUM_FLASHES
+	call game_setUfoGenCounter
+
+	pop r15
+	pop rdi
+	pop rsi
+	pop rdx
+	pop rbx
+	ret
+game_initWave endp
+
+game_setUfoGenCounter proc
+	xor eax, eax
+	rand ax
+	and ax, GAME_UFO_GEN_COUNTER_RAND_MASK
+	add eax, GAME_UFO_GEN_COUNTER_MIN_AMT
+	mov [ufo_gen_counter], eax
+	ret
+game_setUfoGenCounter endp
+
+; in:
+	; rdi to Keys struct of keys pressed
+game_tick proc
+	cmp [is_paused], 0
+	jne draw
+
+	call ship_update
+	call bullet_updateAll
+	call asteroid_updateAll
+	call ufo_updateAll
+	call fire_updateAll
+	call shard_updateAll
+	call shipShard_updateAll
+
+	draw:
+	call ship_draw
+	call bullet_drawAll
+	call asteroid_drawAll
+	call ufo_drawAll
+	call fire_drawAll
+	call shard_drawAll
+	call shipShard_drawAll
+
+	; flash asteroids
+	cmp [num_flashes_left], 0
+	je flashEnd
+	dec [flash_counter]
+	jne flashEnd
+		mov [flash_counter], FLASH_COUNTER_AMT
+		dec [num_flashes_left]
+		bt [num_flashes_left], 0
+		jc @f
+			mov eax, [fg_color]
+			jmp flashColStore
+		@@:
+			mov eax, [dim_color]
+		flashColStore:
+		mov [flash_color], eax
+	flashEnd:
+
+	; generate UFOs
+	dec [ufo_gen_counter]
+	jne ufoGenEnd
+		call game_setUfoGenCounter
+
+		; x
+		rand eax
+		test eax, eax
+		js ufoGenLeftSide
+		;ufoGenRightSide:
+			mov ebx, (SCREEN_WIDTH + UFO_BBOX_WIDTH / 2) - 1
+			jmp ufoGenRest
+		ufoGenLeftSide:
+			mov ebx, -UFO_BBOX_WIDTH / 2
+		ufoGenRest:
+
+		; y
+		mov ecx, GAME_UFO_GEN_YPOS_LEEWAY
+		rand eax
+		and eax, 7fffh
+		cdq
+		div ecx
+		add edx, (SCREEN_HEIGHT / 2) - (GAME_UFO_GEN_YPOS_LEEWAY / 2)
+		shl rdx, 32
+
+		or rbx, rdx
+		shl rbx, 16
+		call ufo_create
+	ufoGenEnd:
+
+	; wave complete?
+	cmp [next_wave_counter], 0
+	je @f
+		dec [next_wave_counter]
+		jne nextWaveLogicEnd
+		add [current_wave], sizeof WaveData
+		call game_initWave
+		jmp nextWaveLogicEnd
+	@@:
+	cmp [asteroids_arr].data.len, 0
+	jne nextWaveLogicEnd
+		mov [next_wave_counter], GAME_NEXT_WAVE_COUNTER_AMT
+	nextWaveLogicEnd:
+
+	ret
+game_tick endp
+
+
+endif

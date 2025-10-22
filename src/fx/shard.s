@@ -14,7 +14,7 @@ Shard struct
 	ticks_to_live dd ?
 Shard ends
 
-MAX_NUM_SHARDS          = 64
+MAX_NUM_SHARDS          = 128
 SHARD_VELOCITY_DIFF     = 20000h ; 16.16 fixed point
 SHARD_MIN_TICKS_TO_LIVE = 90
 

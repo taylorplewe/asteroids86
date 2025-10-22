@@ -36,7 +36,7 @@ UFO_SPEED              = 2
 
 .data
 
-ufos_arr                Array { { ufos, 0 }, MAX_NUM_UFOS, sizeof Ufo }
+ufos_arr                Array { { ufos, 0 }, MAX_NUM_UFOS, sizeof Ufo } ; the game sets this capacity anyways at the start of each wave
 ufo_spr_resource_name_0 byte  "UFOBIN0", 0
 ufo_spr_resource_name_1 byte  "UFOBIN1", 0
 ufo_spr_resource_name_2 byte  "UFOBIN2", 0
@@ -124,7 +124,16 @@ ufo_create proc
 	mov [rsi].Ufo.shoot_timer, UFO_SHOOT_TIMER_AMT
 	mov [rsi].Ufo.turn_timer, UFO_TURN_TIMER_MIN_AMT
 
-	mov [rsi].Ufo.rot, 64
+	; determine which way to fly based on which side of the screen we're on
+	cmp [rsi].Ufo.pos.x, 0
+	jg @f
+		mov al, 64
+		jmp rotSet
+	@@:
+		mov al, 192
+	rotSet:
+
+	mov [rsi].Ufo.rot, al
 	xor r10, r10
 	mov r10b, [rsi].Ufo.rot
 	mov ecx, UFO_SPEED

@@ -58,38 +58,8 @@ asteroid_current_points Point    2                 dup (<?>) ; for drawing
 
 .code
 
-asteroid_test proc
-	; rax - pos
-	; ebx - mass
-	; rsi - shape_ptr
-	; r8b - rot (will be used for its velocity as well)
-	; r9b - rot_speed
-	mov rbx, ((20) shl 48) or ((900) shl 16)
-	mov ecx, 3
-	lea rdi, asteroid_shapes
-	mov r10, -5
-	mov r9, 1
-	call asteroid_create
-
-	mov rbx, ((20) shl 48) or ((200) shl 16)
-	mov ecx, 3
-	lea rdi, asteroid_shapes + sizeof FatPtr
-	xor r10, r10
-	xor r9, r9
-	call asteroid_create
-
-	mov rbx, ((200) shl 48) or ((900) shl 16)
-	mov ecx, 3
-	lea rdi, asteroid_shapes + sizeof FatPtr*2
-	mov r10, 50
-	xor r9, r9
-	call asteroid_create
-
-	ret
-asteroid_test endp
-
 ; in:
-	; rsi - pointer to asteroid
+	; rsi  - pointer to asteroid
 	; r10b - asteroid's dir
 asteroid_setVelocity proc
 	push rcx
@@ -111,11 +81,11 @@ asteroid_setVelocity proc
 asteroid_setVelocity endp
 
 ; in:
-	; rbx - pos
-	; ecx - mass
-	; rdi - shape_ptr
+	; rbx  - pos
+	; ecx  - mass
+	; rdi  - shape_ptr
 	; r10b - dir (will be used for its velocity as well)
-	; r9b - rot_speed
+	; r9b  - rot_speed
 asteroid_create proc
 	push rsi
 
@@ -138,6 +108,54 @@ asteroid_create proc
 	pop rsi
 	ret
 asteroid_create endp
+
+; in:
+	; ecx - mass
+	; rdi - shape ptr
+asteroid_createRand proc
+	push rbx
+	push rcx
+	push rdx
+	push r8
+	push r9
+	push r10
+
+	; random on-screen pos
+	; x
+	mov r8w, SCREEN_WIDTH
+	xor eax, eax
+	rand ax
+	and ax, 7fffh
+	cwd
+	div r8w
+	mov ebx, edx
+	; y
+	mov r8w, SCREEN_HEIGHT
+	xor eax, eax
+	rand ax
+	and ax, 7fffh
+	cwd
+	div r8w
+	shl rdx, 32
+	or rbx, rdx
+	shl rbx, 16
+
+	; rot_speed
+	rand r9d
+	mov r10b, r9b
+	shr r9d, 8 ; ensure rot_speed is unrelated to rot
+	and r9d, 1
+
+	call asteroid_create
+
+	pop r10
+	pop r9
+	pop r8
+	pop rdx
+	pop rcx
+	pop rbx
+	ret
+asteroid_createRand endp
 
 ; If this asteroid has a mass greater than 1, destroy this asteroid and spawn 2 smaller ones in its place.
 ; Otherwise, just destroy it.
@@ -471,7 +489,7 @@ asteroid_draw proc
 		push rdi
 		push rcx
 		push r8
-		mov r8d, [fg_color]
+		mov r8d, [flash_color]
 		screen_mDrawLine asteroid_current_points, asteroid_current_points + sizeof Point
 		pop r8
 		pop rcx

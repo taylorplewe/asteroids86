@@ -4,13 +4,8 @@ include <sdl\defs.inc>
 
 include <common.s>
 include <screen.s>
-include <fx\shard.s>
-include <fx\ship-shard.s>
-include <fx\fire.s>
-include <bullet.s>
-include <ship.s>
-include <asteroid.s>
-include <ufo.s>
+
+include <game.s>
 
 
 .data
@@ -98,12 +93,7 @@ main proc
 	mov rbp, rsp
 	sub rsp, 200h
 
-	call ship_respawn
-	; call asteroid_test
-	call ufo_init
-
-	mov rbx, (100 shl (32 + 16)) or (500 shl 16)
-	call ufo_create
+	call game_init
 
 	mov ecx, SDL_INIT_VIDEO
 	call SDL_Init
@@ -265,26 +255,8 @@ main proc
 
 		call screen_clearPixelBuffer
 
-		cmp [is_paused], 0
-		jne draw
-
 		lea rdi, keys_down
-		call ship_update
-		call bullet_updateAll
-		call asteroid_updateAll
-		call ufo_updateAll
-		call fire_updateAll
-		call shard_updateAll
-		call shipShard_updateAll
-
-		draw:
-		call ship_draw
-		call bullet_drawAll
-		call asteroid_drawAll
-		call ufo_drawAll
-		call fire_drawAll
-		call shard_drawAll
-		call shipShard_drawAll
+		call game_tick
 
 		call render
 
