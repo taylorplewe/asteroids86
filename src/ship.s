@@ -203,7 +203,7 @@ ship_update proc
 	call fire_create
 	@@:
 
-	call ship_checkBullets
+	; call ship_checkBullets
 
 	ret
 ship_update endp

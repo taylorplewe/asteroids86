@@ -105,7 +105,7 @@ endm
 ; Draws a 1bpp sprite comprised of a bitplane; one byte represents 8 pixels in a row.
 ; Position should be in the center of the drawn sprite.
 ; in:
-	; rdx - pointer to Pos
+	; rdx - pointer to Point
 	; rsi - pointer to sprite data
 	; r8d - color
 screen_draw1bppSprite proc
@@ -125,17 +125,21 @@ screen_draw1bppSprite proc
 	add rsi, sizeof Dim
 
 	; set x
-	xor ebx, ebx
-	mov bx, word ptr [rdx].Point.x + 2
-	mov eax, [r9].Dim.w
-	sar eax, 1
-	sub ebx, eax
+	xor eax, eax
+	mov ax, word ptr [rdx].Point.x + 2
+	cwde
+	mov ebx, [r9].Dim.w
+	sar ebx, 1
+	sub eax, ebx
+	mov ebx, eax
 	; set y
-	xor ecx, ecx
-	mov cx, word ptr [rdx].Point.y + 2
-	mov eax, [r9].Dim.h
-	sar eax, 1
-	sub ecx, eax
+	xor eax, eax
+	mov ax, word ptr [rdx].Point.y + 2
+	cwde
+	mov ecx, [r9].Dim.h
+	sar ecx, 1
+	sub eax, ecx
+	mov ecx, eax
 	; w and h counters
 	mov r10d, [r9].Dim.w
 	mov r11d, [r9].Dim.h

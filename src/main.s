@@ -102,7 +102,7 @@ main proc
 	; call asteroid_test
 	call ufo_init
 
-	mov rbx, (200 shl (32 + 16)) or (200 shl 16)
+	mov rbx, (100 shl (32 + 16)) or (500 shl 16)
 	call ufo_create
 
 	mov ecx, SDL_INIT_VIDEO

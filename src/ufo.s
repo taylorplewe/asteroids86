@@ -121,8 +121,6 @@ ufo_create proc
 	mov qword ptr [rsi].Ufo.pos, rbx
 	mov [rsi].Ufo.frame_ind, 0
 	mov [rsi].Ufo.frame_ctr, UFO_FRAME_CTR_AMT
-	mov [rsi].Ufo.velocity.x, 10000h
-	mov [rsi].Ufo.velocity.y, 0
 	mov [rsi].Ufo.shoot_timer, UFO_SHOOT_TIMER_AMT
 	mov [rsi].Ufo.turn_timer, UFO_TURN_TIMER_MIN_AMT
 
@@ -181,7 +179,7 @@ ufo_update proc
 		cmp [rdi].Ufo.velocity.x, 0
 		jge turnRight
 		; turnLeft:
-			mov r10b, 196
+			mov r10b, 192
 			jmp doTurn
 		turnRight:
 			mov r10b, 64
@@ -197,6 +195,25 @@ ufo_update proc
 	movd xmm1, [rdi].Ufo.velocity
 	paddd xmm0, xmm1
 	movd [rdi].Ufo.pos, xmm0
+
+	; out of bounds?
+	xor eax, eax
+	mov ax, word ptr [rdi].Ufo.pos.x + 2
+	cwde
+	cmp eax, SCREEN_WIDTH + UFO_BBOX_WIDTH / 2
+	jge deleteUfo
+	cmp eax, -UFO_BBOX_WIDTH / 2
+	jl deleteUfo
+	mov ax, word ptr [rdi].Ufo.pos.y + 2
+	cwde
+	cmp eax, SCREEN_HEIGHT + UFO_BBOX_HEIGHT / 2
+	jge deleteUfo
+	cmp eax, -UFO_BBOX_HEIGHT / 2
+	jge boundsCheckEnd
+	deleteUfo:
+	lea rsi, ufos_arr
+	call array_removeEl
+	boundsCheckEnd:
 
 	; shoot
 	cmp [ship].ticks_to_respawn, 0
