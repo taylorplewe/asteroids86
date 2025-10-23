@@ -359,10 +359,16 @@ asteroid_checkUfos endp
 ; Check for collision with ship, destroy it if so
 asteroid_checkShip proc
 	cmp [ship].ticks_to_respawn, 0
-	je @f
+	jne noHit
+	cmp [num_flashes_left], 0
+	jne noHit
+	cmp [ship_num_flashes_left], 0
+	jne noHit
+	jmp check
+	noHit:
 		xor eax, eax
 		ret
-	@@:
+	check:
 
 	push rbx
 	push r8

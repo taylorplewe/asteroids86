@@ -27,7 +27,7 @@ GAME_UFO_GEN_YPOS_LEEWAY       = (SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4) ; SCR
 
 .data
 
-waves     WaveData { 3, 0, 0, 0 }, { 4, 1, 0, 1 }, { 3, 3, 0, 2 }, { 1, 5, 2, 2 }, { 1, 5, 5, 2 }, { 1, 3, 9, 2 }
+waves     WaveData { 3, 0, 0, 0 }, { 4, 1, 0, 1 }, { 3, 3, 0, 2 }, { 1, 5, 2, 2 }, { 1, 5, 5, 2 }, { 1, 3, 9, 2 }, { 2, 4, 10, 3 }, { 2, 5, 12, 3 }
 waves_end = $
 
 
@@ -35,7 +35,6 @@ waves_end = $
 
 current_wave      dq ?
 flash_counter     dd ?
-num_flashes_left  dd ?
 ufo_gen_counter   dd ?
 next_wave_counter dd ?
 
@@ -112,8 +111,13 @@ game_initWave proc
 	mov eax, [rsi].WaveData.num_ufos
 	mov [ufos_arr].cap, eax
 
+	mov rax, [current_wave]
+	lea rdx, waves
+	cmp rax, rdx
+	je @f
 	mov [flash_counter], FLASH_COUNTER_AMT
 	mov [num_flashes_left], NUM_FLASHES
+	@@:
 	call game_setUfoGenCounter
 
 	pop r15
@@ -205,13 +209,18 @@ game_tick proc
 
 	; wave complete?
 	cmp [next_wave_counter], 0
-	je @f
+	je decWaveCounterEnd
 		dec [next_wave_counter]
 		jne nextWaveLogicEnd
 		add [current_wave], sizeof WaveData
+		lea rax, waves_end
+		cmp [current_wave], rax
+		jl @f
+			sub [current_wave], sizeof WaveData
+		@@:
 		call game_initWave
 		jmp nextWaveLogicEnd
-	@@:
+	decWaveCounterEnd:
 	cmp [asteroids_arr].data.len, 0
 	jne nextWaveLogicEnd
 		mov [next_wave_counter], GAME_NEXT_WAVE_COUNTER_AMT

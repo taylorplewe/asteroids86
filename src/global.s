@@ -12,8 +12,9 @@ evil_color    Pixel <0ffh, 0a0h, 080h, 0ffh>
 
 .data?
 
-frame_counter qword ?
-flash_color   Pixel <>
+frame_counter    qword ?
+flash_color      Pixel <>
+num_flashes_left dd ?
 
 
 endif

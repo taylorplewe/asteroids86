@@ -18,13 +18,15 @@ Ship struct
 	velocity         Vector <?> ; 16.16 fixed point
 Ship ends
 
-SHIP_TICKS_TO_RESPAWN = 60 * 4
-SHIP_VELOCITY_ACCEL   = 00005000h ; 16.16 fixed point
-SHIP_VELOCITY_MAX     = 00080000h ; 16.16 fixed point
-SHIP_VELOCITY_DRAG    = 0000fa00h ; 16.16 fixed point
-SHIP_VELOCITY_KICK    = 00008000h ; 16.16 fixed point
-SHIP_RADIUS           = 40
-SHIP_R_SQ             = SHIP_RADIUS * SHIP_RADIUS
+SHIP_TICKS_TO_RESPAWN  = 60 * 4
+SHIP_VELOCITY_ACCEL    = 00005000h ; 16.16 fixed point
+SHIP_VELOCITY_MAX      = 00080000h ; 16.16 fixed point
+SHIP_VELOCITY_DRAG     = 0000fa00h ; 16.16 fixed point
+SHIP_VELOCITY_KICK     = 00008000h ; 16.16 fixed point
+SHIP_RADIUS            = 40
+SHIP_R_SQ              = SHIP_RADIUS * SHIP_RADIUS
+SHIP_NUM_FLASHES       = 8
+SHIP_FLASH_COUNTER_AMT = 9
 
 
 .data
@@ -34,8 +36,11 @@ ship_base_points BasePoint {32, 0}, {16, 96}, {16, 160}, {11, 90}, {11, 166}
 
 .data?
 
-ship        Ship  <>
-ship_points Point 5 dup (<>)
+ship                  Ship  <>
+ship_points           Point 5 dup (<>)
+ship_color            Pixel <>
+ship_num_flashes_left dd    ?
+ship_flash_counter    dd    ?
 
 
 .code
@@ -47,6 +52,8 @@ ship_respawn proc
 	mov [ship].rot, al
 	mov [ship].velocity.x, eax
 	mov [ship].velocity.y, eax
+	mov [ship_num_flashes_left], SHIP_NUM_FLASHES
+	mov [ship_flash_counter], SHIP_FLASH_COUNTER_AMT
 
 	ret
 ship_respawn endp
@@ -203,7 +210,24 @@ ship_update proc
 	call fire_create
 	@@:
 
-	; call ship_checkBullets
+	; flash (invincibility)
+	cmp [ship_num_flashes_left], 0
+	je flashEnd
+	dec [ship_flash_counter]
+	jne flashEnd
+		mov [ship_flash_counter], SHIP_FLASH_COUNTER_AMT
+		dec [ship_num_flashes_left]
+		bt [ship_num_flashes_left], 0
+		jc @f
+			mov eax, [fg_color]
+			jmp flashColStore
+		@@:
+			mov eax, [dim_color]
+		flashColStore:
+		mov [ship_color], eax
+	flashEnd:
+
+	call ship_checkBullets
 
 	ret
 ship_update endp
@@ -346,7 +370,7 @@ ship_checkBullets endp
 ship_draw proc
 	cmp [ship].ticks_to_respawn, 0
 	jne _end
-	mov r8d, [fg_color]
+	mov r8d, [ship_color]
 
 	screen_mDrawLine ship_points + sizeof Point*0, ship_points + sizeof Point*1
 	screen_mDrawLine ship_points + sizeof Point*0, ship_points + sizeof Point*2
