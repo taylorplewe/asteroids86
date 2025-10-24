@@ -1,6 +1,7 @@
 ifndef game_h
 game_h = 1
 
+include <font.s>
 include <fx\shard.s>
 include <fx\ship-shard.s>
 include <fx\fire.s>
@@ -161,6 +162,7 @@ game_tick proc
 	call fire_drawAll
 	call shard_drawAll
 	call shipShard_drawAll
+	call font_draw
 
 	; flash asteroids
 	cmp [num_flashes_left], 0

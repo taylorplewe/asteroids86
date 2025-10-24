@@ -1,9 +1,10 @@
-include <windows.inc>
+include <windows\defs.inc>
 include <globaldefs.inc>
 include <sdl\defs.inc>
 
 include <common.s>
 include <screen.s>
+include <font.s>
 
 include <game.s>
 
@@ -93,6 +94,7 @@ main proc
 	mov rbp, rsp
 	sub rsp, 200h
 
+	call font_init
 	call game_init
 
 	mov ecx, SDL_INIT_VIDEO

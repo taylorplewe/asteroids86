@@ -2,8 +2,9 @@ ifndef ufo_h
 ufo_h = 1
 
 include <globaldefs.inc>
-include <windows.inc>
+include <windows\defs.inc>
 
+include <global.s>
 include <common.s>
 include <array.s>
 include <screen.s>
@@ -40,7 +41,6 @@ UFO_SPEED              = 2
 
 ufos_arr              Array { { ufos, 0 }, MAX_NUM_UFOS, sizeof Ufo } ; the game sets this capacity anyways at the start of each wave
 ufo_spr_resource_name byte  "UFOBIN", 0
-ufo_resource_type     byte  "BIN", 0
 ufo_rect              Rect { { 0, 0 }, { UFO_SPR_WIDTH, UFO_SPR_HEIGHT } }
 
 
@@ -59,7 +59,7 @@ ufo_init proc
 
 	xor rcx, rcx
 	lea rdx, ufo_spr_resource_name
-	lea r8, ufo_resource_type
+	lea r8, bin_resource_type
 	call FindResourceA
 	xor rcx, rcx
 	mov rdx, rax
@@ -430,6 +430,7 @@ ufo_draw proc
 	imul eax, [ufo_rect].dim.w
 	mov [ufo_rect].pos.x, eax
 	lea r9, ufo_rect
+	lea r14, screen_setPixelClipped
 
 	call screen_draw1bppSprite
 

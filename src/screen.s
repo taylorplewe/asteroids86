@@ -4,6 +4,11 @@ screen_h = 1
 include <globaldefs.inc>
 
 
+.data
+
+cosmic_color Pixel <37h, 94h, 6eh, 0ffh> ; 37946e
+
+
 .data?
 
 pixels        Pixel SCREEN_WIDTH*SCREEN_HEIGHT dup (<?>)
@@ -54,9 +59,7 @@ endm
 	; ecx  - y
 	; r8d  - color
 	; rdi  - point to pixels
-screen_setPixelClipped macro
-	local _end
-
+screen_setPixelClipped proc
 	push rbx
 	push rcx
 
@@ -79,7 +82,57 @@ screen_setPixelClipped macro
 	_end:
 	pop rcx
 	pop rbx
-endm
+	ret
+screen_setPixelClipped endp
+
+; in:
+	; ebx  - x
+	; ecx  - y
+	; r8d  - color
+	; rdi  - point to pixels
+screen_setPixelOnscreenVerified proc
+	push rbx
+	push rcx
+
+	imul ebx, sizeof Pixel
+	imul ecx, SCREEN_WIDTH * sizeof Pixel
+	add ebx, ecx
+
+	; plot pixel
+	mov [rdi + rbx], r8d
+
+	pop rcx
+	pop rbx
+	ret
+screen_setPixelOnscreenVerified endp
+
+; in:
+	; ebx  - x
+	; ecx  - y
+	; r8d  - color
+	; rdi  - point to pixels
+scren_draw3difiedPixelOnscreenVerified proc
+	push rbx
+	push rcx
+	push r8
+
+	; 3d effect
+	mov r8d, [cosmic_color]
+
+	repeat 6
+	inc ebx
+	inc ecx
+	call screen_setPixelOnscreenVerified
+	endm
+
+	pop r8
+	pop rcx
+	pop rbx
+
+	jmp screen_setPixelOnscreenVerified
+
+	; ret
+scren_draw3difiedPixelOnscreenVerified endp
 
 ; in:
 	; ebx  - x
@@ -109,6 +162,7 @@ endm
 	; rsi - pointer to beginning of sprite data
 	; r8d - color
 	; r9  - pointer to in-spritesheet Rect, dimensions of sprite
+	; r14 - pointer to pixel plotting routine to call
 screen_draw1bppSprite proc
 	push rbx
 	push rcx
@@ -165,7 +219,7 @@ screen_draw1bppSprite proc
 			; cmp byte ptr [rsi], 0
 			bt word ptr [rsi], r12w
 			jnc colNext
-			screen_setPixelClipped
+			call r14
 			
 			colNext:
 			inc r12w
