@@ -26,6 +26,10 @@ Dim struct
 	w dd ?
 	h dd ?
 Dim ends
+Rect struct
+	pos Point <>
+	dim Dim   <>
+Rect ends
 
 ; rotations and line lengths for drawing things
 BasePoint struct

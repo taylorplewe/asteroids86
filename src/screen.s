@@ -105,10 +105,10 @@ endm
 ; Draws a 1bpp sprite comprised of a bitplane; one byte represents 8 pixels in a row.
 ; Position should be in the center of the drawn sprite.
 ; in:
-	; rdx - pointer to Point
-	; rsi - pointer to sprite data
+	; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
+	; rsi - pointer to beginning of sprite data
 	; r8d - color
-	; r9  - pointer to Dim, dimensions of sprite
+	; r9  - pointer to in-spritesheet Rect, dimensions of sprite
 screen_draw1bppSprite proc
 	push rbx
 	push rcx
@@ -117,16 +117,32 @@ screen_draw1bppSprite proc
 	push r10
 	push r11
 	push r12
-	push r14
-	push r15
+	push r13
 
 	lea rdi, pixels
+
+	; r8  - color
+	; r9  - in-spritesheet Rect
+	; r10 - w counter
+	; r11 - h counter
+	; r12 - bit position index
+	; r13 - Dim of whole spritesheet
+
+	; brk
+
+	mov r13, rsi
+	add rsi, sizeof Dim
+
+	; NOTE: will need to add Y pos logic here if ever have a spritesheet with multiple rows of sprites
+	mov eax, [r9].Rect.pos.x
+	shr eax, 3 ; /8
+	add rsi, rax
 
 	; set x
 	xor eax, eax
 	mov ax, word ptr [rdx].Point.x + 2
 	cwde
-	mov ebx, [r9].Dim.w
+	mov ebx, [r9].Rect.dim.w
 	sar ebx, 1
 	sub eax, ebx
 	mov ebx, eax
@@ -134,13 +150,13 @@ screen_draw1bppSprite proc
 	xor eax, eax
 	mov ax, word ptr [rdx].Point.y + 2
 	cwde
-	mov ecx, [r9].Dim.h
+	mov ecx, [r9].Rect.dim.h
 	sar ecx, 1
 	sub eax, ecx
 	mov ecx, eax
 	; w and h counters
-	mov r10d, [r9].Dim.w
-	mov r11d, [r9].Dim.h
+	mov r10d, [r9].Rect.dim.w
+	mov r11d, [r9].Rect.dim.h
 
 	xor r12d, r12d ; bit position index
 
@@ -163,14 +179,20 @@ screen_draw1bppSprite proc
 			dec r10d
 			jne colLoop
 		rowNext:	
-		sub ebx, [r9].Dim.w
-		mov r10d, [r9].Dim.w
+		; wrap around to next line of pixels in this particular rect
+		mov eax, [r13].Dim.w
+		add rsi, rax
+		mov eax, [r9].Rect.dim.w
+		shr eax, 3 ; /8
+		sub rsi, rax
+
+		sub ebx, [r9].Rect.dim.w
+		mov r10d, [r9].Rect.dim.w
 		inc ecx
 		dec r11d
 		jne rowLoop
 
-	pop r15
-	pop r14
+	pop r13
 	pop r12
 	pop r11
 	pop r10

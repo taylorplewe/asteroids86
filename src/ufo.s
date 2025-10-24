@@ -25,6 +25,8 @@ Ufo ends
 MAX_NUM_UFOS           = 4
 UFO_NUM_FRAMES         = 4
 UFO_FRAME_CTR_AMT      = 6
+UFO_SPR_WIDTH          = 80
+UFO_SPR_HEIGHT         = 112
 UFO_BBOX_WIDTH         = 84
 UFO_BBOX_HEIGHT        = 124
 UFO_SHOOT_TIMER_AMT    = 64
@@ -36,22 +38,16 @@ UFO_SPEED              = 2
 
 .data
 
-ufos_arr                Array { { ufos, 0 }, MAX_NUM_UFOS, sizeof Ufo } ; the game sets this capacity anyways at the start of each wave
-ufo_spr_resource_name_0 byte  "UFOBIN0", 0
-ufo_spr_resource_name_1 byte  "UFOBIN1", 0
-ufo_spr_resource_name_2 byte  "UFOBIN2", 0
-ufo_spr_resource_name_3 byte  "UFOBIN3", 0
-ufo_resource_type       byte  "BIN", 0
-ufo_dim                 Dim { 80, 112 }
+ufos_arr              Array { { ufos, 0 }, MAX_NUM_UFOS, sizeof Ufo } ; the game sets this capacity anyways at the start of each wave
+ufo_spr_resource_name byte  "UFOBIN", 0
+ufo_resource_type     byte  "BIN", 0
+ufo_rect              Rect { { 0, 0 }, { UFO_SPR_WIDTH, UFO_SPR_HEIGHT } }
 
 
 .data?
 
 ufos         Ufo MAX_NUM_UFOS dup (<>)
 ufo_spr_data dq  ?
-             dq  ?
-             dq  ?
-             dq  ?
 
 
 .code
@@ -62,7 +58,7 @@ ufo_init proc
 	sub rsp, 200h
 
 	xor rcx, rcx
-	lea rdx, ufo_spr_resource_name_0
+	lea rdx, ufo_spr_resource_name
 	lea r8, ufo_resource_type
 	call FindResourceA
 	xor rcx, rcx
@@ -71,41 +67,8 @@ ufo_init proc
 	mov rcx, rax
 	call LockResource
 	mov [ufo_spr_data], rax
- 
-	xor rcx, rcx
-	lea rdx, ufo_spr_resource_name_1
-	lea r8, ufo_resource_type
-	call FindResourceA
-	xor rcx, rcx
-	mov rdx, rax
-	call LoadResource
-	mov rcx, rax
-	call LockResource
-	mov [ufo_spr_data + 8], rax
- 
-	xor rcx, rcx
-	lea rdx, ufo_spr_resource_name_2
-	lea r8, ufo_resource_type
-	call FindResourceA
-	xor rcx, rcx
-	mov rdx, rax
-	call LoadResource
-	mov rcx, rax
-	call LockResource
-	mov [ufo_spr_data + 16], rax
- 
-	xor rcx, rcx
-	lea rdx, ufo_spr_resource_name_3
-	lea r8, ufo_resource_type
-	call FindResourceA
-	xor rcx, rcx
-	mov rdx, rax
-	call LoadResource
-	mov rcx, rax
-	call LockResource
-	mov [ufo_spr_data + 24], rax
- 
-	mov rsp, rbp
+
+ 	mov rsp, rbp
 	pop rbp
 	ret
 ufo_init endp
@@ -332,6 +295,11 @@ ufo_checkBullets proc
 ufo_checkBullets endp
 
 ufo_checkShip proc
+	cmp [ship_num_flashes_left], 0
+	jne noHit
+	cmp [ship].ticks_to_respawn, 0
+	jne noHit
+
 	; check if bullet is inside UFO's rectangular hitbox
 	; < x
 	xor eax, eax
@@ -448,23 +416,21 @@ ufo_drawAll endp
 ; out:
 	; eax - 0 (UFO was not destroyed)
 ufo_draw proc
-	; rdx - pointer to Pos
-	; rsi - pointer to sprite data
-	; r9  - pointer to sprite Dim
-	; r8d - color
 	push rdx
 	push rsi
 	push r8
 	push r9
 
 	lea rdx, [rdi].Ufo.pos
-	mov eax, [rdi].Ufo.frame_ind
-	shl eax, 3 ; x8
-	lea rsi, ufo_spr_data
-	add rsi, rax
-	mov rsi, [rsi]
-	lea r9, ufo_dim
+	mov rsi, [ufo_spr_data]
 	mov r8d, [fg_color]
+
+	; set (U, V) (V is always zero)
+	mov eax, [rdi].Ufo.frame_ind
+	imul eax, [ufo_rect].dim.w
+	mov [ufo_rect].pos.x, eax
+	lea r9, ufo_rect
+
 	call screen_draw1bppSprite
 
 	xor eax, eax

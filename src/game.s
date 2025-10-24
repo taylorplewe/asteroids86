@@ -21,13 +21,15 @@ NUM_FLASHES                    = 8
 FLASH_COUNTER_AMT              = 9
 GAME_NEXT_WAVE_COUNTER_AMT     = 60 * 3
 GAME_UFO_GEN_COUNTER_MIN_AMT   = 60 * 3
+; GAME_UFO_GEN_COUNTER_MIN_AMT   = 0
 GAME_UFO_GEN_COUNTER_RAND_MASK = 01ffh
+; GAME_UFO_GEN_COUNTER_RAND_MASK = 000fh
 GAME_UFO_GEN_YPOS_LEEWAY       = (SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4) ; SCREEN_HEIGHT * 0.75
 
 
 .data
 
-waves     WaveData { 3, 0, 0, 0 }, { 4, 1, 0, 1 }, { 3, 3, 0, 2 }, { 1, 5, 2, 2 }, { 1, 5, 5, 2 }, { 1, 3, 9, 2 }, { 2, 4, 10, 3 }, { 2, 5, 12, 3 }
+waves     WaveData { 3, 0, 0, 4 }, { 4, 1, 0, 1 }, { 3, 3, 0, 2 }, { 1, 5, 2, 2 }, { 1, 5, 5, 2 }, { 1, 3, 9, 2 }, { 2, 4, 10, 3 }, { 2, 5, 12, 3 }
 waves_end = $
 
 

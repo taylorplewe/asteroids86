@@ -45,7 +45,7 @@ function Export()
 	end
 
 	-- write to output file
-	outFile:write(string.pack("<i4", app.sprite.width))
+	outFile:write(string.pack("<i4", app.sprite.width / 8))
 	outFile:write(string.pack("<i4", app.sprite.height))
 
 	local img = Image(app.sprite.spec)

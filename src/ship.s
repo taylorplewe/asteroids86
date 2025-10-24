@@ -314,6 +314,9 @@ ship_checkBullets proc
 	push r8
 	push r9
 
+	cmp [ship_num_flashes_left], 0
+	jne noHit
+
 	mov eax, [bullets_arr].Array.data.len
 	test eax, eax
 	je _end
@@ -356,6 +359,9 @@ ship_checkBullets proc
 		inc ecx
 		cmp ecx, [bullets_arr].Array.data.len
 		jb mainLoop
+
+	noHit:
+	xor eax, eax
 
 	_end:
 	pop r9
