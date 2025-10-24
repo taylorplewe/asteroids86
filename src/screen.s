@@ -108,6 +108,7 @@ endm
 	; rdx - pointer to Point
 	; rsi - pointer to sprite data
 	; r8d - color
+	; r9  - pointer to Dim, dimensions of sprite
 screen_draw1bppSprite proc
 	push rbx
 	push rcx
@@ -120,9 +121,6 @@ screen_draw1bppSprite proc
 	push r15
 
 	lea rdi, pixels
-
-	mov r9, rsi
-	add rsi, sizeof Dim
 
 	; set x
 	xor eax, eax

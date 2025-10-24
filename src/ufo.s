@@ -42,6 +42,7 @@ ufo_spr_resource_name_1 byte  "UFOBIN1", 0
 ufo_spr_resource_name_2 byte  "UFOBIN2", 0
 ufo_spr_resource_name_3 byte  "UFOBIN3", 0
 ufo_resource_type       byte  "BIN", 0
+ufo_dim                 Dim { 80, 112 }
 
 
 .data?
@@ -462,6 +463,7 @@ ufo_draw proc
 	lea rsi, ufo_spr_data
 	add rsi, rax
 	mov rsi, [rsi]
+	lea r9, ufo_dim
 	mov r8d, [fg_color]
 	call screen_draw1bppSprite
 
