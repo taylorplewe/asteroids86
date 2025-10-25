@@ -369,6 +369,8 @@ asteroid_checkUfos endp
 asteroid_checkShip proc
 	cmp [ship].respawn_counter, 0
 	jne noHit
+	cmp [is_in_gameover], 0
+	jne noHit
 	cmp [num_flashes_left], 0
 	jne noHit
 	cmp [ship_num_flashes_left], 0

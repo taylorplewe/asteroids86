@@ -209,10 +209,13 @@ atan2 endp
 ; in:
 	; r8   - pointer to source BasePoint
 	; r9   - pointer to destination Point
-	; r10  - pointer to origin point
+	; r10  - pointer to origin point (16.16 fixed point)
 	; r11b - rotation in 256-based radians
 	; r12d - factor to multiply vector by (16.16 fixed point)
 applyBasePointToPoint proc
+	push rbx
+	push rcx
+
 	xor rax, rax
 	mov al, [r8].BasePoint.rad
 	add al, r11b
@@ -247,6 +250,8 @@ applyBasePointToPoint proc
 	sub eax, ecx
 	mov [r9].Point.y, eax
 
+	pop rcx
+	pop rbx
 	ret
 applyBasePointToPoint endp
 

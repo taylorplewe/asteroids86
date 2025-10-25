@@ -192,6 +192,8 @@ ufo_update proc
 	; shoot
 	cmp [ship].respawn_counter, 0
 	jne shootEnd
+	cmp [is_in_gameover], 0
+	jne shootEnd
 	dec [rdi].Ufo.shoot_timer
 	jne shootEnd
 		; r8d - X 16.16 fixed point
@@ -300,6 +302,8 @@ ufo_checkBullets endp
 
 ufo_checkShip proc
 	cmp [ship_num_flashes_left], 0
+	jne noHit
+	cmp [is_in_gameover], 0
 	jne noHit
 	cmp [ship].respawn_counter, 0
 	jne noHit

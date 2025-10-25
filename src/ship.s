@@ -32,12 +32,12 @@ SHIP_FLASH_COUNTER_AMT = 9
 .data
 
 ship_base_points BasePoint {32, 0}, {16, 96}, {16, 160}, {11, 90}, {11, 166}
-
+SHIP_NUM_POINTS = ($ - ship_base_points) / sizeof BasePoint
 
 .data?
 
 ship                  Ship  <>
-ship_points           Point 5 dup (<>)
+ship_points           Point SHIP_NUM_POINTS dup (<>)
 ship_color            Pixel <>
 ship_num_flashes_left dd    ?
 ship_flash_counter    dd    ?
@@ -66,6 +66,8 @@ ship_update proc
 		dec [ship].respawn_counter
 		jne @f
 		call ship_respawn
+		lea r8, ship_base_points
+		lea r9, ship_points
 		call ship_setAllPoints
 		@@:
 		ret
@@ -189,6 +191,8 @@ ship_update proc
 	lea rsi, ship
 	call wrapPointAroundScreen
 
+	lea r8, ship_base_points
+	lea r9, ship_points
 	call ship_setAllPoints
 
 	; draw fire lines
@@ -232,33 +236,32 @@ ship_update proc
 	ret
 ship_update endp
 
+; in:
+	; r8 - pointer to first source BasePoint
+	; r9 - pointer to first destination Point
+	; TODO: I meant to make this method callable from game.s but I think I went back on that. can be refactored
 ship_setAllPoints proc
-	xor rbx, rbx
+	push rbx
+	push r10
+	push r11
+	push r12
 
 	mov r11b, [ship].rot
 	lea r10, ship
 	mov r12d, 00010000h
 
-	lea r8, ship_base_points
-	lea r9, ship_points
 	call applyBasePointToPoint
 
-	lea r8, ship_base_points + sizeof BasePoint
-	lea r9, ship_points + sizeof Point
+	repeat 4
+	add r8, sizeof BasePoint
+	add r9, sizeof Point
 	call applyBasePointToPoint
+	endm
 
-	lea r8, ship_base_points + sizeof BasePoint*2
-	lea r9, ship_points + sizeof Point*2
-	call applyBasePointToPoint
-
-	lea r8, ship_base_points + sizeof BasePoint*3
-	lea r9, ship_points + sizeof Point*3
-	call applyBasePointToPoint
-
-	lea r8, ship_base_points + sizeof BasePoint*4
-	lea r9, ship_points + sizeof Point*4
-	call applyBasePointToPoint
-
+	pop r12
+	pop r11
+	pop r10
+	pop rbx
 	ret
 ship_setAllPoints endp
 
@@ -306,6 +309,7 @@ ship_destroy proc
 	gameover:
 		mov eax, GAMEOVER_TIMER_AMT
 		mov [gameover_timer], eax
+		inc [is_in_gameover]
 	_end:
 	pop r8
 	pop rdx

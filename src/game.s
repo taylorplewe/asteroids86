@@ -1,6 +1,7 @@
 ifndef game_h
 game_h = 1
 
+include <global.s>
 include <font.s>
 include <fx\shard.s>
 include <fx\ship-shard.s>
@@ -32,6 +33,7 @@ waves          WaveData { 3, 0, 0, 0 }, { 4, 1, 0, 1 }, { 3, 3, 0, 2 }, { 1, 5, 
 waves_end = $
 
 game_score_pos    Point { 64 shl 16, 64 shl 16 }
+game_lives_pos    Point { 64 shl 16, 160 shl 16 }
 current_char_rect Rect  { { 0, 0 }, { FONT_DIGIT_WIDTH, FONT_DIGIT_HEIGHT } }
 
 
@@ -42,12 +44,14 @@ flash_counter     dd ?
 ufo_gen_counter   dd ?
 next_wave_counter dd ?
 current_char_pos  Point <>
+game_lives_points Point 4 * SHIP_NUM_POINTS dup (<>)
 
 
 .code
 
 game_init proc
 	call ufo_init
+	call game_setShipLivesPoints
 	call ship_respawn
 	lea rax, waves
 	mov [current_wave], rax
@@ -146,13 +150,41 @@ game_setUfoGenCounter proc
 	ret
 game_setUfoGenCounter endp
 
+game_setShipLivesPoints proc
+	lea r10, game_lives_pos
+	xor r11, r11
+	mov r12d, 00010000h
+
+	i = 0
+	repeat 4
+		lea r8, ship_base_points
+		lea r9, game_lives_points + (i * (sizeof Point * 5))
+		call applyBasePointToPoint
+
+		repeat 4
+		add r8, sizeof BasePoint
+		add r9, sizeof Point
+		call applyBasePointToPoint
+		endm
+	
+		mov eax, 36 shl 16
+		add [game_lives_pos].x, eax
+		i = i + 1
+	endm
+
+	ret
+game_setShipLivesPoints endp
+
 ; in:
 	; rdi to Keys struct of keys pressed
 game_tick proc
 	cmp [is_paused], 0
 	jne draw
 
+	cmp [is_in_gameover], 0
+	jne @f
 	call ship_update
+	@@:
 	call bullet_updateAll
 	call asteroid_updateAll
 	call ufo_updateAll
@@ -161,7 +193,10 @@ game_tick proc
 	call shipShard_updateAll
 
 	draw:
+	cmp [is_in_gameover], 0
+	jne @f
 	call ship_draw
+	@@:
 	call bullet_drawAll
 	call asteroid_drawAll
 	call ufo_drawAll
@@ -169,11 +204,12 @@ game_tick proc
 	call shard_drawAll
 	call shipShard_drawAll
 	call game_drawScore
+	call game_drawLives
 
 	; gameover counter
-	cmp [gameover_counter], 0
+	cmp [gameover_timer], 0
 	je @f
-		dec [gameover_counter]
+		dec [gameover_timer]
 	@@:
 
 	; flash asteroids
@@ -321,6 +357,19 @@ game_drawScore proc
 	pop rbx
 	ret
 game_drawScore endp
+
+game_drawLives proc
+	mov r8d, [fg_color]
+
+	i = 0
+	repeat 4
+		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*0, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*1
+		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*0, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*2
+		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*3, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*4
+		i = i + 1
+	endm
+	ret
+game_drawLives endp
 
 
 endif
