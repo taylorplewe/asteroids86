@@ -22,16 +22,17 @@ NUM_FLASHES                    = 8
 FLASH_COUNTER_AMT              = 9
 GAME_NEXT_WAVE_COUNTER_AMT     = 60 * 3
 GAME_UFO_GEN_COUNTER_MIN_AMT   = 60 * 3
-; GAME_UFO_GEN_COUNTER_MIN_AMT   = 0
 GAME_UFO_GEN_COUNTER_RAND_MASK = 01ffh
-; GAME_UFO_GEN_COUNTER_RAND_MASK = 000fh
 GAME_UFO_GEN_YPOS_LEEWAY       = (SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4) ; SCREEN_HEIGHT * 0.75
-
+GAME_START_NUM_LIVES           = 4
 
 .data
 
-waves     WaveData { 3, 0, 0, 4 }, { 4, 1, 0, 1 }, { 3, 3, 0, 2 }, { 1, 5, 2, 2 }, { 1, 5, 5, 2 }, { 1, 3, 9, 2 }, { 2, 4, 10, 3 }, { 2, 5, 12, 3 }
+waves          WaveData { 3, 0, 0, 0 }, { 4, 1, 0, 1 }, { 3, 3, 0, 2 }, { 1, 5, 2, 2 }, { 1, 5, 5, 2 }, { 1, 3, 9, 2 }, { 2, 4, 10, 3 }, { 2, 5, 12, 3 }
 waves_end = $
+
+game_score_pos    Point { 64 shl 16, 64 shl 16 }
+current_char_rect Rect  { { 0, 0 }, { FONT_DIGIT_WIDTH, FONT_DIGIT_HEIGHT } }
 
 
 .data?
@@ -40,6 +41,7 @@ current_wave      dq ?
 flash_counter     dd ?
 ufo_gen_counter   dd ?
 next_wave_counter dd ?
+current_char_pos  Point <>
 
 
 .code
@@ -51,6 +53,10 @@ game_init proc
 	mov [current_wave], rax
 	mov eax, [fg_color]
 	mov [flash_color], eax
+
+	mov [score], 0
+	mov [lives], GAME_START_NUM_LIVES
+	
 	; fall thru
 game_init endp
 
@@ -162,7 +168,13 @@ game_tick proc
 	call fire_drawAll
 	call shard_drawAll
 	call shipShard_drawAll
-	call font_draw
+	call game_drawScore
+
+	; gameover counter
+	cmp [gameover_counter], 0
+	je @f
+		dec [gameover_counter]
+	@@:
 
 	; flash asteroids
 	cmp [num_flashes_left], 0
@@ -232,6 +244,83 @@ game_tick proc
 
 	ret
 game_tick endp
+
+game_drawScore proc
+	push rbx
+	push rdx
+	push rsi
+	push r8
+	push r9
+
+	; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
+	 ; rsi - pointer to beginning of sprite data
+	 ; r8d - color
+	 ; r9  - pointer to in-spritesheet Rect, dimensions of sprite
+	 ; r14 - pointer to pixel plotting routine to call
+
+	mov rsi, [font_digits_spr_data]
+	mov r8d, [fg_color]
+	lea r9, current_char_rect
+	lea r14, screen_draw3difiedPixelOnscreenVerified
+
+	mov rax, qword ptr [game_score_pos]
+	mov qword ptr [current_char_pos], rax
+
+	; 100s spot: (score / 100) % 10
+	; 10s spot:  (score / 10) % 10
+	; 1s spot:   score % 10
+
+	; 100s
+	mov eax, [score]
+	mov ebx, 100
+	cdq
+	div ebx
+	mov ebx, 10
+	cdq
+	div ebx
+	; edx is now our desired decmial digit
+	mov ebx, [current_char_rect].dim.w
+	imul edx, ebx
+	mov [current_char_rect].pos.x, edx
+	lea rdx, current_char_pos
+	call screen_draw1bppSprite
+
+	add [current_char_pos].x, (FONT_DIGIT_WIDTH + FONT_KERNING) shl 16
+
+	; 10s
+	mov eax, [score]
+	mov ebx, 10
+	cdq
+	div ebx
+	mov ebx, 10
+	cdq
+	div ebx
+	mov ebx, [current_char_rect].dim.w
+	imul edx, ebx
+	mov [current_char_rect].pos.x, edx
+	lea rdx, current_char_pos
+	call screen_draw1bppSprite
+
+	add [current_char_pos].x, (FONT_DIGIT_WIDTH + FONT_KERNING) shl 16
+
+	; 1s
+	mov eax, [score]
+	mov ebx, 10
+	cdq
+	div ebx
+	mov ebx, [current_char_rect].dim.w
+	imul edx, ebx
+	mov [current_char_rect].pos.x, edx
+	lea rdx, current_char_pos
+	call screen_draw1bppSprite
+
+	pop r9
+	pop r8
+	pop rsi
+	pop rdx
+	pop rbx
+	ret
+game_drawScore endp
 
 
 endif

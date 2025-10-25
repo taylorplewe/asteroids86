@@ -60,9 +60,6 @@ endm
 	; r8d  - color
 	; rdi  - point to pixels
 screen_setPixelClipped proc
-	push rbx
-	push rcx
-
 	test ebx, ebx
 	js _end
 	cmp ebx, SCREEN_WIDTH
@@ -71,18 +68,10 @@ screen_setPixelClipped proc
 	test ecx, ecx
 	js _end
 	cmp ecx, SCREEN_HEIGHT
-	jge _end
-
-	imul ebx, sizeof Pixel
-	imul ecx, SCREEN_WIDTH * sizeof Pixel
-	add ebx, ecx
-
-	; plot pixel
-	mov [rdi + rbx], r8d
-	_end:
-	pop rcx
-	pop rbx
-	ret
+	jl @f
+	_end: ret
+	@@:
+	; fall thru
 screen_setPixelClipped endp
 
 ; in:
@@ -91,18 +80,14 @@ screen_setPixelClipped endp
 	; r8d  - color
 	; rdi  - point to pixels
 screen_setPixelOnscreenVerified proc
-	push rbx
-	push rcx
-
-	imul ebx, sizeof Pixel
-	imul ecx, SCREEN_WIDTH * sizeof Pixel
-	add ebx, ecx
+	mov eax, ecx
+	imul eax, SCREEN_WIDTH
+	add eax, ebx
+	imul eax, sizeof Pixel
 
 	; plot pixel
-	mov [rdi + rbx], r8d
+	mov [rdi + rax], r8d
 
-	pop rcx
-	pop rbx
 	ret
 screen_setPixelOnscreenVerified endp
 
@@ -111,7 +96,7 @@ screen_setPixelOnscreenVerified endp
 	; ecx  - y
 	; r8d  - color
 	; rdi  - point to pixels
-scren_draw3difiedPixelOnscreenVerified proc
+screen_draw3difiedPixelOnscreenVerified proc
 	push rbx
 	push rcx
 	push r8
@@ -132,7 +117,7 @@ scren_draw3difiedPixelOnscreenVerified proc
 	jmp screen_setPixelOnscreenVerified
 
 	; ret
-scren_draw3difiedPixelOnscreenVerified endp
+screen_draw3difiedPixelOnscreenVerified endp
 
 ; in:
 	; ebx  - x
@@ -223,9 +208,8 @@ screen_draw1bppSprite proc
 			
 			colNext:
 			inc r12w
-			cmp r12w, 8
-			jl @f
-				xor r12w, r12w
+			and r12w, 7
+			jne @f
 				inc rsi
 			@@:
 

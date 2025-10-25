@@ -104,7 +104,8 @@ main proc
 	lea rcx, [window_title]
 	mov edx, SCREEN_WIDTH
 	mov r8d, SCREEN_HEIGHT
-	xor r9d, r9d
+	; xor r9d, r9d
+	mov r9d, 1 ; fullscreen
 	call SDL_CreateWindow
 	mov qword ptr [window], rax
 

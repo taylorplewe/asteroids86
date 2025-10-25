@@ -48,6 +48,7 @@ asteroid_masses       dd 0, ASTEROID_MASS1,                ASTEROID_MASS2,      
 asteroid_r_squareds   dd 0, ASTEROID_MASS1*ASTEROID_MASS1, ASTEROID_MASS2*ASTEROID_MASS2, ASTEROID_MASS3*ASTEROID_MASS3
 asteroid_mass_factors dd 0, 00008000h,                     00010000h,                     00018000h
 asteroid_speed_shifts db 0, 2,                             1,                             0
+asteroid_score_adds   dd 0, 100,                           50,                            20
 
 
 .data?
@@ -169,9 +170,17 @@ asteroid_onHit proc
 	push r9
 	push r10
 
+	; create burst of dust
 	mov rbx, qword ptr [rdi].Asteroid.pos
 	mov rcx, qword ptr [rdi].Asteroid.velocity
 	call shard_createBurst
+
+	; add to score
+	mov eax, [rdi].Asteroid.mass
+	shl eax, 2
+	lea rsi, asteroid_score_adds
+	mov eax, dword ptr [rsi + rax]
+	add [score], eax
 
 	cmp [rdi].Asteroid.mass, 1
 	je destroy
@@ -358,7 +367,7 @@ asteroid_checkUfos endp
 
 ; Check for collision with ship, destroy it if so
 asteroid_checkShip proc
-	cmp [ship].ticks_to_respawn, 0
+	cmp [ship].respawn_counter, 0
 	jne noHit
 	cmp [num_flashes_left], 0
 	jne noHit

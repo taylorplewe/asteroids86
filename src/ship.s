@@ -14,11 +14,11 @@ Ship struct
 	y                dd     ?   ; 16.16 fixed point
 	rot              db     ?
 	is_boosting      db     ?
-	ticks_to_respawn dd     ?
+	respawn_counter  dd     ?
 	velocity         Vector <?> ; 16.16 fixed point
 Ship ends
 
-SHIP_TICKS_TO_RESPAWN  = 60 * 4
+SHIP_RESPAWN_COUNTER   = 60 * 4
 SHIP_VELOCITY_ACCEL    = 00005000h ; 16.16 fixed point
 SHIP_VELOCITY_MAX      = 00080000h ; 16.16 fixed point
 SHIP_VELOCITY_DRAG     = 0000fa00h ; 16.16 fixed point
@@ -61,9 +61,9 @@ ship_respawn endp
 ; in:
 	; rdi - pointer to keys_down: Keys struct
 ship_update proc
-	cmp [ship].ticks_to_respawn, 0
+	cmp [ship].respawn_counter, 0
 	je normalUpdate
-		dec [ship].ticks_to_respawn
+		dec [ship].respawn_counter
 		jne @f
 		call ship_respawn
 		call ship_setAllPoints
@@ -268,8 +268,6 @@ ship_destroy proc
 	push rdx
 	push r8
 
-	mov [ship].ticks_to_respawn, SHIP_TICKS_TO_RESPAWN
-
 	mov rbx, qword ptr [ship]
 	mov rcx, qword ptr [ship].velocity
 	mov edx, 36
@@ -300,6 +298,15 @@ ship_destroy proc
 	add r8b, 256/5
 	call shipShard_create
 
+	dec [lives]
+	cmp [lives], 0
+	je gameover
+		mov [ship].respawn_counter, SHIP_RESPAWN_COUNTER
+		jmp _end
+	gameover:
+		mov eax, GAMEOVER_TIMER_AMT
+		mov [gameover_timer], eax
+	_end:
 	pop r8
 	pop rdx
 	pop rcx
@@ -374,7 +381,7 @@ ship_checkBullets endp
 
 
 ship_draw proc
-	cmp [ship].ticks_to_respawn, 0
+	cmp [ship].respawn_counter, 0
 	jne _end
 	mov r8d, [ship_color]
 

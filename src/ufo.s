@@ -35,6 +35,7 @@ UFO_TURN_TIMER_MIN_AMT = 60 * 1
 UFO_TURN_TIMER_MAX_AMT = 60 * 6
 UFO_TURN_ROT           = 32
 UFO_SPEED              = 2
+UFO_SCORE_ADD          = 200
 
 
 .data
@@ -189,7 +190,7 @@ ufo_update proc
 	boundsCheckEnd:
 
 	; shoot
-	cmp [ship].ticks_to_respawn, 0
+	cmp [ship].respawn_counter, 0
 	jne shootEnd
 	dec [rdi].Ufo.shoot_timer
 	jne shootEnd
@@ -271,6 +272,9 @@ ufo_checkBullets proc
 		jl next
 
 		; hit!
+		mov eax, UFO_SCORE_ADD
+		add [score], eax
+
 		push rsi
 		lea rsi, bullets_arr
 		mov eax, ecx
@@ -297,7 +301,7 @@ ufo_checkBullets endp
 ufo_checkShip proc
 	cmp [ship_num_flashes_left], 0
 	jne noHit
-	cmp [ship].ticks_to_respawn, 0
+	cmp [ship].respawn_counter, 0
 	jne noHit
 
 	; check if bullet is inside UFO's rectangular hitbox
