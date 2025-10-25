@@ -15,6 +15,7 @@ extern SDL_DestroyTexture           : proto :ptr
 extern SDL_DestroySurface           : proto :ptr
 extern SDL_PollEvent                : proto :ptr
 extern SDL_CreateTextureFromSurface : proto :ptr, :ptr
+extern SDL_SetTextureScaleMode      : proto :ptr, :dword
 extern SDL_RenderTexture            : proto :ptr, :ptr, :ptr, :ptr
 extern SDL_RenderClear              : proto :ptr
 extern SDL_RenderPresent            : proto :ptr
@@ -71,6 +72,8 @@ SDL_Surface struct
 	refcount dd               ? ; 32
 	reserved dq               ? ; 36
 SDL_Surface ends
+
+SDL_SCALEMODE_NEAREST = 0
 
 
 endif

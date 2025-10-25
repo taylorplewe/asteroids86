@@ -2,8 +2,17 @@ ifndef globaldefs_h
 globaldefs_h = 1
 
 
-SCREEN_WIDTH  = 1920
-SCREEN_HEIGHT = 1080
+; SCREEN_WIDTH  = 1920
+; SCREEN_HEIGHT = 1080
+
+; SCREEN_WIDTH  = 1600
+; SCREEN_HEIGHT = 900
+
+; SCREEN_WIDTH  = 1440
+; SCREEN_HEIGHT = 810
+
+SCREEN_WIDTH  = 1280
+SCREEN_HEIGHT = 720
 
 FatPtr struct
 	pntr qword ?

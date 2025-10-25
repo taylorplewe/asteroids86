@@ -59,6 +59,10 @@ render proc
 	call SDL_CreateTextureFromSurface
 	mov qword ptr [texture], rax
 
+	mov rcx, rax
+	mov edx, SDL_SCALEMODE_NEAREST
+	call SDL_SetTextureScaleMode
+
 	mov rcx, [renderer]
 	mov rdx, [texture]
 	xor r8d, r8d
