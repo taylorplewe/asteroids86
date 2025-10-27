@@ -1,3 +1,5 @@
 UFOBIN     bin "ufo.bin"
 FONTDIGITS bin "font-digits.bin"
+FONTBIG    bin "font-big.bin"
 FONTSMALL  bin "font-small.bin"
+COMMA      bin "comma.bin"

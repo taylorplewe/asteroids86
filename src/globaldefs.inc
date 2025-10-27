@@ -14,6 +14,8 @@ globaldefs_h = 1
 SCREEN_WIDTH  = 1280
 SCREEN_HEIGHT = 720
 
+DIM_ALPHA = 20h
+
 FatPtr struct
 	pntr qword ?
 	len  dd    ?

@@ -1,6 +1,8 @@
 ifndef game_h
 game_h = 1
 
+include <data\flicker-alphas.inc>
+
 include <global.s>
 include <font.s>
 include <fx\shard.s>
@@ -39,12 +41,14 @@ current_char_rect Rect  { { 0, 0 }, { FONT_DIGIT_WIDTH, FONT_DIGIT_HEIGHT } }
 
 .data?
 
-current_wave      dq ?
-flash_counter     dd ?
-ufo_gen_counter   dd ?
-next_wave_counter dd ?
+current_wave      dq    ?
+flash_counter     dd    ?
+ufo_gen_counter   dd    ?
+next_wave_counter dd    ?
 current_char_pos  Point <>
-game_lives_points Point 4 * SHIP_NUM_POINTS dup (<>)
+game_lives_points Point GAME_START_NUM_LIVES * SHIP_NUM_POINTS dup (<>)
+game_lives_alphas db    GAME_START_NUM_LIVES dup (?)
+game_lives_prev   dd    ? ; previous state of lives, for detecting change
 
 
 .code
@@ -60,7 +64,14 @@ game_init proc
 
 	mov [score], 0
 	mov [lives], GAME_START_NUM_LIVES
-	
+
+	mov al, 0ffh
+	i = 0
+	repeat GAME_START_NUM_LIVES
+		mov [game_lives_alphas + i], al
+		i = i + 1
+	endm
+
 	; fall thru
 game_init endp
 
@@ -205,6 +216,18 @@ game_tick proc
 	call shipShard_drawAll
 	call game_drawScore
 	call game_drawLives
+
+	; lives counter
+	mov eax, [lives]
+	cmp [game_lives_prev], eax
+	je livesCheckEnd
+		jl @f
+		; life was lost
+		lea rsi, game_lives_alphas
+		mov byte ptr [rsi + rax], 20h
+		@@:
+		mov [game_lives_prev], eax
+	livesCheckEnd:
 
 	; gameover counter
 	cmp [gameover_timer], 0
@@ -358,11 +381,24 @@ game_drawScore proc
 	ret
 game_drawScore endp
 
+game_setLivesAlphas macro
+	i = 0
+	repeat GAME_START_NUM_LIVES
+		
+	endm
+endm
+
 game_drawLives proc
+	game_setLivesAlphas
 	mov r8d, [fg_color]
 
 	i = 0
-	repeat 4
+	repeat GAME_START_NUM_LIVES
+		xor eax, eax
+		mov al, [game_lives_alphas + i]
+		shl eax, 24
+		and r8d, 00ffffffh
+		or r8d, eax
 		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*0, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*1
 		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*0, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*2
 		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*3, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*4

@@ -2,6 +2,7 @@ include <windows\defs.inc>
 include <globaldefs.inc>
 include <sdl\defs.inc>
 
+include <data\flicker-alphas.inc>
 include <common.s>
 include <screen.s>
 include <font.s>
