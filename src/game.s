@@ -403,56 +403,6 @@ game_drawScore proc
 		cmp r11d, 1
 		jne charLoop
 
-		
-
-	; 100s spot: (score / 100) % 10
-	; 10s spot:  (score / 10) % 10
-	; 1s spot:   score % 10
-
-	; 100s
-	; mov eax, [score]
-	; mov ebx, 100
-	; cdq
-	; div ebx
-	; mov ebx, 10
-	; cdq
-	; div ebx
-	; ; edx is now our desired decmial digit
-	; mov ebx, [current_char_rect].dim.w
-	; imul edx, ebx
-	; mov [current_char_rect].pos.x, edx
-	; lea rdx, current_char_pos
-	; call screen_draw1bppSprite
-
-	; add [current_char_pos].x, FONT_KERNING shl 16
-
-	; ; 10s
-	; mov eax, [score]
-	; mov ebx, 10
-	; cdq
-	; div ebx
-	; mov ebx, 10
-	; cdq
-	; div ebx
-	; mov ebx, [current_char_rect].dim.w
-	; imul edx, ebx
-	; mov [current_char_rect].pos.x, edx
-	; lea rdx, current_char_pos
-	; call screen_draw1bppSprite
-
-	; add [current_char_pos].x, FONT_KERNING shl 16
-
-	; ; 1s
-	; mov eax, [score]
-	; mov ebx, 10
-	; cdq
-	; div ebx
-	; mov ebx, [current_char_rect].dim.w
-	; imul edx, ebx
-	; mov [current_char_rect].pos.x, edx
-	; lea rdx, current_char_pos
-	; call screen_draw1bppSprite
-
 	pop r11
 	pop r10
 	pop r9
