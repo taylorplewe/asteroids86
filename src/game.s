@@ -396,7 +396,7 @@ game_drawScore proc
 			; lea rdx, current_char_pos
 			call screen_draw1bppSprite
 			sub [current_char_pos].y, (FONT_DIGIT_HEIGHT - 24) shl 16
-			add [current_char_pos].x, 28 shl 16
+			add [current_char_pos].x, 26 shl 16
 
 			pop r9
 			pop rsi
