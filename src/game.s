@@ -28,6 +28,7 @@ GAME_UFO_GEN_COUNTER_MIN_AMT   = 60 * 3
 GAME_UFO_GEN_COUNTER_RAND_MASK = 01ffh
 GAME_UFO_GEN_YPOS_LEEWAY       = (SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4) ; SCREEN_HEIGHT * 0.75
 GAME_START_NUM_LIVES           = 4
+GAME_LIVES_FLICKER_INC         = 0080h
 
 .data
 
@@ -41,14 +42,15 @@ current_char_rect Rect  { { 0, 0 }, { FONT_DIGIT_WIDTH, FONT_DIGIT_HEIGHT } }
 
 .data?
 
-current_wave      dq    ?
-flash_counter     dd    ?
-ufo_gen_counter   dd    ?
-next_wave_counter dd    ?
-current_char_pos  Point <>
-game_lives_points Point GAME_START_NUM_LIVES * SHIP_NUM_POINTS dup (<>)
-game_lives_alphas db    GAME_START_NUM_LIVES dup (?)
-game_lives_prev   dd    ? ; previous state of lives, for detecting change
+current_wave           dq    ?
+flash_counter          dd    ?
+ufo_gen_counter        dd    ?
+next_wave_counter      dd    ?
+current_char_pos       Point <>
+game_lives_points      Point GAME_START_NUM_LIVES * SHIP_NUM_POINTS dup (<>)
+game_lives_alphas      db    GAME_START_NUM_LIVES dup (?)
+game_lives_prev        dd    ? ; previous state of lives, for detecting change
+game_lives_flicker_ind dw    ? ; 8.8 fixed point, upper byte is the actual index
 
 
 .code
@@ -222,12 +224,29 @@ game_tick proc
 	cmp [game_lives_prev], eax
 	je livesCheckEnd
 		jl @f
-		; life was lost
-		lea rsi, game_lives_alphas
-		mov byte ptr [rsi + rax], 20h
+			mov byte ptr [game_lives_flicker_ind + 1], 1
 		@@:
 		mov [game_lives_prev], eax
 	livesCheckEnd:
+
+	; lives flicker
+	cmp byte ptr [game_lives_flicker_ind + 1], 0
+	je @f
+		xor eax, eax
+		mov al, byte ptr [game_lives_flicker_ind + 1]
+		lea rsi, flicker_alphas
+		mov dl, [rsi + rax]
+		mov ebx, [lives]
+		lea rsi, game_lives_alphas
+		mov [rsi + rbx], dl
+		mov ax, GAME_LIVES_FLICKER_INC
+		add [game_lives_flicker_ind], ax
+		xor eax, eax
+		mov al, byte ptr [game_lives_flicker_ind + 1]
+		cmp eax, flicker_alphas_len
+		jl @f
+		mov [game_lives_flicker_ind], 0
+	@@:
 
 	; gameover counter
 	cmp [gameover_timer], 0

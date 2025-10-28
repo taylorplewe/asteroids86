@@ -42,7 +42,8 @@ flicker_alphas:
 	db FLICKER_40
 	db FLICKER_0
 	db FLICKER_20
-flicker_alphas_end = $
+	db FLICKER_0
+flicker_alphas_len = $ - flicker_alphas
 
 
 endif
