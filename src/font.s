@@ -8,25 +8,11 @@ include <global.s>
 
 FONT_DIGIT_WIDTH  = 32
 FONT_DIGIT_HEIGHT = 50
-FONT_KERNING      = 8
+FONT_KERNING      = FONT_DIGIT_WIDTH + 8
 
-
-.data
-
-font_digits_resource_name db    "FONTDIGITS", 0
-font_char_rect            Rect  { { 0, 0 }, { FONT_DIGIT_WIDTH, FONT_DIGIT_HEIGHT } }
-
-
-.data?
-
-font_digits_spr_data dq ?
-
-
-.code
-
-font_init proc
+font_loadSprData macro resource_name:req, dest_spr_data:req
 	xor rcx, rcx
-	lea rdx, font_digits_resource_name
+	lea rdx, resource_name
 	lea r8, bin_resource_type
 	call FindResourceA
 	xor rcx, rcx
@@ -34,7 +20,28 @@ font_init proc
 	call LoadResource
 	mov rcx, rax
 	call LockResource
-	mov [font_digits_spr_data], rax
+	mov [dest_spr_data], rax
+endm
+
+
+.data
+
+font_digits_resource_name db    "FONTDIGITS", 0
+font_comma_resource_name  db    "COMMA", 0
+font_char_rect            Rect  { { 0, 0 }, { FONT_DIGIT_WIDTH, FONT_DIGIT_HEIGHT } }
+
+
+.data?
+
+font_digits_spr_data dq ?
+font_comma_spr_data  dq ?
+
+
+.code
+
+font_init proc
+	font_loadSprData font_digits_resource_name, font_digits_spr_data
+	font_loadSprData font_comma_resource_name, font_comma_spr_data
 
 	ret
 font_init endp

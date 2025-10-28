@@ -327,73 +327,137 @@ game_drawScore proc
 	push rbx
 	push rdx
 	push rsi
+	push rdi
 	push r8
 	push r9
+	push r10 ; num chars drawn
+	push r11 ; t (100,000 -> 1)
 
+	; screen_draw1bppSprite:
 	; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
-	 ; rsi - pointer to beginning of sprite data
-	 ; r8d - color
-	 ; r9  - pointer to in-spritesheet Rect, dimensions of sprite
-	 ; r14 - pointer to pixel plotting routine to call
+	; rsi - pointer to beginning of sprite data
+	; r8d - color
+	; r9  - pointer to in-spritesheet Rect, dimensions of sprite
+	; r14 - pointer to pixel plotting routine to call
 
 	mov rsi, [font_digits_spr_data]
+	mov rdi, [font_comma_spr_data]
 	mov r8d, [fg_color]
 	lea r9, current_char_rect
 	lea r14, screen_draw3difiedPixelOnscreenVerified
 
-	mov rax, qword ptr [game_score_pos]
-	mov qword ptr [current_char_pos], rax
+	mov rax, [game_score_pos]
+	mov [current_char_pos], rax
+
+	xor r10, r10
+	mov r11d, 1000000
+
+	charLoop:
+		; t /= 10
+		mov eax, r11d
+		mov ebx, 10
+		cdq
+		div ebx
+		mov r11d, eax
+
+		; calc digit -> edx
+		mov eax, [score]
+		cdq
+		div r11d
+		mov ebx, 10
+		cdq
+		div ebx
+
+		; if !digit and !numDigitsDrawn then continue
+		test edx, edx
+		jne @f
+		test r10d, r10d
+		je charLoopNext
+		@@:
+
+		mov ebx, [current_char_rect].dim.w
+		imul edx, ebx
+		mov [current_char_rect].pos.x, edx
+		lea rdx, current_char_pos
+		call screen_draw1bppSprite
+
+		; if numDigitsDrawn % 3 == 0 then draw comma
+		inc r10d
+		mov eax, r10d
+		mov ebx, 3
+		cdq
+		div ebx
+		test edx, edx
+		jne @f
+			; draw comma
+			; push rsi
+			; mov rsi, rdi
+			; mov [current_char_rect]
+
+			; pop rsi
+		@@:
+
+		add [current_char_pos].x, FONT_KERNING shl 16
+
+		charLoopNext:
+		cmp r11d, 1
+		jne charLoop
+
+		
 
 	; 100s spot: (score / 100) % 10
 	; 10s spot:  (score / 10) % 10
 	; 1s spot:   score % 10
 
 	; 100s
-	mov eax, [score]
-	mov ebx, 100
-	cdq
-	div ebx
-	mov ebx, 10
-	cdq
-	div ebx
-	; edx is now our desired decmial digit
-	mov ebx, [current_char_rect].dim.w
-	imul edx, ebx
-	mov [current_char_rect].pos.x, edx
-	lea rdx, current_char_pos
-	call screen_draw1bppSprite
+	; mov eax, [score]
+	; mov ebx, 100
+	; cdq
+	; div ebx
+	; mov ebx, 10
+	; cdq
+	; div ebx
+	; ; edx is now our desired decmial digit
+	; mov ebx, [current_char_rect].dim.w
+	; imul edx, ebx
+	; mov [current_char_rect].pos.x, edx
+	; lea rdx, current_char_pos
+	; call screen_draw1bppSprite
 
-	add [current_char_pos].x, (FONT_DIGIT_WIDTH + FONT_KERNING) shl 16
+	; add [current_char_pos].x, FONT_KERNING shl 16
 
-	; 10s
-	mov eax, [score]
-	mov ebx, 10
-	cdq
-	div ebx
-	mov ebx, 10
-	cdq
-	div ebx
-	mov ebx, [current_char_rect].dim.w
-	imul edx, ebx
-	mov [current_char_rect].pos.x, edx
-	lea rdx, current_char_pos
-	call screen_draw1bppSprite
+	; ; 10s
+	; mov eax, [score]
+	; mov ebx, 10
+	; cdq
+	; div ebx
+	; mov ebx, 10
+	; cdq
+	; div ebx
+	; mov ebx, [current_char_rect].dim.w
+	; imul edx, ebx
+	; mov [current_char_rect].pos.x, edx
+	; lea rdx, current_char_pos
+	; call screen_draw1bppSprite
 
-	add [current_char_pos].x, (FONT_DIGIT_WIDTH + FONT_KERNING) shl 16
+	; add [current_char_pos].x, FONT_KERNING shl 16
 
-	; 1s
-	mov eax, [score]
-	mov ebx, 10
-	cdq
-	div ebx
-	mov ebx, [current_char_rect].dim.w
-	imul edx, ebx
-	mov [current_char_rect].pos.x, edx
-	lea rdx, current_char_pos
-	call screen_draw1bppSprite
+	; ; 1s
+	; mov eax, [score]
+	; mov ebx, 10
+	; cdq
+	; div ebx
+	; mov ebx, [current_char_rect].dim.w
+	; imul edx, ebx
+	; mov [current_char_rect].pos.x, edx
+	; lea rdx, current_char_pos
+	; call screen_draw1bppSprite
 
+	pop r11
+	pop r10
 	pop r9
 	pop r8
+	pop rdi
 	pop rsi
 	pop rdx
 	pop rbx

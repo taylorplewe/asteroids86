@@ -1,0 +1,12 @@
+t = 100,000
+x, y = 0
+isFirstDigitDrawn = false
+
+do:
+  digit = (score / t) % 10
+  if !digit and !isFirstDigitDrawn:
+    continue
+
+  draw(digit, x, y)
+  y += kerning
+while t != 1
