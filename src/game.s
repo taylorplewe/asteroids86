@@ -327,7 +327,6 @@ game_drawScore proc
 	push rbx
 	push rdx
 	push rsi
-	push rdi
 	push r8
 	push r9
 	push r10 ; num chars drawn
@@ -341,7 +340,6 @@ game_drawScore proc
 	; r14 - pointer to pixel plotting routine to call
 
 	mov rsi, [font_digits_spr_data]
-	mov rdi, [font_comma_spr_data]
 	mov r8d, [fg_color]
 	lea r9, current_char_rect
 	lea r14, screen_draw3difiedPixelOnscreenVerified
@@ -381,23 +379,28 @@ game_drawScore proc
 		lea rdx, current_char_pos
 		call screen_draw1bppSprite
 
-		; if numDigitsDrawn % 3 == 0 then draw comma
+		add [current_char_pos].x, FONT_KERNING shl 16
+
+		; if numDigitsDrawn == 4 then draw comma
 		inc r10d
-		mov eax, r10d
-		mov ebx, 3
-		cdq
-		div ebx
-		test edx, edx
+		cmp r11d, 1000
 		jne @f
 			; draw comma
-			; push rsi
-			; mov rsi, rdi
-			; mov [current_char_rect]
+			push rsi
+			push r9
 
-			; pop rsi
+			lea r9, font_comma_rect
+			mov rsi, [font_comma_spr_data]
+			add [current_char_pos].y, (FONT_DIGIT_HEIGHT - 24) shl 16
+			sub [current_char_pos].x, 12 shl 16
+			; lea rdx, current_char_pos
+			call screen_draw1bppSprite
+			sub [current_char_pos].y, (FONT_DIGIT_HEIGHT - 24) shl 16
+			add [current_char_pos].x, 28 shl 16
+
+			pop r9
+			pop rsi
 		@@:
-
-		add [current_char_pos].x, FONT_KERNING shl 16
 
 		charLoopNext:
 		cmp r11d, 1
@@ -407,7 +410,6 @@ game_drawScore proc
 	pop r10
 	pop r9
 	pop r8
-	pop rdi
 	pop rsi
 	pop rdx
 	pop rbx

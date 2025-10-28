@@ -29,6 +29,7 @@ endm
 font_digits_resource_name db    "FONTDIGITS", 0
 font_comma_resource_name  db    "COMMA", 0
 font_char_rect            Rect  { { 0, 0 }, { FONT_DIGIT_WIDTH, FONT_DIGIT_HEIGHT } }
+font_comma_rect           Rect  { { 0, 0 }, { 8, 15 } }
 
 
 .data?
