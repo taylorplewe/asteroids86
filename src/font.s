@@ -6,9 +6,13 @@ include <windows\defs.inc>
 include <global.s>
 
 
-FONT_DIGIT_WIDTH  = 32
-FONT_DIGIT_HEIGHT = 50
-FONT_KERNING      = FONT_DIGIT_WIDTH + 8
+FONT_SM_CHAR_WIDTH  = 16
+FONT_SM_CHAR_HEIGHT = 25
+FONT_LG_CHAR_WIDTH  = 40
+FONT_LG_CHAR_HEIGHT = 51
+FONT_DIGIT_WIDTH    = 32
+FONT_DIGIT_HEIGHT   = 50
+FONT_DIGIT_KERNING  = FONT_DIGIT_WIDTH + 8
 
 font_loadSprData macro resource_name:req, dest_spr_data:req
 	xor rcx, rcx

@@ -420,7 +420,7 @@ game_drawScore proc
 		lea rdx, current_char_pos
 		call screen_draw1bppSprite
 
-		add [current_char_pos].x, FONT_KERNING shl 16
+		add [current_char_pos].x, FONT_DIGIT_KERNING shl 16
 		saturatingSub32 r12d, 4
 
 		; if numDigitsDrawn == 4 then draw comma
@@ -484,6 +484,10 @@ game_drawLives proc
 	endm
 	ret
 game_drawLives endp
+
+game_drawGameOver proc
+	ret
+game_drawGameOver endp
 
 
 endif

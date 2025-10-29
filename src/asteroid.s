@@ -158,6 +158,22 @@ asteroid_createRand proc
 	ret
 asteroid_createRand endp
 
+; in:
+	; rdi - pointer to asteroid
+asteroid_addToScore proc
+	push rsi
+
+	; add to score
+	mov eax, [rdi].Asteroid.mass
+	shl eax, 2
+	lea rsi, asteroid_score_adds
+	mov eax, dword ptr [rsi + rax]
+	add [score], eax
+
+	pop rsi
+	ret
+asteroid_addToScore endp
+
 ; If this asteroid has a mass greater than 1, destroy this asteroid and spawn 2 smaller ones in its place.
 ; Otherwise, just destroy it.
 ; in:
@@ -174,13 +190,6 @@ asteroid_onHit proc
 	mov rbx, qword ptr [rdi].Asteroid.pos
 	mov rcx, qword ptr [rdi].Asteroid.velocity
 	call shard_createBurst
-
-	; add to score
-	mov eax, [rdi].Asteroid.mass
-	shl eax, 2
-	lea rsi, asteroid_score_adds
-	mov eax, dword ptr [rsi + rax]
-	add [score], eax
 
 	cmp [rdi].Asteroid.mass, 1
 	je destroy
@@ -280,6 +289,7 @@ asteroid_checkBullets proc
 		mov eax, ecx
 		call array_removeAt
 		pop rsi
+		call asteroid_addToScore
 		call asteroid_onHit
 		mov eax, 1
 		jmp _end
@@ -409,6 +419,7 @@ asteroid_checkShip proc
 
 	hit:
 	call ship_destroy
+	call asteroid_addToScore
 	call asteroid_onHit
 	mov eax, 1
 
