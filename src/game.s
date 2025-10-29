@@ -1,6 +1,7 @@
 ifndef game_h
 game_h = 1
 
+include <data\shake-offsets.inc>
 include <data\flicker-alphas.inc>
 
 include <global.s>
@@ -47,10 +48,14 @@ flash_counter          dd    ?
 ufo_gen_counter        dd    ?
 next_wave_counter      dd    ?
 current_char_pos       Point <>
+
 game_lives_points      Point GAME_START_NUM_LIVES * SHIP_NUM_POINTS dup (<>)
 game_lives_alphas      db    GAME_START_NUM_LIVES dup (?)
 game_lives_prev        dd    ? ; previous state of lives, for detecting change
 game_lives_flicker_ind dw    ? ; 8.8 fixed point, upper byte is the actual index
+
+game_score_prev        dd    ? ; previous state of score, for detecting change
+game_score_shake_ind   dd    ?
 
 
 .code
@@ -248,6 +253,25 @@ game_tick proc
 		mov [game_lives_flicker_ind], 0
 	@@:
 
+	; score bounce update
+	cmp [game_score_shake_ind], 0
+	je @f
+		inc [game_score_shake_ind]
+		cmp [game_score_shake_ind], bounce_offset_len
+		jl @f
+		mov [game_score_shake_ind], 0
+	@@:
+
+	; score bounce
+	mov eax, [score]
+	cmp [game_score_prev], eax
+	je scoreCheckEnd
+		; jg @f ; I don't know why it would go down but def don't want to bounce it in that case
+			mov [game_score_shake_ind], 1
+		; @@:
+		mov [game_score_prev], eax
+	scoreCheckEnd:
+
 	; gameover counter
 	cmp [gameover_timer], 0
 	je @f
@@ -331,6 +355,7 @@ game_drawScore proc
 	push r9
 	push r10 ; num chars drawn
 	push r11 ; t (100,000 -> 1)
+	push r12 ; char index (for bouncing)
 
 	; screen_draw1bppSprite:
 	; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
@@ -349,6 +374,7 @@ game_drawScore proc
 
 	xor r10, r10
 	mov r11d, 1000000
+	mov r12d, [game_score_shake_ind]
 
 	charLoop:
 		; t /= 10
@@ -375,6 +401,19 @@ game_drawScore proc
 		je charLoopNext
 		@@:
 
+		; reset onscreen y
+		mov eax, [game_score_pos].y
+		mov [current_char_pos].y, eax
+
+		; bounce
+		; brk
+		lea rax, bounce_offsets
+		; mov r12, 0
+		xor ebx, ebx
+		mov bl, [rax + r12]
+		shl ebx, 16
+		sub [current_char_pos].y, ebx
+
 		mov ebx, [current_char_rect].dim.w
 		imul edx, ebx
 		mov [current_char_rect].pos.x, edx
@@ -382,6 +421,7 @@ game_drawScore proc
 		call screen_draw1bppSprite
 
 		add [current_char_pos].x, FONT_KERNING shl 16
+		saturatingSub32 r12d, 4
 
 		; if numDigitsDrawn == 4 then draw comma
 		inc r10d
@@ -408,6 +448,7 @@ game_drawScore proc
 		cmp r11d, 1
 		jne charLoop
 
+	pop r12
 	pop r11
 	pop r10
 	pop r9

@@ -67,6 +67,11 @@ abseax macro
 	pop rbx
 endm
 
+saturatingSub32 macro reg:req, val:req
+	sub reg, val
+	cmovs reg, dword ptr [zero64]
+endm
+
 brk macro
 	int 3
 endm
