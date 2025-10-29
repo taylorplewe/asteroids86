@@ -18,23 +18,24 @@ if (-not (Get-Command "ml64" -ErrorAction SilentlyContinue)) {
 
 $gameName = "asteroids86"
 
-# /Cp       = preserve case of user identifiers
-# /Zd       = add line numbers to debug info
-# /Zi       = add symbolic debug info
-# /Fo<path> = name .obj output file
-ml64 `
-    /Cp `
-    /Zd `
-    /Zi `
-    "/Fo.\bin\$gameName.obj" `
-    src\main.s `
-    /link `
-    SDL3.lib `
-    kernel32.lib `
-    .\resources\resources.res `
-    /debug:full `
-    /entry:main `
+$asmArgs = @(
+    "/Cp",                    # preserve case of user identifiers
+    "/Fo.\bin\$gameName.obj", # name .obj output file
+    "src\main.s"
+)
+$linkerArgs = @(
+    "SDL3.lib",
+    "kernel32.lib",
+    ".\resources\resources.res",
+    "/entry:main",
     "/out:.\bin\$gameName.exe"
+)
+if (!$args.Contains("release")) {
+    $asmArgs += @("/Zd", "/Zi")
+    $linkerArgs += "/debug:full"
+}
+
+ml64 $asmArgs /link $linkerArgs
 
 if ($LASTEXITCODE -ne 0) { return }
 
