@@ -366,7 +366,9 @@ game_drawScore proc
 		cdq
 		div ebx
 
-		; if !digit and !numDigitsDrawn then continue
+		; if t != 1 and !digit and !numDigitsDrawn then continue
+		cmp r11d, 1
+		je @f
 		test edx, edx
 		jne @f
 		test r10d, r10d
