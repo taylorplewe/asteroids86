@@ -1,5 +1,5 @@
 # 2025 Taylor Plewe
-# This is was inspired by sintab generation scripts I wrote for the 6502, which were inspired by someone else's code, I can't remember who.
+# This is was inspired by sintab generation scripts I wrote for the 6502, which were inspired by someone else's code, whom I can't remember
 
 import math
 

@@ -1,0 +1,23 @@
+vec = 12
+shake_rot = rand & 0xff
+
+update:
+  _shake_rot = shake_rot
+  foreach digit:
+    x_offs = sin(_shake_rot) * vec
+    y_offs = cos(_shake_rot) * vec
+
+  
+  
+    _shake_rot += 80
+
+  shake_rot += 44 + (rand % 40)
+
+
+
+
+
+
+
+
+
