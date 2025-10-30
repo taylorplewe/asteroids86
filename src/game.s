@@ -65,7 +65,7 @@ game_score_shake_ind dd ?
 game_show_gameover_counter      dd ?
 game_show_press_any_key_counter dd ?
 game_show_press_any_key         dd ?
-game_gameover_flicker_inds      dd 8 dup (?)
+game_gameover_flicker_inds      dd @SizeStr(GAMEOVER) dup (?)
 
 
 .code
@@ -541,16 +541,8 @@ game_drawLives endp
 
 GAMEOVER_CHAR_KERNING = 16
 GAMEOVER_CHAR_WIDTH   = FONT_LG_CHAR_WIDTH + GAMEOVER_CHAR_KERNING
-GAMEOVER_FIRST_X      = (SCREEN_WIDTH / 2) - (GAMEOVER_CHAR_WIDTH * 4)
-gameoverXs:
-	dd  (GAMEOVER_FIRST_X                          + GAMEOVER_CHAR_WIDTH * 0) shl 16
-	dd  (GAMEOVER_FIRST_X                          + GAMEOVER_CHAR_WIDTH * 1) shl 16
-	dd  (GAMEOVER_FIRST_X                          + GAMEOVER_CHAR_WIDTH * 2) shl 16
-	dd  (GAMEOVER_FIRST_X                          + GAMEOVER_CHAR_WIDTH * 3) shl 16
-	dd ((GAMEOVER_FIRST_X + GAMEOVER_CHAR_KERNING) + GAMEOVER_CHAR_WIDTH * 4) shl 16
-	dd ((GAMEOVER_FIRST_X + GAMEOVER_CHAR_KERNING) + GAMEOVER_CHAR_WIDTH * 5) shl 16
-	dd ((GAMEOVER_FIRST_X + GAMEOVER_CHAR_KERNING) + GAMEOVER_CHAR_WIDTH * 6) shl 16
-	dd ((GAMEOVER_FIRST_X + GAMEOVER_CHAR_KERNING) + GAMEOVER_CHAR_WIDTH * 7) shl 16
+GAMEOVER_FULL_WIDTH   = @SizeStr(GAMEOVER) * GAMEOVER_CHAR_WIDTH
+GAMEOVER_FIRST_X      = (((SCREEN_WIDTH / 2) - (GAMEOVER_FULL_WIDTH / 2)) + (FONT_LG_CHAR_WIDTH / 2)) shl 16
 
 gameoverUs:
 	dw FONT_LG_X_G
@@ -581,6 +573,7 @@ game_drawGameOver proc
 	mov [current_char_rect].dim.w, FONT_LG_CHAR_WIDTH
 	mov [current_char_rect].dim.h, FONT_LG_CHAR_HEIGHT
 	mov [current_char_pos].y, ((SCREEN_HEIGHT / 2) - (FONT_LG_CHAR_HEIGHT / 2)) shl 16
+	mov [current_char_pos].x, GAMEOVER_FIRST_X
 
 	xor ecx, ecx
 	charLoop:
@@ -591,13 +584,6 @@ game_drawGameOver proc
 		shl ax, 1
 		mov ax, [rdi + rax]
 		mov [current_char_rect].pos.x, eax
-
-		; set onscreen X position
-		lea rdi, gameoverXs
-		mov eax, ecx
-		shl eax, 2
-		mov eax, [rdi + rax]
-		mov [current_char_pos].x, eax
 
 		; set alpha of char
 		lea rdi, game_gameover_flicker_inds
@@ -622,6 +608,12 @@ game_drawGameOver proc
 		; r14 - pointer to pixel plotting routine to call
 		call screen_draw1bppSprite
 
+		add [current_char_pos].x, GAMEOVER_CHAR_WIDTH shl 16
+		cmp ecx, 3
+		jne @f
+			add [current_char_pos].x, GAMEOVER_CHAR_KERNING shl 16 ; add the space
+		@@:
+
 		inc ecx
 		cmp ecx, 8
 		jl charLoop
@@ -634,9 +626,22 @@ game_drawGameOver proc
 	ret
 game_drawGameOver endp
 
+PRESS_ANY_KEY_KERNING    = 4
+PRESS_ANY_KEY_CHAR_WIDTH = FONT_SM_CHAR_WIDTH + PRESS_ANY_KEY_KERNING
+PRESS_ANY_KEY_FULL_WIDTH = (press_any_key_text_len * PRESS_ANY_KEY_CHAR_WIDTH) - PRESS_ANY_KEY_KERNING
+PRESS_ANY_KEY_FIRST_X    = (((SCREEN_WIDTH / 2) - (PRESS_ANY_KEY_FULL_WIDTH / 2)) + (FONT_SM_CHAR_WIDTH / 2)) shl 16
+PRESS_ANY_KEY_Y          = ((SCREEN_HEIGHT / 2) + 64) shl 16
 game_drawPressAnyKey proc
 	cmp [game_show_press_any_key], 0
-	je _end
+	je _ret
+
+	push rcx
+	push rdx
+	push rsi
+	push rdi
+	push r8
+	push r9
+	push r14
 
 	lea rdx, current_char_pos
 	mov rsi, [font_small_spr_data]
@@ -644,21 +649,41 @@ game_drawPressAnyKey proc
 	lea r9, current_char_rect
 	lea r14, screen_setPixelOnscreenVerified
 
-	mov [current_char_pos].x, (SCREEN_WIDTH / 2) shl 16
-	mov [current_char_pos].y, ((SCREEN_HEIGHT / 2) + 64) shl 16
+	mov [current_char_pos].x, PRESS_ANY_KEY_FIRST_X
+	mov [current_char_pos].y, PRESS_ANY_KEY_Y
 	mov [current_char_rect].pos.x, 0
 	mov [current_char_rect].pos.y, 0
 	mov [current_char_rect].dim.w, FONT_SM_CHAR_WIDTH
 	mov [current_char_rect].dim.h, FONT_SM_CHAR_HEIGHT
 
-	; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
-	; rsi - pointer to beginning of sprite data
-	; r8d - color
-	; r9  - pointer to in-spritesheet Rect, dimensions of sprite
-	; r14 - pointer to pixel plotting routine to call
-	call screen_draw1bppSprite
+	lea rdi, press_any_key_text
+	xor ecx, ecx
+	charLoop:
+		xor eax, eax
+		mov al, [rdi + rcx]
+		cmp al, ' '
+		je drawCharEnd
+		sub al, 'A'
+		imul eax, FONT_SM_CHAR_WIDTH
+		mov [current_char_rect].pos.x, eax
 
-	_end:
+		call screen_draw1bppSprite
+
+		drawCharEnd:
+		add [current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+
+		inc ecx
+		cmp ecx, press_any_key_text_len
+		jl charLoop
+
+	pop r14
+	pop r9
+	pop r8
+	pop rdi
+	pop rsi
+	pop rdx
+	pop rcx
+	_ret:
 	ret
 game_drawPressAnyKey endp
 
