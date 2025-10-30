@@ -30,8 +30,8 @@ GAME_UFO_GEN_COUNTER_RAND_MASK = 01ffh
 GAME_UFO_GEN_YPOS_LEEWAY       = (SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4) ; SCREEN_HEIGHT * 0.75
 GAME_START_NUM_LIVES           = 4
 GAME_LIVES_FLICKER_INC         = 0080h
-GAME_GAMEOVER_COUNTER_AMT      = 60 * 3
-GAME_PRESS_ANY_KEY_COUNTER_AMT = 60 * 6
+GAME_GAMEOVER_COUNTER_AMT      = 60 * 4
+GAME_PRESS_ANY_KEY_COUNTER_AMT = 60 * 7
 
 .data
 
@@ -63,6 +63,7 @@ game_score_prev      dd ? ; previous state of score, for detecting change
 game_score_shake_ind dd ?
 
 game_show_gameover_counter      dd ?
+game_show_gameover              dd ?
 game_show_press_any_key_counter dd ?
 game_show_press_any_key         dd ?
 game_gameover_flicker_inds      dd @SizeStr(GAMEOVER) dup (?)
@@ -80,8 +81,8 @@ game_init proc
 	mov [flash_color], eax
 
 	mov [score], 0
-	; mov [lives], GAME_START_NUM_LIVES
-	mov [lives], 1
+	mov [lives], GAME_START_NUM_LIVES
+	; mov [lives], 1
 	mov [game_show_press_any_key], 0
 
 	mov al, 0ffh
@@ -270,6 +271,7 @@ game_tick proc
 		mov [game_lives_prev], eax
 		test eax, eax
 		jne livesCheckEnd
+			inc [game_show_gameover]
 			mov [game_show_gameover_counter], GAME_GAMEOVER_COUNTER_AMT
 			mov [game_show_press_any_key_counter], GAME_PRESS_ANY_KEY_COUNTER_AMT
 	livesCheckEnd:
@@ -555,6 +557,9 @@ gameoverUs:
 	dw FONT_LG_X_R
 
 game_drawGameOver proc
+	cmp [game_show_gameover], 0
+	je _ret
+
 	push rbx
 	push rcx
 	push rsi
@@ -623,6 +628,7 @@ game_drawGameOver proc
 	pop rsi
 	pop rcx
 	pop rbx
+	_ret:
 	ret
 game_drawGameOver endp
 

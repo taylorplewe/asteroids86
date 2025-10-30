@@ -289,7 +289,10 @@ asteroid_checkBullets proc
 		mov eax, ecx
 		call array_removeAt
 		pop rsi
-		call asteroid_addToScore
+		cmp [rsi].Bullet.is_evil, 0
+		jne @f
+			call asteroid_addToScore
+		@@:
 		call asteroid_onHit
 		mov eax, 1
 		jmp _end
