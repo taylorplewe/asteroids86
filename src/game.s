@@ -31,6 +31,7 @@ GAME_UFO_GEN_YPOS_LEEWAY       = (SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4) ; SCR
 GAME_START_NUM_LIVES           = 4
 GAME_LIVES_FLICKER_INC         = 0080h
 GAME_GAMEOVER_COUNTER_AMT      = 60 * 3
+GAME_PRESS_ANY_KEY_COUNTER_AMT = 60 * 5
 
 .data
 
@@ -61,8 +62,10 @@ game_lives_flicker_ind dw    ? ; 8.8 fixed point, upper byte is the actual index
 game_score_prev      dd ? ; previous state of score, for detecting change
 game_score_shake_ind dd ?
 
-game_show_gameover_counter dd ?
-game_gameover_flicker_inds dd 8 dup (?)
+game_show_gameover_counter      dd ?
+game_show_press_any_key_counter dd ?
+game_show_press_any_key         dd ?
+game_gameover_flicker_inds      dd 8 dup (?)
 
 
 .code
@@ -79,6 +82,7 @@ game_init proc
 	mov [score], 0
 	; mov [lives], GAME_START_NUM_LIVES
 	mov [lives], 1
+	mov [game_show_press_any_key], 0
 
 	mov al, 0ffh
 	i = 0
@@ -248,6 +252,14 @@ game_tick proc
 		endm
 	gameoverCounterEnd:
 
+	; "press any key" counter
+	cmp [game_show_press_any_key_counter], 0
+	je pressAnyKeyEnd
+		dec [game_show_press_any_key_counter]
+		jne pressAnyKeyEnd
+		inc [game_show_press_any_key]
+	pressAnyKeyEnd:
+
 	; lives counter
 	mov eax, [lives]
 	cmp [game_lives_prev], eax
@@ -259,6 +271,7 @@ game_tick proc
 		test eax, eax
 		jne livesCheckEnd
 			mov [game_show_gameover_counter], GAME_GAMEOVER_COUNTER_AMT
+			mov [game_show_press_any_key_counter], GAME_PRESS_ANY_KEY_COUNTER_AMT
 	livesCheckEnd:
 
 	; lives flicker
@@ -385,6 +398,7 @@ game_tick proc
 	call game_drawScore
 	call game_drawLives
 	call game_drawGameOver
+	call game_drawPressAnyKey
 
 	ret
 game_tick endp
@@ -619,6 +633,34 @@ game_drawGameOver proc
 	pop rbx
 	ret
 game_drawGameOver endp
+
+game_drawPressAnyKey proc
+	cmp [game_show_press_any_key], 0
+	je _end
+
+	lea rdx, current_char_pos
+	mov rsi, [font_small_spr_data]
+	mov r8d, [gray_color]
+	lea r9, current_char_rect
+	lea r14, screen_setPixelOnscreenVerified
+
+	mov [current_char_pos].x, (SCREEN_WIDTH / 2) shl 16
+	mov [current_char_pos].y, ((SCREEN_HEIGHT / 2) + 64) shl 16
+	mov [current_char_rect].pos.x, 0
+	mov [current_char_rect].pos.y, 0
+	mov [current_char_rect].dim.w, FONT_SM_CHAR_WIDTH
+	mov [current_char_rect].dim.h, FONT_SM_CHAR_HEIGHT
+
+	; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
+	; rsi - pointer to beginning of sprite data
+	; r8d - color
+	; r9  - pointer to in-spritesheet Rect, dimensions of sprite
+	; r14 - pointer to pixel plotting routine to call
+	call screen_draw1bppSprite
+
+	_end:
+	ret
+game_drawPressAnyKey endp
 
 
 endif
