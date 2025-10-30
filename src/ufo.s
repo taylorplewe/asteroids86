@@ -432,13 +432,13 @@ ufo_draw proc
 	lea rdx, [rdi].Ufo.pos
 	mov rsi, [ufo_spr_data]
 	mov r8d, [fg_color]
+	lea r9, ufo_rect
+	lea r14, screen_setPixelClipped
 
 	; set (U, V) (V is always zero)
 	mov eax, [rdi].Ufo.frame_ind
 	imul eax, [ufo_rect].dim.w
 	mov [ufo_rect].pos.x, eax
-	lea r9, ufo_rect
-	lea r14, screen_setPixelClipped
 
 	call screen_draw1bppSprite
 

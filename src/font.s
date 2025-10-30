@@ -14,6 +14,16 @@ FONT_DIGIT_WIDTH    = 32
 FONT_DIGIT_HEIGHT   = 50
 FONT_DIGIT_KERNING  = FONT_DIGIT_WIDTH + 8
 
+FONT_LG_X_S = FONT_LG_CHAR_WIDTH * 0
+FONT_LG_X_T = FONT_LG_CHAR_WIDTH * 1
+FONT_LG_X_A = FONT_LG_CHAR_WIDTH * 2
+FONT_LG_X_R = FONT_LG_CHAR_WIDTH * 3
+FONT_LG_X_G = FONT_LG_CHAR_WIDTH * 4
+FONT_LG_X_M = FONT_LG_CHAR_WIDTH * 5
+FONT_LG_X_E = FONT_LG_CHAR_WIDTH * 6
+FONT_LG_X_O = FONT_LG_CHAR_WIDTH * 7
+FONT_LG_X_V = FONT_LG_CHAR_WIDTH * 8
+
 font_loadSprData macro resource_name:req, dest_spr_data:req
 	xor rcx, rcx
 	lea rdx, resource_name
@@ -31,6 +41,8 @@ endm
 .data
 
 font_digits_resource_name db    "FONTDIGITS", 0
+font_large_resource_name  db    "FONTBIG", 0
+font_small_resource_name  db    "FONTSMALL", 0
 font_comma_resource_name  db    "COMMA", 0
 font_char_rect            Rect  { { 0, 0 }, { FONT_DIGIT_WIDTH, FONT_DIGIT_HEIGHT } }
 font_comma_rect           Rect  { { 0, 0 }, { 8, 15 } }
@@ -39,6 +51,8 @@ font_comma_rect           Rect  { { 0, 0 }, { 8, 15 } }
 .data?
 
 font_digits_spr_data dq ?
+font_large_spr_data  dq ?
+font_small_spr_data  dq ?
 font_comma_spr_data  dq ?
 
 
@@ -46,6 +60,8 @@ font_comma_spr_data  dq ?
 
 font_init proc
 	font_loadSprData font_digits_resource_name, font_digits_spr_data
+	font_loadSprData font_large_resource_name, font_large_spr_data
+	font_loadSprData font_small_resource_name, font_small_spr_data
 	font_loadSprData font_comma_resource_name, font_comma_spr_data
 
 	ret

@@ -30,6 +30,7 @@ GAME_UFO_GEN_COUNTER_RAND_MASK = 01ffh
 GAME_UFO_GEN_YPOS_LEEWAY       = (SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4) ; SCREEN_HEIGHT * 0.75
 GAME_START_NUM_LIVES           = 4
 GAME_LIVES_FLICKER_INC         = 0080h
+GAME_GAMEOVER_COUNTER_AMT      = 20
 
 .data
 
@@ -38,24 +39,27 @@ waves_end = $
 
 game_score_pos    Point { 64 shl 16, 64 shl 16 }
 game_lives_pos    Point { 64 shl 16, 160 shl 16 }
-current_char_rect Rect  { { 0, 0 }, { FONT_DIGIT_WIDTH, FONT_DIGIT_HEIGHT } }
 
 
 .data?
 
-current_wave           dq    ?
-flash_counter          dd    ?
-ufo_gen_counter        dd    ?
-next_wave_counter      dd    ?
-current_char_pos       Point <>
+current_wave      dq    ?
+flash_counter     dd    ?
+ufo_gen_counter   dd    ?
+next_wave_counter dd    ?
+current_char_pos  Point <>
+current_char_rect Rect  <>
 
 game_lives_points      Point GAME_START_NUM_LIVES * SHIP_NUM_POINTS dup (<>)
 game_lives_alphas      db    GAME_START_NUM_LIVES dup (?)
 game_lives_prev        dd    ? ; previous state of lives, for detecting change
 game_lives_flicker_ind dw    ? ; 8.8 fixed point, upper byte is the actual index
 
-game_score_prev        dd    ? ; previous state of score, for detecting change
-game_score_shake_ind   dd    ?
+game_score_prev      dd ? ; previous state of score, for detecting change
+game_score_shake_ind dd ?
+
+game_show_gameover         dd ?
+game_gameover_flicker_inds dd 8 dup (?)
 
 
 .code
@@ -70,7 +74,8 @@ game_init proc
 	mov [flash_color], eax
 
 	mov [score], 0
-	mov [lives], GAME_START_NUM_LIVES
+	; mov [lives], GAME_START_NUM_LIVES
+	mov [lives], 1
 
 	mov al, 0ffh
 	i = 0
@@ -210,19 +215,19 @@ game_tick proc
 	call shard_updateAll
 	call shipShard_updateAll
 
-	draw:
-	cmp [is_in_gameover], 0
-	jne @f
-	call ship_draw
-	@@:
-	call bullet_drawAll
-	call asteroid_drawAll
-	call ufo_drawAll
-	call fire_drawAll
-	call shard_drawAll
-	call shipShard_drawAll
-	call game_drawScore
-	call game_drawLives
+	; flicker game over
+	cmp [game_gameover_flicker_inds], 0
+	je gameoverFlickerEnd
+		i = 0
+		repeat 8
+			local next
+			cmp [game_gameover_flicker_inds + i * 4], flicker_alphas_len
+			jge next
+			inc [game_gameover_flicker_inds + i * 4]
+			next:
+			i = i + 1
+		endm
+	gameoverFlickerEnd:
 
 	; lives counter
 	mov eax, [lives]
@@ -232,6 +237,16 @@ game_tick proc
 			mov byte ptr [game_lives_flicker_ind + 1], 1
 		@@:
 		mov [game_lives_prev], eax
+		test eax, eax
+		jne livesCheckEnd
+			i = 0
+			repeat 8
+				rand eax
+				and eax, 1111h
+				inc eax
+				mov [game_gameover_flicker_inds + i * 4], eax
+				i = i + 1
+			endm
 	livesCheckEnd:
 
 	; lives flicker
@@ -344,6 +359,21 @@ game_tick proc
 		mov [next_wave_counter], GAME_NEXT_WAVE_COUNTER_AMT
 	nextWaveLogicEnd:
 
+	draw:
+	cmp [is_in_gameover], 0
+	jne @f
+	call ship_draw
+	@@:
+	call bullet_drawAll
+	call asteroid_drawAll
+	call ufo_drawAll
+	call fire_drawAll
+	call shard_drawAll
+	call shipShard_drawAll
+	call game_drawScore
+	call game_drawLives
+	call game_drawGameOver
+
 	ret
 game_tick endp
 
@@ -357,13 +387,6 @@ game_drawScore proc
 	push r11 ; t (100,000 -> 1)
 	push r12 ; char index (for bouncing)
 
-	; screen_draw1bppSprite:
-	; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
-	; rsi - pointer to beginning of sprite data
-	; r8d - color
-	; r9  - pointer to in-spritesheet Rect, dimensions of sprite
-	; r14 - pointer to pixel plotting routine to call
-
 	mov rsi, [font_digits_spr_data]
 	mov r8d, [fg_color]
 	lea r9, current_char_rect
@@ -371,6 +394,11 @@ game_drawScore proc
 
 	mov rax, [game_score_pos]
 	mov [current_char_pos], rax
+
+	mov [current_char_rect].pos.x, 0
+	mov [current_char_rect].pos.y, 0
+	mov [current_char_rect].dim.w, FONT_DIGIT_WIDTH
+	mov [current_char_rect].dim.h, FONT_DIGIT_HEIGHT
 
 	xor r10, r10
 	mov r11d, 1000000
@@ -486,6 +514,43 @@ game_drawLives proc
 game_drawLives endp
 
 game_drawGameOver proc
+	push rbx
+	push rsi
+
+	; cmp [game_show_gameover], 0
+	; je _end
+
+	lea rdx, current_char_pos
+	mov rsi, [font_large_spr_data]
+	mov r8d, [fg_color]
+	lea r9, current_char_rect
+	lea r14, screen_setPixelOnscreenVerified
+
+	mov [current_char_rect].pos.x, FONT_LG_X_G
+	mov [current_char_rect].pos.y, 0
+	mov [current_char_rect].dim.w, FONT_LG_CHAR_WIDTH
+	mov [current_char_rect].dim.h, FONT_LG_CHAR_HEIGHT
+
+	mov [current_char_pos].x, (SCREEN_WIDTH / 2) shl 16
+	mov [current_char_pos].y, (SCREEN_HEIGHT / 2) shl 16
+
+	and r8d, 00ffffffh
+	lea rbx, flicker_alphas
+	mov eax, [game_gameover_flicker_inds]
+	mov bl, [rbx + rax]
+	shl ebx, 24
+	or r8d, ebx
+
+	; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
+	; rsi - pointer to beginning of sprite data
+	; r8d - color
+	; r9  - pointer to in-spritesheet Rect, dimensions of sprite
+	; r14 - pointer to pixel plotting routine to call
+	call screen_draw1bppSprite
+
+	_end:
+	pop rsi
+	pop rbx
 	ret
 game_drawGameOver endp
 
