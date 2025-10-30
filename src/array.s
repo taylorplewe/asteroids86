@@ -51,7 +51,7 @@ array_removeAt proc
 	ret
 array_removeAt endp
 
-; Takes the last element in an Array and copies it to a certain slot inside the Array; presumably when an element was just deleted.
+; Takes the last element in an Array and copies it to a certain slot inside the Array; presumably where an element was just deleted.
 ; in:
 	; rsi - point to Array
 	; rdi - point to destination element slot in Array's memory

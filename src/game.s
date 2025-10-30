@@ -221,6 +221,7 @@ game_tick proc
 		i = 0
 		repeat 8
 			local next
+			; brk
 			cmp [game_gameover_flicker_inds + i * 4], flicker_alphas_len
 			jge next
 			inc [game_gameover_flicker_inds + i * 4]
@@ -242,7 +243,7 @@ game_tick proc
 			i = 0
 			repeat 8
 				rand eax
-				and eax, 1111h
+				and eax, 1111b
 				inc eax
 				mov [game_gameover_flicker_inds + i * 4], eax
 				i = i + 1
@@ -513,9 +514,34 @@ game_drawLives proc
 	ret
 game_drawLives endp
 
+GAMEOVER_CHAR_KERNING = 16
+GAMEOVER_CHAR_WIDTH   = FONT_LG_CHAR_WIDTH + GAMEOVER_CHAR_KERNING
+GAMEOVER_FIRST_X      = (SCREEN_WIDTH / 2) - (GAMEOVER_CHAR_WIDTH * 4)
+gameoverXs:
+	dd  (GAMEOVER_FIRST_X                          + GAMEOVER_CHAR_WIDTH * 0) shl 16
+	dd  (GAMEOVER_FIRST_X                          + GAMEOVER_CHAR_WIDTH * 1) shl 16
+	dd  (GAMEOVER_FIRST_X                          + GAMEOVER_CHAR_WIDTH * 2) shl 16
+	dd  (GAMEOVER_FIRST_X                          + GAMEOVER_CHAR_WIDTH * 3) shl 16
+	dd ((GAMEOVER_FIRST_X + GAMEOVER_CHAR_KERNING) + GAMEOVER_CHAR_WIDTH * 4) shl 16
+	dd ((GAMEOVER_FIRST_X + GAMEOVER_CHAR_KERNING) + GAMEOVER_CHAR_WIDTH * 5) shl 16
+	dd ((GAMEOVER_FIRST_X + GAMEOVER_CHAR_KERNING) + GAMEOVER_CHAR_WIDTH * 6) shl 16
+	dd ((GAMEOVER_FIRST_X + GAMEOVER_CHAR_KERNING) + GAMEOVER_CHAR_WIDTH * 7) shl 16
+
+gameoverUs:
+	dw FONT_LG_X_G
+	dw FONT_LG_X_A
+	dw FONT_LG_X_M
+	dw FONT_LG_X_E
+	dw FONT_LG_X_O
+	dw FONT_LG_X_V
+	dw FONT_LG_X_E
+	dw FONT_LG_X_R
+
 game_drawGameOver proc
 	push rbx
+	push rcx
 	push rsi
+	push rdi
 
 	; cmp [game_show_gameover], 0
 	; je _end
@@ -526,30 +552,59 @@ game_drawGameOver proc
 	lea r9, current_char_rect
 	lea r14, screen_setPixelOnscreenVerified
 
-	mov [current_char_rect].pos.x, FONT_LG_X_G
 	mov [current_char_rect].pos.y, 0
 	mov [current_char_rect].dim.w, FONT_LG_CHAR_WIDTH
 	mov [current_char_rect].dim.h, FONT_LG_CHAR_HEIGHT
+	mov [current_char_pos].y, ((SCREEN_HEIGHT / 2) - (FONT_LG_CHAR_HEIGHT / 2)) shl 16
 
-	mov [current_char_pos].x, (SCREEN_WIDTH / 2) shl 16
-	mov [current_char_pos].y, (SCREEN_HEIGHT / 2) shl 16
+	xor ecx, ecx
+	charLoop:
+		; set U coordinate of char sprite
+		lea rdi, gameoverUs
+		xor eax, eax
+		mov ax, cx
+		shl ax, 1
+		mov ax, [rdi + rax]
+		mov [current_char_rect].pos.x, eax
 
-	and r8d, 00ffffffh
-	lea rbx, flicker_alphas
-	mov eax, [game_gameover_flicker_inds]
-	mov bl, [rbx + rax]
-	shl ebx, 24
-	or r8d, ebx
+		; set onscreen X position
+		lea rdi, gameoverXs
+		mov eax, ecx
+		shl eax, 2
+		mov eax, [rdi + rax]
+		mov [current_char_pos].x, eax
 
-	; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
-	; rsi - pointer to beginning of sprite data
-	; r8d - color
-	; r9  - pointer to in-spritesheet Rect, dimensions of sprite
-	; r14 - pointer to pixel plotting routine to call
-	call screen_draw1bppSprite
+		; set alpha of char
+		lea rdi, game_gameover_flicker_inds
+		mov eax, ecx
+		shl eax, 2
+		mov eax, [rdi + rax]
+
+		lea rbx, flicker_alphas
+		mov bl, [rbx + rax]
+
+		xor eax, eax
+		mov al, 0ffh
+		sub al, bl
+		shl eax, 24
+		and r8d, 00ffffffh
+		or r8d, eax
+
+		; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
+		; rsi - pointer to beginning of sprite data
+		; r8d - color
+		; r9  - pointer to in-spritesheet Rect, dimensions of sprite
+		; r14 - pointer to pixel plotting routine to call
+		call screen_draw1bppSprite
+
+		inc ecx
+		cmp ecx, 8
+		jl charLoop
 
 	_end:
+	pop rdi
 	pop rsi
+	pop rcx
 	pop rbx
 	ret
 game_drawGameOver endp
