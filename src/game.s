@@ -30,7 +30,7 @@ GAME_UFO_GEN_COUNTER_RAND_MASK = 01ffh
 GAME_UFO_GEN_YPOS_LEEWAY       = (SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4) ; SCREEN_HEIGHT * 0.75
 GAME_START_NUM_LIVES           = 4
 GAME_LIVES_FLICKER_INC         = 0080h
-GAME_GAMEOVER_COUNTER_AMT      = 20
+GAME_GAMEOVER_COUNTER_AMT      = 60 * 3
 
 .data
 
@@ -39,6 +39,9 @@ waves_end = $
 
 game_score_pos    Point { 64 shl 16, 64 shl 16 }
 game_lives_pos    Point { 64 shl 16, 160 shl 16 }
+
+press_any_key_text db "PRESS ANY KEY TO CONTINUE"
+press_any_key_text_len = $ - press_any_key_text
 
 
 .data?
@@ -58,7 +61,7 @@ game_lives_flicker_ind dw    ? ; 8.8 fixed point, upper byte is the actual index
 game_score_prev      dd ? ; previous state of score, for detecting change
 game_score_shake_ind dd ?
 
-game_show_gameover         dd ?
+game_show_gameover_counter dd ?
 game_gameover_flicker_inds dd 8 dup (?)
 
 
@@ -230,6 +233,21 @@ game_tick proc
 		endm
 	gameoverFlickerEnd:
 
+	; gameover counter
+	cmp [game_show_gameover_counter], 0
+	je gameoverCounterEnd
+		dec [game_show_gameover_counter]
+		jne gameoverCounterEnd
+		i = 0
+		repeat 8
+			rand eax
+			and eax, 11111b
+			inc eax
+			mov [game_gameover_flicker_inds + i * 4], eax
+			i = i + 1
+		endm
+	gameoverCounterEnd:
+
 	; lives counter
 	mov eax, [lives]
 	cmp [game_lives_prev], eax
@@ -240,14 +258,7 @@ game_tick proc
 		mov [game_lives_prev], eax
 		test eax, eax
 		jne livesCheckEnd
-			i = 0
-			repeat 8
-				rand eax
-				and eax, 1111b
-				inc eax
-				mov [game_gameover_flicker_inds + i * 4], eax
-				i = i + 1
-			endm
+			mov [game_show_gameover_counter], GAME_GAMEOVER_COUNTER_AMT
 	livesCheckEnd:
 
 	; lives flicker
