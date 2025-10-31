@@ -8,6 +8,7 @@ include <screen.s>
 include <font.s>
 
 include <game.s>
+include <title.s>
 
 
 .data
@@ -100,7 +101,7 @@ main proc
 	sub rsp, 200h
 
 	call font_init
-	call game_init
+	; call game_init
 	call star_generateAll
 
 	mov ecx, SDL_INIT_VIDEO
@@ -267,7 +268,8 @@ main proc
 		call star_updateAndDrawAll
 
 		lea rdi, keys_down
-		call game_tick
+		; call game_tick
+		call title_tick
 
 		call render
 
