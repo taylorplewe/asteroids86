@@ -52,8 +52,6 @@ current_wave      dq    ?
 flash_counter     dd    ?
 ufo_gen_counter   dd    ?
 next_wave_counter dd    ?
-current_char_pos  Point <>
-current_char_rect Rect  <>
 
 game_lives_points      Point GAME_START_NUM_LIVES * SHIP_NUM_POINTS dup (<>)
 game_lives_alphas      db    GAME_START_NUM_LIVES dup (?)
@@ -415,16 +413,16 @@ game_drawScore proc
 
 	mov rsi, [font_digits_spr_data]
 	mov r8d, [fg_color]
-	lea r9, current_char_rect
+	lea r9, font_current_char_rect
 	lea r14, screen_draw3difiedPixelOnscreenVerified
 
 	mov rax, [game_score_pos]
-	mov [current_char_pos], rax
+	mov [font_current_char_pos], rax
 
-	mov [current_char_rect].pos.x, 0
-	mov [current_char_rect].pos.y, 0
-	mov [current_char_rect].dim.w, FONT_DIGIT_WIDTH
-	mov [current_char_rect].dim.h, FONT_DIGIT_HEIGHT
+	mov [font_current_char_rect].pos.x, 0
+	mov [font_current_char_rect].pos.y, 0
+	mov [font_current_char_rect].dim.w, FONT_DIGIT_WIDTH
+	mov [font_current_char_rect].dim.h, FONT_DIGIT_HEIGHT
 
 	xor r10, r10
 	mov r11d, 1000000
@@ -457,7 +455,7 @@ game_drawScore proc
 
 		; reset onscreen y
 		mov eax, [game_score_pos].y
-		mov [current_char_pos].y, eax
+		mov [font_current_char_pos].y, eax
 
 		; bounce
 		; brk
@@ -466,15 +464,15 @@ game_drawScore proc
 		xor ebx, ebx
 		mov bl, [rax + r12]
 		shl ebx, 16
-		sub [current_char_pos].y, ebx
+		sub [font_current_char_pos].y, ebx
 
-		mov ebx, [current_char_rect].dim.w
+		mov ebx, [font_current_char_rect].dim.w
 		imul edx, ebx
-		mov [current_char_rect].pos.x, edx
-		lea rdx, current_char_pos
+		mov [font_current_char_rect].pos.x, edx
+		lea rdx, font_current_char_pos
 		call screen_draw1bppSprite
 
-		add [current_char_pos].x, FONT_DIGIT_KERNING shl 16
+		add [font_current_char_pos].x, FONT_DIGIT_KERNING shl 16
 		saturatingSub32 r12d, 4
 
 		; if numDigitsDrawn == 4 then draw comma
@@ -487,12 +485,12 @@ game_drawScore proc
 
 			lea r9, font_comma_rect
 			mov rsi, [font_comma_spr_data]
-			add [current_char_pos].y, (FONT_DIGIT_HEIGHT - 24) shl 16
-			sub [current_char_pos].x, 12 shl 16
-			; lea rdx, current_char_pos
+			add [font_current_char_pos].y, (FONT_DIGIT_HEIGHT - 24) shl 16
+			sub [font_current_char_pos].x, 12 shl 16
+			; lea rdx, font_current_char_pos
 			call screen_draw1bppSprite
-			sub [current_char_pos].y, (FONT_DIGIT_HEIGHT - 24) shl 16
-			add [current_char_pos].x, 26 shl 16
+			sub [font_current_char_pos].y, (FONT_DIGIT_HEIGHT - 24) shl 16
+			add [font_current_char_pos].x, 26 shl 16
 
 			pop r9
 			pop rsi
@@ -566,17 +564,17 @@ game_drawGameOver proc
 	; cmp [game_show_gameover], 0
 	; je _end
 
-	lea rdx, current_char_pos
+	lea rdx, font_current_char_pos
 	mov rsi, [font_large_spr_data]
 	mov r8d, [fg_color]
-	lea r9, current_char_rect
+	lea r9, font_current_char_rect
 	lea r14, screen_setPixelOnscreenVerified
 
-	mov [current_char_rect].pos.y, 0
-	mov [current_char_rect].dim.w, FONT_LG_CHAR_WIDTH
-	mov [current_char_rect].dim.h, FONT_LG_CHAR_HEIGHT
-	mov [current_char_pos].y, ((SCREEN_HEIGHT / 2) - (FONT_LG_CHAR_HEIGHT / 2)) shl 16
-	mov [current_char_pos].x, GAMEOVER_FIRST_X
+	mov [font_current_char_rect].pos.y, 0
+	mov [font_current_char_rect].dim.w, FONT_LG_CHAR_WIDTH
+	mov [font_current_char_rect].dim.h, FONT_LG_CHAR_HEIGHT
+	mov [font_current_char_pos].y, ((SCREEN_HEIGHT / 2) - (FONT_LG_CHAR_HEIGHT / 2)) shl 16
+	mov [font_current_char_pos].x, GAMEOVER_FIRST_X
 
 	xor ecx, ecx
 	charLoop:
@@ -586,7 +584,7 @@ game_drawGameOver proc
 		mov ax, cx
 		shl ax, 1
 		mov ax, [rdi + rax]
-		mov [current_char_rect].pos.x, eax
+		mov [font_current_char_rect].pos.x, eax
 
 		; set alpha of char
 		lea rdi, game_gameover_flicker_inds
@@ -611,10 +609,10 @@ game_drawGameOver proc
 		; r14 - pointer to pixel plotting routine to call
 		call screen_draw1bppSprite
 
-		add [current_char_pos].x, GAMEOVER_CHAR_WIDTH shl 16
+		add [font_current_char_pos].x, GAMEOVER_CHAR_WIDTH shl 16
 		cmp ecx, 3
 		jne @f
-			add [current_char_pos].x, GAMEOVER_CHAR_KERNING shl 16 ; add the space
+			add [font_current_char_pos].x, GAMEOVER_CHAR_KERNING shl 16 ; add the space
 		@@:
 
 		inc ecx
@@ -647,18 +645,18 @@ game_drawPressAnyKey proc
 	push r9
 	push r14
 
-	lea rdx, current_char_pos
+	lea rdx, font_current_char_pos
 	mov rsi, [font_small_spr_data]
 	mov r8d, [gray_color]
-	lea r9, current_char_rect
+	lea r9, font_current_char_rect
 	lea r14, screen_setPixelOnscreenVerified
 
-	mov [current_char_pos].x, PRESS_ANY_KEY_FIRST_X
-	mov [current_char_pos].y, PRESS_ANY_KEY_Y
-	mov [current_char_rect].pos.x, 0
-	mov [current_char_rect].pos.y, 0
-	mov [current_char_rect].dim.w, FONT_SM_CHAR_WIDTH
-	mov [current_char_rect].dim.h, FONT_SM_CHAR_HEIGHT
+	mov [font_current_char_pos].x, PRESS_ANY_KEY_FIRST_X
+	mov [font_current_char_pos].y, PRESS_ANY_KEY_Y
+	mov [font_current_char_rect].pos.x, 0
+	mov [font_current_char_rect].pos.y, 0
+	mov [font_current_char_rect].dim.w, FONT_SM_CHAR_WIDTH
+	mov [font_current_char_rect].dim.h, FONT_SM_CHAR_HEIGHT
 
 	lea rdi, press_any_key_text
 	xor ecx, ecx
@@ -669,12 +667,12 @@ game_drawPressAnyKey proc
 		je drawCharEnd
 		sub al, 'A'
 		imul eax, FONT_SM_CHAR_WIDTH
-		mov [current_char_rect].pos.x, eax
+		mov [font_current_char_rect].pos.x, eax
 
 		call screen_draw1bppSprite
 
 		drawCharEnd:
-		add [current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+		add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
 
 		inc ecx
 		cmp ecx, press_any_key_text_len

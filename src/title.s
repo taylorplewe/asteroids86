@@ -96,5 +96,22 @@ title_drawAsteroids proc
 	ret
 title_drawAsteroids endp
 
+title_draw86 proc
+	lea rdx, font_current_char_pos
+	mov rsi, [font_digits_spr_data]
+	mov r8d, [fg_color]
+	lea r9, font_current_char_rect
+	lea r14, screen_draw3difiedPixelOnscreenVerified
+
+	; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
+	; rsi - pointer to beginning of sprite data
+	; r8d - color
+	; r9  - pointer to in-spritesheet Rect, dimensions of sprite
+	; r14 - pointer to pixel plotting routine to call
+	call screen_draw1bppSprite
+
+	ret
+title_draw86 endp
+
 
 endif

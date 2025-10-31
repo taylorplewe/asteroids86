@@ -50,10 +50,12 @@ font_comma_rect           Rect  { { 0, 0 }, { 8, 15 } }
 
 .data?
 
-font_digits_spr_data dq ?
-font_large_spr_data  dq ?
-font_small_spr_data  dq ?
-font_comma_spr_data  dq ?
+font_digits_spr_data   dq ?
+font_large_spr_data    dq ?
+font_small_spr_data    dq ?
+font_comma_spr_data    dq ?
+font_current_char_pos  Point <>
+font_current_char_rect Rect  <>
 
 
 .code
