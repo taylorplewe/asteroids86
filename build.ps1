@@ -48,6 +48,9 @@ if (!$args.Contains("release")) {
     $asmArgs += @("/Zd", "/Zi")
     $linkerArgs += "/debug:full"
 }
+if ($args.Contains("w")) {
+    $asmArgs += @("/w")
+}
 
 ml64 $asmArgs /link $linkerArgs
 

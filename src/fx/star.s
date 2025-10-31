@@ -7,9 +7,9 @@ include <global.s>
 Star struct 8
 	pos       Point16 <>
 	luminence db      ?
-	          db      0
-			  db      0
-			  db      0
+	          db      ?
+			  db      ?
+			  db      ?
 Star ends
 
 NUM_STARS = 1000
