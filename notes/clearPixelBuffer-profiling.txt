@@ -102,3 +102,5 @@ FINDINGS
 - 1,302,066
 -----------
   3,102,652 clock cycles saved using SIMD instructions to clear the pixel buffer
+
+Basically, it takes about 1/4 the time because you're moving 4 times the memory for each loop iteration. 8 (with rax) vs 32 (with ymm)

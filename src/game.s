@@ -259,17 +259,14 @@ game_tick proc
 	cmp [game_show_press_any_key_counter], 0
 	je pressAnyKeyEnd
 		dec [game_show_press_any_key_counter]
-		jne pressAnyKeyEnd
-		inc [game_show_press_any_key]
+		sete byte ptr [game_show_press_any_key]
 	pressAnyKeyEnd:
 
 	; lives counter
 	mov eax, [lives]
 	cmp [game_lives_prev], eax
 	je livesCheckEnd
-		jl @f
-			mov byte ptr [game_lives_flicker_ind + 1], 1
-		@@:
+		setge byte ptr [game_lives_flicker_ind + 1]
 		mov [game_lives_prev], eax
 		test eax, eax
 		jne livesCheckEnd
