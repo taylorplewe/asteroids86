@@ -32,6 +32,10 @@ Point struct
 	x dd ?
 	y dd ?
 Point ends
+Point16 struct
+	x dw ?
+	y dw ?
+Point16 ends
 Vector typedef Point ; ??
 Dim struct
 	w dd ?

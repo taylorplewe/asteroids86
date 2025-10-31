@@ -101,6 +101,7 @@ main proc
 
 	call font_init
 	call game_init
+	call star_generateAll
 
 	mov ecx, SDL_INIT_VIDEO
 	call SDL_Init
@@ -262,6 +263,8 @@ main proc
 		pollLoopEnd:
 
 		call screen_clearPixelBuffer
+
+		call star_updateAndDrawAll
 
 		lea rdi, keys_down
 		call game_tick

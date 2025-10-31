@@ -9,6 +9,7 @@ include <font.s>
 include <fx\shard.s>
 include <fx\ship-shard.s>
 include <fx\fire.s>
+include <fx\star.s>
 include <bullet.s>
 include <ship.s>
 include <asteroid.s>
@@ -243,6 +244,7 @@ game_tick proc
 	je gameoverCounterEnd
 		dec [game_show_gameover_counter]
 		jne gameoverCounterEnd
+		inc [game_show_gameover]
 		i = 0
 		repeat 8
 			rand eax
@@ -271,7 +273,6 @@ game_tick proc
 		mov [game_lives_prev], eax
 		test eax, eax
 		jne livesCheckEnd
-			inc [game_show_gameover]
 			mov [game_show_gameover_counter], GAME_GAMEOVER_COUNTER_AMT
 			mov [game_show_press_any_key_counter], GAME_PRESS_ANY_KEY_COUNTER_AMT
 	livesCheckEnd:
