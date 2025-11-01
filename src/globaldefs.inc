@@ -53,6 +53,7 @@ BasePoint struct
 BasePoint ends
 
 Keys struct
+	any   db ?
 	up    db ?
 	down  db ?
 	left  db ?

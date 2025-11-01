@@ -142,6 +142,7 @@ main proc
 
 		xor eax, eax
 		mov [keys_down].fire, al
+		mov [keys_down].any, al
 		pollLoop:
 			lea rcx, event
 			call SDL_PollEvent
@@ -201,6 +202,7 @@ main proc
 
 			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_UP
 			jne keyUpCheckEnd
+			mov [keys_down].any, 1
 			; which key was pressed?
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W

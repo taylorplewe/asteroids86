@@ -40,7 +40,14 @@ title_init proc
 	ret
 title_init endp
 
+; in:
+	; rdi - pointer to Keys struct of keys pressed
 title_tick proc
+	cmp [rdi].Keys.any, 0
+	je @f
+		call title_skipAnim
+	@@:
+
 	call title_drawAsteroids
 	call title_draw86
 
@@ -126,6 +133,18 @@ title_tick proc
 
 	ret
 title_tick endp
+
+title_skipAnim proc
+	mov [title_appear_delay_counter], 0
+	mov [title_86_flicker_delay_counter], 0
+	mov [title_show_press_any_key_counter], 0
+
+	mov [title_num_lines_to_draw], TITLE_MAX_NUM_LINES_TO_DRAW
+	mov [title_86_flicker_inds], flicker_alphas_len - 1
+	mov [title_86_flicker_inds + 4], flicker_alphas_len - 1
+	mov [screen_show_press_any_key], 1
+	ret
+title_skipAnim endp
 
 ; in:
 	; ebx - index

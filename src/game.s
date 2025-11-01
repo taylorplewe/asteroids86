@@ -203,7 +203,7 @@ game_setShipLivesPoints proc
 game_setShipLivesPoints endp
 
 ; in:
-	; rdi to Keys struct of keys pressed
+	; rdi - pointer to Keys struct of keys pressed
 game_tick proc
 	cmp [is_paused], 0
 	jne draw
