@@ -100,9 +100,11 @@ main proc
 	mov rbp, rsp
 	sub rsp, 200h
 
-	call font_init
-	call game_init
 	call star_generateAll
+
+	call font_init
+	call title_init
+	call game_init
 
 	mov ecx, SDL_INIT_VIDEO
 	call SDL_Init

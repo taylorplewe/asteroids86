@@ -8,23 +8,34 @@ include <global.s>
 include <screen.s>
 
 
-TITLE_NUM_FRAMES = 3
-TITLE_FRAME_TIME = 12
+TITLE_NUM_FRAMES                   = 3
+TITLE_FRAME_TIME                   = 12
+TITLE_86_FLICKER_DELAY_COUNTER_AMT = 60 * 2
 
 
 .data?
 
-title_point1       Point <>
-title_point2       Point <>
-title_anim_frame   dd    ?
-title_anim_counter dd    ?
+title_point1                   Point <>
+title_point2                   Point <>
+title_anim_frame               dd    ?
+title_anim_counter             dd    ?
+title_86_flicker_delay_counter dd    ?
+title_86_flicker_inds          dd    2 dup (?)
 
 
 .code
 
+title_init proc
+	mov [title_86_flicker_delay_counter], TITLE_86_FLICKER_DELAY_COUNTER_AMT
+
+	ret
+title_init endp
+
 title_tick proc
 	call title_drawAsteroids
+	call title_draw86
 
+	; advance ASTEROIDS animation
 	inc [title_anim_counter]
 	cmp [title_anim_counter], TITLE_FRAME_TIME
 	jl @f
@@ -35,6 +46,38 @@ title_tick proc
 		jl @f
 		mov [title_anim_frame], 0
 	@@:
+
+	; advance 86 flicker
+	cmp [title_86_flicker_inds], 0
+	je @f
+		i = 0
+		repeat 2
+			local next
+			cmp [title_86_flicker_inds + i * 4], flicker_alphas_len
+			jge next
+			inc [title_86_flicker_inds + i * 4]
+
+			next:
+			i = i + 1
+		endm
+	@@:
+
+	; count down 86 appear delay
+	cmp [title_86_flicker_delay_counter], 0
+	je _86FlickerDelayEnd
+		dec [title_86_flicker_delay_counter]
+		jne _86FlickerDelayEnd
+		; generate 2 random indexes into the flicker array
+		i = 0
+		repeat 2
+			rand eax
+			and eax, 11111b
+			inc eax
+			mov [title_86_flicker_inds + i * 4], eax
+			i = i + 1
+		endm
+
+	_86FlickerDelayEnd:
 
 	ret
 title_tick endp
@@ -97,19 +140,63 @@ title_drawAsteroids proc
 title_drawAsteroids endp
 
 title_draw86 proc
+	cmp [title_86_flicker_inds], 0
+	je _ret
+
+	push rdx
+	push rsi
+	push rdi
+	push r8
+	push r9
+	push r14
+
 	lea rdx, font_current_char_pos
 	mov rsi, [font_digits_spr_data]
 	mov r8d, [fg_color]
 	lea r9, font_current_char_rect
-	lea r14, screen_draw3difiedPixelOnscreenVerified
+	lea r14, screen_setPixelOnscreenVerified
 
-	; rdx - pointer to onscreen Point to draw sprite (16.16 fixed point)
-	; rsi - pointer to beginning of sprite data
-	; r8d - color
-	; r9  - pointer to in-spritesheet Rect, dimensions of sprite
-	; r14 - pointer to pixel plotting routine to call
+	mov [font_current_char_pos].x, 1010 shl 16
+	mov [font_current_char_pos].y, 428 shl 16
+	mov [font_current_char_rect].pos.x, 8 * FONT_DIGIT_WIDTH
+	mov [font_current_char_rect].pos.y, 0
+	mov [font_current_char_rect].dim.w, FONT_DIGIT_WIDTH
+	mov [font_current_char_rect].dim.h, FONT_DIGIT_HEIGHT
+
+	; flicker alpha
+	and r8d, 00ffffffh
+	mov eax, [title_86_flicker_inds]
+	lea rdi, flicker_alphas
+	mov edi, [rdi + rax]
+	mov eax, 0ffh
+	sub eax, edi
+	shl eax, 24
+	or r8d, eax
+
 	call screen_draw1bppSprite
 
+	add [font_current_char_pos].x, (FONT_DIGIT_WIDTH + 5) shl 16
+	mov [font_current_char_rect].pos.x, 6 * FONT_DIGIT_WIDTH
+
+	; flicker alpha
+	and r8d, 00ffffffh
+	mov eax, [title_86_flicker_inds + 4]
+	lea rdi, flicker_alphas
+	mov edi, [rdi + rax]
+	mov eax, 0ffh
+	sub eax, edi
+	shl eax, 24
+	or r8d, eax
+
+	call screen_draw1bppSprite
+
+	pop r14
+	pop r9
+	pop r8
+	pop rdi
+	pop rsi
+	pop rdx
+	_ret:
 	ret
 title_draw86 endp
 
