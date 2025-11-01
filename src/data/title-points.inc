@@ -47,6 +47,7 @@ title_points_0:
 	dw 723, 362
 	dw 751, 414
 	dw 776, 364
+	dw 750, 311 ; I know this is a duplicate but it makes the draw code significantly simpler
 	
 	dw 809, 312 ; I
 	dw 811, 407
@@ -55,6 +56,7 @@ title_points_0:
 	dw 847, 412
 	dw 900, 397
 	dw 901, 327
+	dw 848, 311
 	
 	dw 982, 319 ; S
 	dw 953, 307
@@ -105,6 +107,7 @@ title_points_1:
 	dw 722, 360
 	dw 746, 417
 	dw 780, 362
+	dw 755, 309
 
 	dw 814, 311
 	dw 808, 411
@@ -113,6 +116,7 @@ title_points_1:
 	dw 851, 411
 	dw 900, 393
 	dw 903, 327
+	dw 849, 310
 
 	dw 980, 322
 	dw 958, 308
@@ -163,6 +167,7 @@ title_points_2:
 	dw 721, 358
 	dw 749, 411
 	dw 777, 359
+	dw 745, 311
 
 	dw 811, 311
 	dw 811, 415
@@ -171,6 +176,7 @@ title_points_2:
 	dw 848, 411
 	dw 904, 394
 	dw 898, 322
+	dw 852, 310
 
 	dw 981, 321
 	dw 952, 308

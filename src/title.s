@@ -8,6 +8,8 @@ include <global.s>
 include <screen.s>
 
 
+TITLE_APPEAR_DELAY_COUNTER_AMT     = 60 * 2
+TITLE_MAX_NUM_LINES_TO_DRAW        = 33
 TITLE_NUM_FRAMES                   = 3
 TITLE_FRAME_TIME                   = 12
 TITLE_86_FLICKER_DELAY_COUNTER_AMT = 60 * 2
@@ -17,6 +19,10 @@ TITLE_86_FLICKER_DELAY_COUNTER_AMT = 60 * 2
 
 title_point1                   Point <>
 title_point2                   Point <>
+
+; animation
+title_appear_delay_counter     dd    ?
+title_num_lines_to_draw        dd    ?
 title_anim_frame               dd    ?
 title_anim_counter             dd    ?
 title_86_flicker_delay_counter dd    ?
@@ -26,7 +32,7 @@ title_86_flicker_inds          dd    2 dup (?)
 .code
 
 title_init proc
-	mov [title_86_flicker_delay_counter], TITLE_86_FLICKER_DELAY_COUNTER_AMT
+	mov [title_appear_delay_counter], TITLE_APPEAR_DELAY_COUNTER_AMT
 
 	ret
 title_init endp
@@ -34,6 +40,27 @@ title_init endp
 title_tick proc
 	call title_drawAsteroids
 	call title_draw86
+
+	; sweep left to right drawing lines
+	mov eax, [title_num_lines_to_draw]
+	test eax, eax
+	je @f
+	cmp eax, TITLE_MAX_NUM_LINES_TO_DRAW
+	jge @f
+		inc eax
+		mov [title_num_lines_to_draw], eax
+		cmp eax, TITLE_MAX_NUM_LINES_TO_DRAW
+		jl @f
+		mov [title_86_flicker_delay_counter], TITLE_86_FLICKER_DELAY_COUNTER_AMT
+	@@:
+
+	; appear delay counter
+	cmp [title_appear_delay_counter], 0
+	je @f
+		dec [title_appear_delay_counter]
+		jne @f
+		inc [title_num_lines_to_draw]
+	@@:
 
 	; advance ASTEROIDS animation
 	inc [title_anim_counter]
@@ -94,37 +121,35 @@ title_drawLine proc
 	mov [screen_point2].x, eax
 	mov ax, [rsi + 6]
 	mov [screen_point2].y, eax
+	push rcx
 	call screen_drawLine
+	pop rcx
 	ret
 title_drawLine endp
 
 title_drawAsteroids proc
+	cmp [title_appear_delay_counter], 0
+	jne _ret
+
+	push rcx
+	push rsi
+	push r8
+
 	lea rsi, title_points_tab
 	mov eax, [title_anim_frame]
 	shl eax, 3
 	mov rsi, [rsi + rax]
 	mov r8d, [fg_color]
 
-	push rsi
-	for ind, <4, 8, 8, 4, 4, 4, 4, 8, 8, 8, 4, 4, 8, 8, 4, 4, 4, 8, 8, 4, 4, 8, 8, 4, 4, 8, 4, 4, 4, 4, 0>
+	mov ecx, [title_num_lines_to_draw]
+	for ind, <4, 8, 8, 4, 4, 4, 4, 8, 8, 8, 4, 4, 8, 8, 4, 4, 4, 8, 8, 4, 4, 4, 8, 8, 4, 4, 4, 8, 4, 4, 4, 4, 0>
 		call title_drawLine
 		add rsi, ind
+		dec ecx
+		je _end
 	endm
-	pop rsi
 
-	; close the O
-	xor eax, eax
-	mov ax, [rsi + 124]
-	mov [screen_point1].x, eax
-	mov ax, [rsi + 126]
-	mov [screen_point1].y, eax
-	mov ax, [rsi + 112]
-	mov [screen_point2].x, eax
-	mov ax, [rsi + 114]
-	mov [screen_point2].y, eax
-	call screen_drawLine
-
-	; close the D
+ 	; close the D
 	xor eax, eax
 	mov ax, [rsi + 148]
 	mov [screen_point1].x, eax
@@ -136,6 +161,11 @@ title_drawAsteroids proc
 	mov [screen_point2].y, eax
 	call screen_drawLine
 
+	_end:
+	pop r8
+	pop rsi
+	pop rcx
+	_ret:
 	ret
 title_drawAsteroids endp
 
