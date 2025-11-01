@@ -68,18 +68,42 @@ game_gameover_flicker_inds      dd @SizeStr(GAMEOVER) dup (?)
 .code
 
 game_init proc
-	call ufo_init
-	call game_setShipLivesPoints
 	call ship_respawn
 	lea rax, waves
 	mov [current_wave], rax
 	mov eax, [fg_color]
 	mov [flash_color], eax
 
+	mov [flash_counter], 0
+	mov [ufo_gen_counter], 0
+	mov [next_wave_counter], 0
+	mov [game_lives_flicker_ind], 0
+
+	mov [game_show_gameover_counter], 0
+	mov [game_show_gameover], 0
+	mov [game_show_press_any_key_counter], 0
+
+	i = 0
+	repeat @SizeStr(GAMEOVER)
+		mov [game_gameover_flicker_inds + i * 4], 0
+		i = i + 1
+	endm
+
+	mov eax, [lives]
+	mov [game_lives_prev], eax
+
 	mov [score], 0
+	mov [game_score_prev], 0
 	mov [lives], GAME_START_NUM_LIVES
-	; mov [lives], 1
 	mov [screen_show_press_any_key], 0
+	mov [is_in_gameover], 0
+	mov [gameover_timer], 0
+	mov [gameover_visibility], 0
+
+	for arr, <asteroids_arr, bullets_arr, ufos_arr, fires_arr, shards_arr, ship_shards_arr, shards_arr, ship_shards_arr>
+		lea rsi, arr
+		call array_clear
+	endm
 
 	mov al, 0ffh
 	i = 0
@@ -205,6 +229,15 @@ game_setShipLivesPoints endp
 ; in:
 	; rdi - pointer to Keys struct of keys pressed
 game_tick proc
+	cmp [rdi].Keys.any, 0
+	je @f
+		cmp [screen_show_press_any_key], 0
+		je @f
+		call title_init
+		mov [mode], Mode_Title
+		ret
+	@@:
+
 	cmp [is_paused], 0
 	jne draw
 

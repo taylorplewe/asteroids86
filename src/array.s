@@ -114,5 +114,19 @@ array_forEach proc
 	ret
 array_forEach endp
 
+; in:
+	; rsi - pointer to Array
+array_clear proc
+	mov [rsi].Array.data.len, 0
+	; mov ecx, [rsi].Array.cap
+	; imul rcx, [rsi].Array.el_size
+	; mov rsi, [rsi].Array.data.pntr
+	; _loop:
+	; 	mov byte ptr [rsi], 0
+	; 	inc rsi
+	; 	loop _loop
+	ret
+array_clear endp
+
 
 endif

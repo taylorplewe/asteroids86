@@ -102,9 +102,11 @@ main proc
 
 	call star_generateAll
 
-	call font_init
+	call font_initSprData
+	call ufo_initSprData
+	call game_setShipLivesPoints
 	call title_init
-	call game_init
+	mov [mode], Mode_Title
 
 	mov ecx, SDL_INIT_VIDEO
 	call SDL_Init
@@ -272,8 +274,13 @@ main proc
 		call star_updateAndDrawAll
 
 		lea rdi, keys_down
-		; call game_tick
-		call title_tick
+		cmp [mode], Mode_Game
+		je doGameTick
+			call title_tick
+			jmp ticksEnd
+		doGameTick:
+			call game_tick
+		ticksEnd:
 
 		call render
 

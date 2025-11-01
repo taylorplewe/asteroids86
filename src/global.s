@@ -18,13 +18,14 @@ bin_resource_type db    "BIN", 0
 .data?
 
 frame_counter       qword ?
+mode                Mode  ?
 flash_color         Pixel <>
-num_flashes_left    dd ?
-score               dd ?
-lives               dd ?
-gameover_timer      dd ?
-gameover_visibility dd ?
-is_in_gameover      dd ?
+num_flashes_left    dd    ?
+score               dd    ?
+lives               dd    ?
+gameover_timer      dd    ?
+gameover_visibility dd    ?
+is_in_gameover      dd    ?
 
 
 endif

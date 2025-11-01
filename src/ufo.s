@@ -53,7 +53,7 @@ ufo_spr_data dq  ?
 
 .code
 
-ufo_init proc
+ufo_initSprData proc
 	push rbp
 	mov rbp, rsp
 	sub rsp, 200h
@@ -72,7 +72,7 @@ ufo_init proc
  	mov rsp, rbp
 	pop rbp
 	ret
-ufo_init endp
+ufo_initSprData endp
 
 ; in:
 	; rbx - pos

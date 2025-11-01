@@ -52,6 +52,8 @@ ship_respawn proc
 	mov [ship].rot, al
 	mov [ship].velocity.x, eax
 	mov [ship].velocity.y, eax
+	mov [ship].respawn_counter, 0
+	mov [ship].is_boosting, 0
 	mov [ship_num_flashes_left], SHIP_NUM_FLASHES
 	mov [ship_flash_counter], SHIP_FLASH_COUNTER_AMT
 

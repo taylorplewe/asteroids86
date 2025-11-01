@@ -19,8 +19,8 @@ TITLE_PRESS_ANY_KEY_COUNTER_AMT    = 60 * 4
 
 .data?
 
-title_point1                   Point <>
-title_point2                   Point <>
+title_point1     Point <>
+title_point2     Point <>
 
 ; animation
 title_appear_delay_counter       dd ?
@@ -36,6 +36,13 @@ title_show_press_any_key_counter dd ?
 
 title_init proc
 	mov [title_appear_delay_counter], TITLE_APPEAR_DELAY_COUNTER_AMT
+	mov [title_num_lines_to_draw], 0
+	mov [title_anim_frame], 0
+	mov [title_anim_counter], 0
+	mov [title_86_flicker_delay_counter], 0
+	mov [title_86_flicker_inds], 0
+	mov [title_show_press_any_key_counter], 0
+	mov [screen_show_press_any_key], 0
 
 	ret
 title_init endp
@@ -44,9 +51,15 @@ title_init endp
 	; rdi - pointer to Keys struct of keys pressed
 title_tick proc
 	cmp [rdi].Keys.any, 0
-	je @f
-		call title_skipAnim
-	@@:
+	je anyKeyPressEnd
+		cmp [screen_show_press_any_key], 0
+		je @f
+			call game_init
+			mov [mode], Mode_Game
+			ret
+		@@:
+			call title_skipAnim
+	anyKeyPressEnd:
 
 	call title_drawAsteroids
 	call title_draw86
@@ -128,7 +141,6 @@ title_tick proc
 			mov [title_86_flicker_inds + i * 4], eax
 			i = i + 1
 		endm
-
 	_86FlickerDelayEnd:
 
 	ret

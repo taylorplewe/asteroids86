@@ -60,14 +60,14 @@ font_current_char_rect Rect  <>
 
 .code
 
-font_init proc
+font_initSprData proc
 	font_loadSprData font_digits_resource_name, font_digits_spr_data
 	font_loadSprData font_large_resource_name, font_large_spr_data
 	font_loadSprData font_small_resource_name, font_small_spr_data
 	font_loadSprData font_comma_resource_name, font_comma_spr_data
 
 	ret
-font_init endp
+font_initSprData endp
 
 
 endif
