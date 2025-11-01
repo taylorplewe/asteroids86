@@ -63,6 +63,7 @@ title_tick proc
 
 	call title_drawAsteroids
 	call title_draw86
+	call title_drawCredit
 
 	; "Press any key to continue"
 	cmp [screen_show_press_any_key], 0
@@ -278,6 +279,83 @@ title_draw86 proc
 	_ret:
 	ret
 title_draw86 endp
+
+TITLE_CREDIT_X = ((SCREEN_WIDTH / 2) + 128) shl 16
+TITLE_CREDIT_Y = (SCREEN_HEIGHT - 64) shl 16
+my_name db "TAYLOR PLEWE"
+my_name_len = $ - my_name
+title_drawCredit proc
+	cmp [screen_show_press_any_key], 0
+	je _ret
+
+	push rcx
+	push rdx
+	push rsi
+	push rdi
+	push r8
+	push r9
+	push r14
+
+	lea rdx, font_current_char_pos
+	lea r9, font_current_char_rect
+	mov r8d, [gray_color]
+	lea r14, screen_setPixelOnscreenVerified
+	mov [font_current_char_pos].x, TITLE_CREDIT_X
+	mov [font_current_char_pos].y, TITLE_CREDIT_Y
+
+	; copyright symbol
+	mov rsi, [font_copyright_spr_data]
+	mov [font_current_char_rect].pos.x, 0
+	mov [font_current_char_rect].pos.y, 0
+	mov [font_current_char_rect].dim.w, FONT_COPYRIGHT_WIDTH
+	mov [font_current_char_rect].dim.h, FONT_COPYRIGHT_HEIGHT
+	call screen_draw1bppSprite
+
+	; my name
+	lea rdi, my_name
+	xor ecx, ecx
+	nameLoop:
+		xor eax, eax
+		mov al, [rdi + rcx]
+		cmp al, ' '
+		je nameLoopDrawCharEnd
+		nameLoopDrawCharEnd:
+		add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+
+		inc ecx
+		cmp ecx, my_name_len
+		jl nameLoop
+
+	; lea rdi, press_any_key_text
+	; xor ecx, ecx
+	; charLoop:
+	; 	xor eax, eax
+	; 	mov al, [rdi + rcx]
+	; 	cmp al, ' '
+	; 	je drawCharEnd
+	; 	sub al, 'A'
+	; 	imul eax, FONT_SM_CHAR_WIDTH
+	; 	mov [font_current_char_rect].pos.x, eax
+
+	; 	call screen_draw1bppSprite
+
+	; 	drawCharEnd:
+	; 	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+
+	; 	inc ecx
+	; 	cmp ecx, press_any_key_text_len
+	; 	jl charLoop
+
+	pop r14
+	pop r9
+	pop r8
+	pop rdi
+	pop rsi
+	pop rdx
+	pop rcx
+	_ret:
+	ret
+title_drawCredit endp
 
 
 endif

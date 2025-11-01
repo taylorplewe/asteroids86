@@ -6,13 +6,17 @@ include <windows\defs.inc>
 include <global.s>
 
 
-FONT_SM_CHAR_WIDTH  = 16
-FONT_SM_CHAR_HEIGHT = 25
-FONT_LG_CHAR_WIDTH  = 40
-FONT_LG_CHAR_HEIGHT = 51
-FONT_DIGIT_WIDTH    = 32
-FONT_DIGIT_HEIGHT   = 50
-FONT_DIGIT_KERNING  = FONT_DIGIT_WIDTH + 8
+FONT_SM_CHAR_WIDTH    = 16
+FONT_SM_CHAR_HEIGHT   = 25
+FONT_LG_CHAR_WIDTH    = 40
+FONT_LG_CHAR_HEIGHT   = 51
+FONT_DIGIT_WIDTH      = 32
+FONT_DIGIT_HEIGHT     = 50
+FONT_DIGIT_KERNING    = FONT_DIGIT_WIDTH + 8
+FONT_SM_W_WIDTH       = 32
+FONT_SM_W_HEIGHT      = FONT_SM_CHAR_HEIGHT
+FONT_COPYRIGHT_WIDTH  = 16
+FONT_COPYRIGHT_HEIGHT = FONT_COPYRIGHT_WIDTH
 
 FONT_LG_X_S = FONT_LG_CHAR_WIDTH * 0
 FONT_LG_X_T = FONT_LG_CHAR_WIDTH * 1
@@ -40,22 +44,26 @@ endm
 
 .data
 
-font_digits_resource_name db    "FONTDIGITS", 0
-font_large_resource_name  db    "FONTBIG", 0
-font_small_resource_name  db    "FONTSMALL", 0
-font_comma_resource_name  db    "COMMA", 0
-font_char_rect            Rect  { { 0, 0 }, { FONT_DIGIT_WIDTH, FONT_DIGIT_HEIGHT } }
-font_comma_rect           Rect  { { 0, 0 }, { 8, 15 } }
+font_digits_resource_name    db   "FONTDIGITS", 0
+font_large_resource_name     db   "FONTBIG", 0
+font_small_resource_name     db   "FONTSMALL", 0
+font_small_w_resource_name   db   "FONTSMALLW", 0
+font_comma_resource_name     db   "COMMA", 0
+font_copyright_resource_name db   "COPYRIGHT", 0
+font_char_rect               Rect { { 0, 0 }, { FONT_DIGIT_WIDTH, FONT_DIGIT_HEIGHT } }
+font_comma_rect              Rect { { 0, 0 }, { 8, 15 } }
 
 
 .data?
 
-font_digits_spr_data   dq ?
-font_large_spr_data    dq ?
-font_small_spr_data    dq ?
-font_comma_spr_data    dq ?
-font_current_char_pos  Point <>
-font_current_char_rect Rect  <>
+font_digits_spr_data    dq    ?
+font_large_spr_data     dq    ?
+font_small_spr_data     dq    ?
+font_small_w_spr_data   dq    ?
+font_comma_spr_data     dq    ?
+font_copyright_spr_data dq    ?
+font_current_char_pos   Point <>
+font_current_char_rect  Rect  <>
 
 
 .code
@@ -64,7 +72,9 @@ font_initSprData proc
 	font_loadSprData font_digits_resource_name, font_digits_spr_data
 	font_loadSprData font_large_resource_name, font_large_spr_data
 	font_loadSprData font_small_resource_name, font_small_spr_data
+	font_loadSprData font_small_w_resource_name, font_small_w_spr_data
 	font_loadSprData font_comma_resource_name, font_comma_spr_data
+	font_loadSprData font_copyright_resource_name, font_copyright_spr_data
 
 	ret
 font_initSprData endp
