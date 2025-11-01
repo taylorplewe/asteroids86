@@ -280,8 +280,8 @@ title_draw86 proc
 	ret
 title_draw86 endp
 
-TITLE_CREDIT_X = ((SCREEN_WIDTH / 2) + 128) shl 16
-TITLE_CREDIT_Y = (SCREEN_HEIGHT - 64) shl 16
+TITLE_CREDIT_X = ((SCREEN_WIDTH / 2) + 248) shl 16
+TITLE_CREDIT_Y = (SCREEN_HEIGHT - 32) shl 16
 my_name db "TAYLOR PLEWE"
 my_name_len = $ - my_name
 title_drawCredit proc
@@ -294,6 +294,7 @@ title_drawCredit proc
 	push rdi
 	push r8
 	push r9
+	push r10
 	push r14
 
 	lea rdx, font_current_char_pos
@@ -311,42 +312,69 @@ title_drawCredit proc
 	mov [font_current_char_rect].dim.h, FONT_COPYRIGHT_HEIGHT
 	call screen_draw1bppSprite
 
+	add [font_current_char_pos].x, (PRESS_ANY_KEY_CHAR_WIDTH + 8) shl 16
+
 	; my name
+	mov [font_current_char_rect].dim.h, FONT_SM_CHAR_HEIGHT
 	lea rdi, my_name
 	xor ecx, ecx
+	xor r10, r10
 	nameLoop:
 		xor eax, eax
 		mov al, [rdi + rcx]
 		cmp al, ' '
 		je nameLoopDrawCharEnd
+		cmp al, 'W'
+		sete r10b
+		je nameLoopW
+			sub al, 'A'
+			mov rsi, [font_small_spr_data]
+			mov [font_current_char_rect].dim.w, FONT_SM_CHAR_WIDTH
+			imul eax, FONT_SM_CHAR_WIDTH
+			jmp nameLoopCharRectSetEnd
+		nameLoopW:
+			add [font_current_char_pos].x, (FONT_SM_CHAR_WIDTH / 2) shl 16
+			mov rsi, [font_small_w_spr_data]
+			mov [font_current_char_rect].dim.w, FONT_SM_W_WIDTH
+			mov eax, 0
+		nameLoopCharRectSetEnd:
+		mov [font_current_char_rect].pos.x, eax
+
+		call screen_draw1bppSprite
+
 		nameLoopDrawCharEnd:
 		add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+		test r10, r10
+		je @f
+			add [font_current_char_pos].x, (FONT_SM_CHAR_WIDTH / 2) shl 16
+		@@:
 
 		inc ecx
 		cmp ecx, my_name_len
 		jl nameLoop
 
-	; lea rdi, press_any_key_text
-	; xor ecx, ecx
-	; charLoop:
-	; 	xor eax, eax
-	; 	mov al, [rdi + rcx]
-	; 	cmp al, ' '
-	; 	je drawCharEnd
-	; 	sub al, 'A'
-	; 	imul eax, FONT_SM_CHAR_WIDTH
-	; 	mov [font_current_char_rect].pos.x, eax
+	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
 
-	; 	call screen_draw1bppSprite
+	; creation year
+	mov rsi, [font_yr_digits_spr_data]
+	mov [font_current_char_rect].dim.w, FONT_SM_CHAR_WIDTH
+	mov [font_current_char_rect].pos.x, 0
+	call screen_draw1bppSprite
 
-	; 	drawCharEnd:
-	; 	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+	mov [font_current_char_rect].pos.x, FONT_SM_CHAR_WIDTH
+	call screen_draw1bppSprite
 
-	; 	inc ecx
-	; 	cmp ecx, press_any_key_text_len
-	; 	jl charLoop
+	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+	mov [font_current_char_rect].pos.x, 0
+	call screen_draw1bppSprite
+
+	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+	mov [font_current_char_rect].pos.x, FONT_SM_CHAR_WIDTH * 2
+	call screen_draw1bppSprite
 
 	pop r14
+	pop r10
 	pop r9
 	pop r8
 	pop rdi

@@ -45,6 +45,7 @@ endm
 .data
 
 font_digits_resource_name    db   "FONTDIGITS", 0
+font_yr_digits_resource_name db   "FONTYRDIGITS", 0
 font_large_resource_name     db   "FONTBIG", 0
 font_small_resource_name     db   "FONTSMALL", 0
 font_small_w_resource_name   db   "FONTSMALLW", 0
@@ -57,6 +58,7 @@ font_comma_rect              Rect { { 0, 0 }, { 8, 15 } }
 .data?
 
 font_digits_spr_data    dq    ?
+font_yr_digits_spr_data dq    ?
 font_large_spr_data     dq    ?
 font_small_spr_data     dq    ?
 font_small_w_spr_data   dq    ?
@@ -70,6 +72,7 @@ font_current_char_rect  Rect  <>
 
 font_initSprData proc
 	font_loadSprData font_digits_resource_name, font_digits_spr_data
+	font_loadSprData font_yr_digits_resource_name, font_yr_digits_spr_data
 	font_loadSprData font_large_resource_name, font_large_spr_data
 	font_loadSprData font_small_resource_name, font_small_spr_data
 	font_loadSprData font_small_w_resource_name, font_small_w_spr_data
