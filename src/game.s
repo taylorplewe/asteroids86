@@ -33,6 +33,7 @@ GAME_START_NUM_LIVES           = 4
 GAME_LIVES_FLICKER_INC         = 0080h
 GAME_GAMEOVER_COUNTER_AMT      = 60 * 4
 GAME_PRESS_ANY_KEY_COUNTER_AMT = 60 * 7
+GAME_PRESS_ANY_KEY_Y           = ((SCREEN_HEIGHT / 2) + 64) shl 16
 
 .data
 
@@ -41,9 +42,6 @@ waves_end = $
 
 game_score_pos    Point { 64 shl 16, 64 shl 16 }
 game_lives_pos    Point { 64 shl 16, 160 shl 16 }
-
-press_any_key_text db "PRESS ANY KEY TO CONTINUE"
-press_any_key_text_len = $ - press_any_key_text
 
 
 .data?
@@ -64,7 +62,6 @@ game_score_shake_ind dd ?
 game_show_gameover_counter      dd ?
 game_show_gameover              dd ?
 game_show_press_any_key_counter dd ?
-game_show_press_any_key         dd ?
 game_gameover_flicker_inds      dd @SizeStr(GAMEOVER) dup (?)
 
 
@@ -82,7 +79,7 @@ game_init proc
 	mov [score], 0
 	mov [lives], GAME_START_NUM_LIVES
 	; mov [lives], 1
-	mov [game_show_press_any_key], 0
+	mov [screen_show_press_any_key], 0
 
 	mov al, 0ffh
 	i = 0
@@ -257,7 +254,7 @@ game_tick proc
 	cmp [game_show_press_any_key_counter], 0
 	je pressAnyKeyEnd
 		dec [game_show_press_any_key_counter]
-		sete byte ptr [game_show_press_any_key]
+		sete byte ptr [screen_show_press_any_key]
 	pressAnyKeyEnd:
 
 	; lives counter
@@ -396,7 +393,8 @@ game_tick proc
 	call game_drawScore
 	call game_drawLives
 	call game_drawGameOver
-	call game_drawPressAnyKey
+	mov [font_current_char_pos].y, GAME_PRESS_ANY_KEY_Y
+	call screen_drawPressAnyKey
 
 	ret
 game_tick endp
@@ -627,67 +625,6 @@ game_drawGameOver proc
 	_ret:
 	ret
 game_drawGameOver endp
-
-PRESS_ANY_KEY_KERNING    = 4
-PRESS_ANY_KEY_CHAR_WIDTH = FONT_SM_CHAR_WIDTH + PRESS_ANY_KEY_KERNING
-PRESS_ANY_KEY_FULL_WIDTH = (press_any_key_text_len * PRESS_ANY_KEY_CHAR_WIDTH) - PRESS_ANY_KEY_KERNING
-PRESS_ANY_KEY_FIRST_X    = (((SCREEN_WIDTH / 2) - (PRESS_ANY_KEY_FULL_WIDTH / 2)) + (FONT_SM_CHAR_WIDTH / 2)) shl 16
-PRESS_ANY_KEY_Y          = ((SCREEN_HEIGHT / 2) + 64) shl 16
-game_drawPressAnyKey proc
-	cmp [game_show_press_any_key], 0
-	je _ret
-
-	push rcx
-	push rdx
-	push rsi
-	push rdi
-	push r8
-	push r9
-	push r14
-
-	lea rdx, font_current_char_pos
-	mov rsi, [font_small_spr_data]
-	mov r8d, [gray_color]
-	lea r9, font_current_char_rect
-	lea r14, screen_setPixelOnscreenVerified
-
-	mov [font_current_char_pos].x, PRESS_ANY_KEY_FIRST_X
-	mov [font_current_char_pos].y, PRESS_ANY_KEY_Y
-	mov [font_current_char_rect].pos.x, 0
-	mov [font_current_char_rect].pos.y, 0
-	mov [font_current_char_rect].dim.w, FONT_SM_CHAR_WIDTH
-	mov [font_current_char_rect].dim.h, FONT_SM_CHAR_HEIGHT
-
-	lea rdi, press_any_key_text
-	xor ecx, ecx
-	charLoop:
-		xor eax, eax
-		mov al, [rdi + rcx]
-		cmp al, ' '
-		je drawCharEnd
-		sub al, 'A'
-		imul eax, FONT_SM_CHAR_WIDTH
-		mov [font_current_char_rect].pos.x, eax
-
-		call screen_draw1bppSprite
-
-		drawCharEnd:
-		add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
-
-		inc ecx
-		cmp ecx, press_any_key_text_len
-		jl charLoop
-
-	pop r14
-	pop r9
-	pop r8
-	pop rdi
-	pop rsi
-	pop rdx
-	pop rcx
-	_ret:
-	ret
-game_drawPressAnyKey endp
 
 
 endif

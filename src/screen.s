@@ -3,23 +3,28 @@ screen_h = 1
 
 include <globaldefs.inc>
 
+include <font.s>
+
 
 .data
 
-cosmic_color Pixel <37h, 94h, 6eh, 0ffh> ; 37946e
+cosmic_color       Pixel <37h, 94h, 6eh, 0ffh> ; 37946e
+press_any_key_text db "PRESS ANY KEY TO CONTINUE"
+press_any_key_text_len = $ - press_any_key_text
 
 
 .data?
 
-pixels        Pixel SCREEN_WIDTH*SCREEN_HEIGHT dup (<?>)
-screen_point1 Point <?>
-screen_point2 Point <?>
-x_diff        dd ?
-y_diff        dd ?
-x_add         dd ? ; 16.16 fixed point
-y_add         dd ? ; 16.16 fixed point
-is_xdiff_neg  db ?
-is_ydiff_neg  db ?
+pixels                    Pixel SCREEN_WIDTH*SCREEN_HEIGHT dup (<?>)
+screen_point1             Point <?>
+screen_point2             Point <?>
+x_diff                    dd ?
+y_diff                    dd ?
+x_add                     dd ? ; 16.16 fixed point
+y_add                     dd ? ; 16.16 fixed point
+is_xdiff_neg              db ?
+is_ydiff_neg              db ?
+screen_show_press_any_key dd ?
 
 
 .code
@@ -525,6 +530,68 @@ screen_drawLine proc
 			ret
 	ret
 screen_drawLine endp
+
+PRESS_ANY_KEY_KERNING    = 4
+PRESS_ANY_KEY_CHAR_WIDTH = FONT_SM_CHAR_WIDTH + PRESS_ANY_KEY_KERNING
+PRESS_ANY_KEY_FULL_WIDTH = (press_any_key_text_len * PRESS_ANY_KEY_CHAR_WIDTH) - PRESS_ANY_KEY_KERNING
+PRESS_ANY_KEY_FIRST_X    = (((SCREEN_WIDTH / 2) - (PRESS_ANY_KEY_FULL_WIDTH / 2)) + (FONT_SM_CHAR_WIDTH / 2)) shl 16
+
+; in:
+	; set [font_current_char_pos].y
+screen_drawPressAnyKey proc
+	cmp [screen_show_press_any_key], 0
+	je _ret
+
+	push rcx
+	push rdx
+	push rsi
+	push rdi
+	push r8
+	push r9
+	push r14
+
+	lea rdx, font_current_char_pos
+	mov rsi, [font_small_spr_data]
+	mov r8d, [gray_color]
+	lea r9, font_current_char_rect
+	lea r14, screen_setPixelOnscreenVerified
+
+	mov [font_current_char_pos].x, PRESS_ANY_KEY_FIRST_X
+	mov [font_current_char_rect].pos.x, 0
+	mov [font_current_char_rect].pos.y, 0
+	mov [font_current_char_rect].dim.w, FONT_SM_CHAR_WIDTH
+	mov [font_current_char_rect].dim.h, FONT_SM_CHAR_HEIGHT
+
+	lea rdi, press_any_key_text
+	xor ecx, ecx
+	charLoop:
+		xor eax, eax
+		mov al, [rdi + rcx]
+		cmp al, ' '
+		je drawCharEnd
+		sub al, 'A'
+		imul eax, FONT_SM_CHAR_WIDTH
+		mov [font_current_char_rect].pos.x, eax
+
+		call screen_draw1bppSprite
+
+		drawCharEnd:
+		add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+
+		inc ecx
+		cmp ecx, press_any_key_text_len
+		jl charLoop
+
+	pop r14
+	pop r9
+	pop r8
+	pop rdi
+	pop rsi
+	pop rdx
+	pop rcx
+	_ret:
+	ret
+screen_drawPressAnyKey endp
 
 screen_clearPixelBuffer proc
 	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT*4)/32

@@ -13,6 +13,8 @@ TITLE_MAX_NUM_LINES_TO_DRAW        = 33
 TITLE_NUM_FRAMES                   = 3
 TITLE_FRAME_TIME                   = 12
 TITLE_86_FLICKER_DELAY_COUNTER_AMT = 60 * 2
+TITLE_PRESS_ANY_KEY_Y              = ((SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4)) shl 16
+TITLE_PRESS_ANY_KEY_COUNTER_AMT    = 60 * 4
 
 
 .data?
@@ -21,12 +23,13 @@ title_point1                   Point <>
 title_point2                   Point <>
 
 ; animation
-title_appear_delay_counter     dd    ?
-title_num_lines_to_draw        dd    ?
-title_anim_frame               dd    ?
-title_anim_counter             dd    ?
-title_86_flicker_delay_counter dd    ?
-title_86_flicker_inds          dd    2 dup (?)
+title_appear_delay_counter       dd ?
+title_num_lines_to_draw          dd ?
+title_anim_frame                 dd ?
+title_anim_counter               dd ?
+title_86_flicker_delay_counter   dd ?
+title_86_flicker_inds            dd 2 dup (?)
+title_show_press_any_key_counter dd ?
 
 
 .code
@@ -41,6 +44,20 @@ title_tick proc
 	call title_drawAsteroids
 	call title_draw86
 
+	; "Press any key to continue"
+	cmp [screen_show_press_any_key], 0
+	je @f
+		mov [font_current_char_pos].y, TITLE_PRESS_ANY_KEY_Y
+		call screen_drawPressAnyKey
+	@@:
+
+	cmp [title_show_press_any_key_counter], 0
+	je @f
+		dec [title_show_press_any_key_counter]
+		jne @f
+		inc [screen_show_press_any_key]
+	@@:
+
 	; sweep left to right drawing lines
 	mov eax, [title_num_lines_to_draw]
 	test eax, eax
@@ -52,6 +69,7 @@ title_tick proc
 		cmp eax, TITLE_MAX_NUM_LINES_TO_DRAW
 		jl @f
 		mov [title_86_flicker_delay_counter], TITLE_86_FLICKER_DELAY_COUNTER_AMT
+		mov [title_show_press_any_key_counter], TITLE_PRESS_ANY_KEY_COUNTER_AMT
 	@@:
 
 	; appear delay counter
