@@ -108,7 +108,7 @@ main proc
 	call title_init
 	mov [mode], Mode_Title
 
-	mov ecx, SDL_INIT_VIDEO
+	mov ecx, SDL_INIT_VIDEO or SDL_INIT_GAMEPAD
 	call SDL_Init
 
 	; SDL_CreateWindow

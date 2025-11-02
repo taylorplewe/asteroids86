@@ -1,6 +1,8 @@
 ifndef sdl_defs_h
 sdl_defs_h = 1
 
+include <enum.inc>
+
 
 extern SDL_Init                     : proto :dword
 extern SDL_Quit                     : proto
@@ -23,7 +25,8 @@ extern SDL_LockSurface              : proto :ptr
 extern SDL_UnlockSurface            : proto :ptr
 extern SDL_LoadBMP                  : proto :ptr
 extern SDL_SetWindowIcon            : proto :ptr, :ptr
-SDL_INIT_VIDEO = 20h
+SDL_INIT_VIDEO   = 20h
+SDL_INIT_GAMEPAD = 2000h
 
 SDL_EVENT_QUIT     = 100h
 SDL_EVENT_KEY_DOWN = 300h
@@ -74,6 +77,45 @@ SDL_Surface struct
 SDL_Surface ends
 
 SDL_SCALEMODE_NEAREST = 0
+
+; https://wiki.libsdl.org/SDL3/SDL_GamepadButton
+enum SDL_GamepadButton
+    emem SDL_GAMEPAD_BUTTON_SOUTH           ; Bottom face button (e.g. Xbox A button)
+    emem SDL_GAMEPAD_BUTTON_EAST            ; Right face button (e.g. Xbox B button)
+    emem SDL_GAMEPAD_BUTTON_WEST            ; Left face button (e.g. Xbox X button)
+    emem SDL_GAMEPAD_BUTTON_NORTH           ; Top face button (e.g. Xbox Y button)
+    emem SDL_GAMEPAD_BUTTON_BACK
+    emem SDL_GAMEPAD_BUTTON_GUIDE
+    emem SDL_GAMEPAD_BUTTON_START
+    emem SDL_GAMEPAD_BUTTON_LEFT_STICK
+    emem SDL_GAMEPAD_BUTTON_RIGHT_STICK
+    emem SDL_GAMEPAD_BUTTON_LEFT_SHOULDER
+    emem SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER
+    emem SDL_GAMEPAD_BUTTON_DPAD_UP
+    emem SDL_GAMEPAD_BUTTON_DPAD_DOWN
+    emem SDL_GAMEPAD_BUTTON_DPAD_LEFT
+    emem SDL_GAMEPAD_BUTTON_DPAD_RIGHT
+    emem SDL_GAMEPAD_BUTTON_MISC1           ; Additional button (e.g. Xbox Series X share button, PS5 microphone button, Nintendo Switch Pro capture button, Amazon Luna microphone button, Google Stadia capture button)
+    emem SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1   ; Upper or primary paddle, under your right hand (e.g. Xbox Elite paddle P1, DualSense Edge RB button, Right Joy-Con SR button)
+    emem SDL_GAMEPAD_BUTTON_LEFT_PADDLE1    ; Upper or primary paddle, under your left hand (e.g. Xbox Elite paddle P3, DualSense Edge LB button, Left Joy-Con SL button)
+    emem SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2   ; Lower or secondary paddle, under your right hand (e.g. Xbox Elite paddle P2, DualSense Edge right Fn button, Right Joy-Con SL button)
+    emem SDL_GAMEPAD_BUTTON_LEFT_PADDLE2    ; Lower or secondary paddle, under your left hand (e.g. Xbox Elite paddle P4, DualSense Edge left Fn button, Left Joy-Con SR button)
+    emem SDL_GAMEPAD_BUTTON_TOUCHPAD        ; PS4/PS5 touchpad button
+    emem SDL_GAMEPAD_BUTTON_MISC2           ; Additional button
+    emem SDL_GAMEPAD_BUTTON_MISC3           ; Additional button (e.g. Nintendo GameCube left trigger click)
+    emem SDL_GAMEPAD_BUTTON_MISC4           ; Additional button (e.g. Nintendo GameCube right trigger click)
+    emem SDL_GAMEPAD_BUTTON_MISC5           ; Additional button
+    emem SDL_GAMEPAD_BUTTON_MISC6           ; Additional button
+    emem SDL_GAMEPAD_BUTTON_COUNT
+
+enum SDL_GamepadAxis
+    emem SDL_GAMEPAD_AXIS_LEFTX
+    emem SDL_GAMEPAD_AXIS_LEFTY
+    emem SDL_GAMEPAD_AXIS_RIGHTX
+    emem SDL_GAMEPAD_AXIS_RIGHTY
+    emem SDL_GAMEPAD_AXIS_LEFT_TRIGGER
+    emem SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
+    emem SDL_GAMEPAD_AXIS_COUN
 
 
 endif
