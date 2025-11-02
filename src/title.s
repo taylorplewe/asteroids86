@@ -50,8 +50,8 @@ title_init endp
 ; in:
 	; rdi - pointer to Keys struct of keys pressed
 title_tick proc
-	cmp [rdi].Keys.any, 0
-	je anyKeyPressEnd
+	bt Keys ptr [rdi], Keys_Any
+	jnc anyKeyPressEnd
 		cmp [screen_show_press_any_key], 0
 		je @f
 			call game_init

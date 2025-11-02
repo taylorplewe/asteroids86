@@ -229,8 +229,8 @@ game_setShipLivesPoints endp
 ; in:
 	; rdi - pointer to Keys struct of keys pressed
 game_tick proc
-	cmp [rdi].Keys.any, 0
-	je @f
+	bt Keys ptr [rdi], Keys_Any
+	jnc @f
 		cmp [screen_show_press_any_key], 0
 		je @f
 		call title_init

@@ -27,9 +27,9 @@ texture  dq ?
 icon     dq ?
 event    db 2048 dup (?)
 
-ticks     dq    ?
-keys_down Keys  <?>
-is_paused dd    ?
+ticks     dq   ?
+keys_down Keys <?>
+is_paused dd   ?
 
 
 .code
@@ -143,8 +143,8 @@ main proc
 		mov qword ptr [ticks], rax
 
 		xor eax, eax
-		mov [keys_down].fire, al
-		mov [keys_down].any, al
+		btr [keys_down], Keys_Fire
+		btr [keys_down], Keys_Any
 		pollLoop:
 			lea rcx, event
 			call SDL_PollEvent
@@ -160,42 +160,42 @@ main proc
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
 			jne @f
-				mov [keys_down].up, 1
+				bts [keys_down], Keys_Up
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_S
 			jne @f
-				mov [keys_down].down, 1
+				bts [keys_down], Keys_Down
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_A
 			jne @f
-				mov [keys_down].left, 1
+				bts [keys_down], Keys_Left
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_D
 			jne @f
-				mov [keys_down].right, 1
+				bts [keys_down], Keys_Right
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_UP
 			jne @f
-				mov [keys_down].up, 1
+				bts [keys_down], Keys_Up
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_DOWN
 			jne @f
-				mov [keys_down].down, 1
+				bts [keys_down], Keys_Down
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_LEFT
 			jne @f
-				mov [keys_down].left, 1
+				bts [keys_down], Keys_Left
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_RIGHT
 			jne @f
-				mov [keys_down].right, 1
+				bts [keys_down], Keys_Right
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_Q
@@ -204,57 +204,57 @@ main proc
 
 			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_UP
 			jne keyUpCheckEnd
-			mov [keys_down].any, 1
+			bts [keys_down], Keys_Any
 			; which key was pressed?
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
 			jne @f
-				mov [keys_down].up, 0
+				btr [keys_down], Keys_Up
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_S
 			jne @f
-				mov [keys_down].down, 0
+				btr [keys_down], Keys_Down
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_A
 			jne @f
-				mov [keys_down].left, 0
+				btr [keys_down], Keys_Left
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_D
 			jne @f
-				mov [keys_down].right, 0
+				btr [keys_down], Keys_Right
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_UP
 			jne @f
-				mov [keys_down].up, 0
+				btr [keys_down], Keys_Up
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_DOWN
 			jne @f
-				mov [keys_down].down, 0
+				btr [keys_down], Keys_Down
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_LEFT
 			jne @f
-				mov [keys_down].left, 0
+				btr [keys_down], Keys_Left
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_RIGHT
 			jne @f
-				mov [keys_down].right, 0
+				btr [keys_down], Keys_Right
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_SPACE
 			jne @f
-				mov [keys_down].fire, 1
+				bts [keys_down], Keys_Fire
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_L
 			jne @f
-				mov [keys_down].fire, 1
+				bts [keys_down], Keys_Fire
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_ESC

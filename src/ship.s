@@ -74,19 +74,19 @@ ship_update proc
 		@@:
 		ret
 	normalUpdate:
-	cmp [rdi].Keys.left, 0
-	je @f
+	bt Keys ptr [rdi], Keys_Left
+	jnc @f
 		sub [ship].rot, 3
 		jmp fireCheck
 	@@:
-	cmp [rdi].Keys.right, 0
-	je @f
+	bt Keys ptr [rdi], Keys_Right
+	jnc @f
 		add [ship].rot, 3
 	@@:
 
 	fireCheck:
-	cmp [rdi].Keys.fire, 0
-	je @f
+	bt Keys ptr [rdi], Keys_Fire
+	jnc @f
 		mov r8d, [ship_points].x
 		shl r8d, 16
 		mov r9d, [ship_points].y
@@ -119,8 +119,8 @@ ship_update proc
 
 	; boost
 	mov [ship].is_boosting, 0
-	cmp [rdi].Keys.up, 0
-	je @f
+	bt Keys ptr [rdi], Keys_Up
+	jnc @f
 		inc [ship].is_boosting
 	
 		xor rax, rax

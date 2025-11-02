@@ -16,7 +16,7 @@ SCREEN_HEIGHT = 720
 
 DIM_ALPHA = 20h
 
-; define my own enum syntax
+; enum
 enum_name textequ <>
 enum_val = 0
 enum macro name:req
@@ -29,6 +29,21 @@ emem macro name:req
 	%memname = enum_val
 	enum_val = enum_val + 1
 endm
+
+; bitset
+bitset_name textequ <>
+bitset_val = 0
+bitset macro name:req, type:=<dword>
+	bitset_name textequ <name>
+	bitset_val = 0
+	name typedef type
+endm
+bsmem macro name:req
+	memname catstr bitset_name, <_>, <name>
+	%memname = 1 shl bitset_val
+	bitset_val = bitset_val + 1
+endm
+
 
 enum Mode
 	emem Title
@@ -70,16 +85,15 @@ BasePoint struct
 	rad db ? ; 256-based radians; 256 = 360 degrees
 BasePoint ends
 
-Keys struct
-	any   db ?
-	up    db ?
-	down  db ?
-	left  db ?
-	right db ?
-	fire  db ?
-	quit  db ?
-	menu  db ?
-Keys ends
+enum Keys
+	emem Any
+	emem Up
+	emem Down
+	emem Left
+	emem Right
+	emem Fire
+	emem Quit
+	emem Menu
 
 abseax macro
 	push rbx
