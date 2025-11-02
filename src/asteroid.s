@@ -362,8 +362,6 @@ asteroid_checkUfos endp
 ; out:
 	; eax - 0 if no collision, -1 otherwise
 asteroid_checkShip proc
-	xor eax, eax
-	ret
 	push rbx
 	push r8
 	push r9

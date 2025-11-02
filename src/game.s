@@ -69,7 +69,7 @@ game_gameover_flicker_inds      dd @SizeStr(GAMEOVER) dup (?)
 
 game_init proc
 	call ship_respawn
-	lea rax, waves + sizeof WaveData * 6
+	lea rax, waves
 	mov [current_wave], rax
 	mov eax, [fg_color]
 	mov [flash_color], eax

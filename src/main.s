@@ -143,8 +143,9 @@ main proc
 		mov qword ptr [ticks], rax
 
 		xor eax, eax
-		btr [keys_down], Keys_Fire
 		btr [keys_down], Keys_Any
+		btr [keys_down], Keys_Fire
+		btr [keys_down], Keys_Teleport
 		pollLoop:
 			lea rcx, event
 			call SDL_PollEvent
@@ -159,43 +160,43 @@ main proc
 			; which key was pressed?
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
+			je upPressed
+			cmp eax, SDLK_UP
 			jne @f
+				upPressed:
 				bts [keys_down], Keys_Boost
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_S
+			je downPressed
+			cmp eax, SDLK_DOWN
 			jne @f
+				downPressed:
 				bts [keys_down], Keys_Teleport
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_A
+			je leftPressed
+			cmp eax, SDLK_LEFT
 			jne @f
+				leftPressed:
 				bts [keys_down], Keys_Left
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_D
-			jne @f
-				bts [keys_down], Keys_Right
-				jmp pollLoopNext
-			@@:
-			cmp eax, SDLK_UP
-			jne @f
-				bts [keys_down], Keys_Boost
-				jmp pollLoopNext
-			@@:
-			cmp eax, SDLK_DOWN
-			jne @f
-				bts [keys_down], Keys_Teleport
-				jmp pollLoopNext
-			@@:
-			cmp eax, SDLK_LEFT
-			jne @f
-				bts [keys_down], Keys_Left
-				jmp pollLoopNext
-			@@:
+			je rightPressed
 			cmp eax, SDLK_RIGHT
 			jne @f
+				rightPressed:
 				bts [keys_down], Keys_Right
+				jmp pollLoopNext
+			@@:
+			cmp eax, SDLK_SPACE
+			je firePressed
+			cmp eax, SDLK_L
+			jne @f
+				firePressed:
+				bts [keys_down], Keys_Fire
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_Q
@@ -208,53 +209,27 @@ main proc
 			; which key was pressed?
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
+			je boostReleased
+			cmp eax, SDLK_UP
 			jne @f
+				boostReleased:
 				btr [keys_down], Keys_Boost
 				jmp pollLoopNext
 			@@:
-			cmp eax, SDLK_S
-			jne @f
-				btr [keys_down], Keys_Teleport
-				jmp pollLoopNext
-			@@:
 			cmp eax, SDLK_A
+			je leftReleased
+			cmp eax, SDLK_LEFT
 			jne @f
+				leftReleased:
 				btr [keys_down], Keys_Left
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_D
-			jne @f
-				btr [keys_down], Keys_Right
-				jmp pollLoopNext
-			@@:
-			cmp eax, SDLK_UP
-			jne @f
-				btr [keys_down], Keys_Boost
-				jmp pollLoopNext
-			@@:
-			cmp eax, SDLK_DOWN
-			jne @f
-				btr [keys_down], Keys_Teleport
-				jmp pollLoopNext
-			@@:
-			cmp eax, SDLK_LEFT
-			jne @f
-				btr [keys_down], Keys_Left
-				jmp pollLoopNext
-			@@:
+			je rightReleased
 			cmp eax, SDLK_RIGHT
 			jne @f
+				rightReleased:
 				btr [keys_down], Keys_Right
-				jmp pollLoopNext
-			@@:
-			cmp eax, SDLK_SPACE
-			jne @f
-				bts [keys_down], Keys_Fire
-				jmp pollLoopNext
-			@@:
-			cmp eax, SDLK_L
-			jne @f
-				bts [keys_down], Keys_Fire
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_ESC
