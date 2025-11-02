@@ -3,6 +3,7 @@ ship_h = 1
 
 include <globaldefs.inc>
 
+include <data\shrink-vals.inc>
 include <fx\fire.s>
 include <fx\ship-shard.s>
 include <bullet.s>
@@ -42,6 +43,9 @@ ship_color            Pixel <>
 ship_num_flashes_left dd    ?
 ship_flash_counter    dd    ?
 
+ship_teleport_shrink_vals_ind dd ?
+ship_teleport_is_growing      dd ?
+
 
 .code
 
@@ -77,19 +81,14 @@ ship_update proc
 	bt Keys ptr [rdi], Keys_Left
 	jnc @f
 		sub [ship].rot, 3
-		jmp teleportCheck
+		jmp turnCheckEnd
 	@@:
 	bt Keys ptr [rdi], Keys_Right
 	jnc @f
 		add [ship].rot, 3
 	@@:
+	turnCheckEnd:
 
-	teleportCheck:
-	bt Keys ptr [rdi], Keys_Teleport
-	jnc fireCheck
-		call ship_teleport
-
-	fireCheck:
 	bt Keys ptr [rdi], Keys_Fire
 	jnc @f
 		mov r8d, [ship_points].x
@@ -119,7 +118,33 @@ ship_update proc
 		imul rax, SHIP_VELOCITY_KICK
 		sar rax, 31
 		sub [ship].velocity.y, eax
+	@@:
 
+	; teleport animation
+	mov eax, [ship_teleport_shrink_vals_ind]
+	test eax, eax
+	je teleportAnimEnd
+		cmp [ship_teleport_is_growing], 0
+		je @f
+			dec [ship_teleport_shrink_vals_ind]
+			setne byte ptr [ship_teleport_is_growing]
+			jmp teleportAnimEnd
+		@@:
+			inc eax
+			cmp eax, shrink_vals_len
+			jl @f
+				inc [ship_teleport_is_growing]
+				call ship_teleport
+				jmp teleportAnimEnd
+			@@:
+				mov [ship_teleport_shrink_vals_ind], eax
+	teleportAnimEnd:
+
+	bt Keys ptr [rdi], Keys_Teleport
+	jnc @f
+	cmp [ship_teleport_shrink_vals_ind], 0
+	jne @f
+		inc [ship_teleport_shrink_vals_ind]
 	@@:
 
 	; boost
@@ -255,7 +280,10 @@ ship_setAllPoints proc
 
 	mov r11b, [ship].rot
 	lea r10, ship
-	mov r12d, 00010000h
+	mov r12d, [ship_teleport_shrink_vals_ind]
+	shl r12d, 2
+	lea rax, shrink_vals
+	mov r12d, [rax + r12]
 
 	call applyBasePointToPoint
 
