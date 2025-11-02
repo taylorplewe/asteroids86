@@ -277,7 +277,7 @@ screen_drawCircle proc
 	rowLoop:
 		mov dword ptr [rsp], edx
 		colLoop:
-			; inside circle if (dx^2 + dy^2) <= r^2
+			; inside circle if (dx^2 + dy^2) < r^2
 			mov eax, ebx
 			sub eax, dword ptr [rsp + 8]
 			imul eax, eax
@@ -286,7 +286,7 @@ screen_drawCircle proc
 			imul edx, edx
 			add eax, edx
 			cmp eax, dword ptr [rsp + 16]
-			jg colLoopNext
+			jge colLoopNext
 
 			screen_setPixelWrapped
 
