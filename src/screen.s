@@ -542,10 +542,10 @@ screen_drawPressAnyKey proc
 	cmp [screen_show_press_any_key], 0
 	je _ret
 
+	push rbx
 	push rcx
 	push rdx
 	push rsi
-	push rdi
 	push r8
 	push r9
 	push r14
@@ -562,11 +562,12 @@ screen_drawPressAnyKey proc
 	mov [font_current_char_rect].dim.w, FONT_SM_CHAR_WIDTH
 	mov [font_current_char_rect].dim.h, FONT_SM_CHAR_HEIGHT
 
-	lea rdi, press_any_key_text
+	lea rbx, press_any_key_text
 	xor ecx, ecx
 	charLoop:
 		xor eax, eax
-		mov al, [rdi + rcx]
+		mov al, cl
+		xlatb ; Table Look-up Translation; al = byte ptr [rbx + al]
 		cmp al, ' '
 		je drawCharEnd
 		sub al, 'A'
@@ -585,10 +586,10 @@ screen_drawPressAnyKey proc
 	pop r14
 	pop r9
 	pop r8
-	pop rdi
 	pop rsi
 	pop rdx
 	pop rcx
+	pop rbx
 	_ret:
 	ret
 screen_drawPressAnyKey endp

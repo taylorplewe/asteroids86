@@ -288,10 +288,10 @@ title_drawCredit proc
 	cmp [screen_show_press_any_key], 0
 	je _ret
 
+	push rbx
 	push rcx
 	push rdx
 	push rsi
-	push rdi
 	push r8
 	push r9
 	push r10
@@ -316,12 +316,13 @@ title_drawCredit proc
 
 	; my name
 	mov [font_current_char_rect].dim.h, FONT_SM_CHAR_HEIGHT
-	lea rdi, my_name
+	lea rbx, my_name
 	xor ecx, ecx
 	xor r10, r10
 	nameLoop:
 		xor eax, eax
-		mov al, [rdi + rcx]
+		mov al, cl
+		xlatb ; Table Look-up Translation; al = byte ptr [rbx + al]
 		cmp al, ' '
 		je nameLoopDrawCharEnd
 		cmp al, 'W'
@@ -377,10 +378,10 @@ title_drawCredit proc
 	pop r10
 	pop r9
 	pop r8
-	pop rdi
 	pop rsi
 	pop rdx
 	pop rcx
+	pop rbx
 	_ret:
 	ret
 title_drawCredit endp
