@@ -87,8 +87,8 @@ BasePoint ends
 
 enum Keys
 	emem Any
-	emem Up
-	emem Down
+	emem Boost
+	emem Teleport
 	emem Left
 	emem Right
 	emem Fire

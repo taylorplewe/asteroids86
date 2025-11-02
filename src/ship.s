@@ -77,12 +77,17 @@ ship_update proc
 	bt Keys ptr [rdi], Keys_Left
 	jnc @f
 		sub [ship].rot, 3
-		jmp fireCheck
+		jmp teleportCheck
 	@@:
 	bt Keys ptr [rdi], Keys_Right
 	jnc @f
 		add [ship].rot, 3
 	@@:
+
+	teleportCheck:
+	bt Keys ptr [rdi], Keys_Teleport
+	jnc fireCheck
+		call ship_teleport
 
 	fireCheck:
 	bt Keys ptr [rdi], Keys_Fire
@@ -119,7 +124,7 @@ ship_update proc
 
 	; boost
 	mov [ship].is_boosting, 0
-	bt Keys ptr [rdi], Keys_Up
+	bt Keys ptr [rdi], Keys_Boost
 	jnc @f
 		inc [ship].is_boosting
 	
@@ -327,6 +332,8 @@ ship_checkBullets proc
 	push r8
 	push r9
 
+	jmp noHit
+
 	cmp [ship_num_flashes_left], 0
 	jne noHit
 
@@ -385,8 +392,40 @@ ship_checkBullets proc
 	ret
 ship_checkBullets endp
 
+SHIP_MAX_NUM_TELEPORT_TRIES = 32
 ship_teleport proc
+	push rbx
+	push rcx
+	push rsi
+	push r8
 
+	mov ecx, SHIP_MAX_NUM_TELEPORT_TRIES
+	checkLoop:
+		call getRandomOnscreenFixedPointPos
+		mov qword ptr [ship], rax
+
+		; check for asteroids
+		mov ebx, 4 ; bigger asteroid radius for checking
+		lea rsi, asteroids_arr
+		lea r8, asteroid_checkShip
+		call array_forEach
+		; eax = 0 if free, -1 else
+		test eax, eax
+		loopne checkLoop
+
+		; check for ufos
+		lea rsi, ufos_arr
+		lea r8, ufo_checkShip
+		call array_forEach
+		; eax = 0 if free, -1 else
+		test eax, eax
+		loopne checkLoop
+	checkLoopEnd:
+
+	pop r8
+	pop rsi
+	pop rcx
+	pop rbx
 	ret
 ship_teleport endp
 

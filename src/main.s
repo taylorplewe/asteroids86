@@ -160,12 +160,12 @@ main proc
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
 			jne @f
-				bts [keys_down], Keys_Up
+				bts [keys_down], Keys_Boost
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_S
 			jne @f
-				bts [keys_down], Keys_Down
+				bts [keys_down], Keys_Teleport
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_A
@@ -180,12 +180,12 @@ main proc
 			@@:
 			cmp eax, SDLK_UP
 			jne @f
-				bts [keys_down], Keys_Up
+				bts [keys_down], Keys_Boost
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_DOWN
 			jne @f
-				bts [keys_down], Keys_Down
+				bts [keys_down], Keys_Teleport
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_LEFT
@@ -209,12 +209,12 @@ main proc
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
 			jne @f
-				btr [keys_down], Keys_Up
+				btr [keys_down], Keys_Boost
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_S
 			jne @f
-				btr [keys_down], Keys_Down
+				btr [keys_down], Keys_Teleport
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_A
@@ -229,12 +229,12 @@ main proc
 			@@:
 			cmp eax, SDLK_UP
 			jne @f
-				btr [keys_down], Keys_Up
+				btr [keys_down], Keys_Boost
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_DOWN
 			jne @f
-				btr [keys_down], Keys_Down
+				btr [keys_down], Keys_Teleport
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_LEFT

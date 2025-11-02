@@ -89,6 +89,7 @@ array_removeEl endp
 	; r8  - pointer to callback routine
 	;       (will pass rdi as the pointer to the element)
 	;       (should return eax=1 if element was deleted during the callback, 0 otherwise)
+	;       (should return eax=-1 for break)
 array_forEach proc
 	push rcx
 	push rdi
@@ -100,7 +101,10 @@ array_forEach proc
 	_loop:
 		call r8
 		test eax, eax
-		jne nextCmp
+		cmp eax, 1
+		je nextCmp
+		cmp eax, -1
+		je _end
 		
 		add rdi, [rsi].Array.el_size
 		inc ecx

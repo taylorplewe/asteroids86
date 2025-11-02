@@ -44,8 +44,9 @@ asteroid_shape3_len = ($ - asteroid_shape3) / BasePoint
 ASTEROID_MASS1 = 32
 ASTEROID_MASS2 = 50
 ASTEROID_MASS3 = 70
+ASTEROID_MASS4 = 75 ; for checking collision in a bigger area
 asteroid_masses       dd 0, ASTEROID_MASS1,                ASTEROID_MASS2,                ASTEROID_MASS3
-asteroid_r_squareds   dd 0, ASTEROID_MASS1*ASTEROID_MASS1, ASTEROID_MASS2*ASTEROID_MASS2, ASTEROID_MASS3*ASTEROID_MASS3
+asteroid_r_squareds   dd 0, ASTEROID_MASS1*ASTEROID_MASS1, ASTEROID_MASS2*ASTEROID_MASS2, ASTEROID_MASS3*ASTEROID_MASS3, ASTEROID_MASS4*ASTEROID_MASS4
 asteroid_mass_factors dd 0, 00008000h,                     00010000h,                     00018000h
 asteroid_speed_shifts db 0, 2,                             1,                             0
 asteroid_score_adds   dd 0, 100,                           50,                            20
@@ -115,9 +116,6 @@ asteroid_create endp
 	; rdi - shape ptr
 asteroid_createRand proc
 	push rbx
-	push rcx
-	push rdx
-	push r8
 	push r9
 	push r10
 
@@ -134,9 +132,6 @@ asteroid_createRand proc
 
 	pop r10
 	pop r9
-	pop r8
-	pop rdx
-	pop rcx
 	pop rbx
 	ret
 asteroid_createRand endp
@@ -361,22 +356,14 @@ asteroid_checkUfos proc
 	ret
 asteroid_checkUfos endp
 
-; Check for collision with ship, destroy it if so
+; in:
+	; rdi - pointer to Asteroid
+	; rbx - Asteroid's mass (this is a param so you could check for bigger radii if you wanted)
+; out:
+	; eax - 0 if no collision, -1 otherwise
 asteroid_checkShip proc
-	cmp [ship].respawn_counter, 0
-	jne noHit
-	cmp [is_in_gameover], 0
-	jne noHit
-	cmp [num_flashes_left], 0
-	jne noHit
-	cmp [ship_num_flashes_left], 0
-	jne noHit
-	jmp check
-	noHit:
-		xor eax, eax
-		ret
-	check:
-
+	xor eax, eax
+	ret
 	push rbx
 	push r8
 	push r9
@@ -396,25 +383,50 @@ asteroid_checkShip proc
 
 	add r8d, r9d
 	lea r9, asteroid_r_squareds
-	mov ebx, [rdi].Asteroid.mass
 	shl ebx, 2 ; dwords
-	cmp r8d, [r9 + rbx]
-	jle hit
 	xor eax, eax
-	jmp _end
+	cmp r8d, [r9 + rbx]
+	setg al
+	dec eax ; -1 if hit, 0 else
 
-	hit:
+	pop r9
+	pop r8
+	pop rbx
+	ret
+asteroid_checkShip endp
+
+; Check for collision with ship, destroy it if so
+asteroid_checkAndDestroyShip proc
+	cmp [ship].respawn_counter, 0
+	jne noHit
+	cmp [is_in_gameover], 0
+	jne noHit
+	cmp [num_flashes_left], 0
+	jne noHit
+	cmp [ship_num_flashes_left], 0
+	jne noHit
+	jmp check
+	noHit:
+		xor eax, eax
+		ret
+	check:
+
+	push rbx
+	mov ebx, [rdi].Asteroid.mass
+	call asteroid_checkShip
+	pop rbx
+	test eax, eax
+	je _end
+
+	; hit!
 	call ship_destroy
 	call asteroid_addToScore
 	call asteroid_onHit
 	mov eax, 1
 
 	_end:
-	pop r9
-	pop r8
-	pop rbx
 	ret
-asteroid_checkShip endp
+asteroid_checkAndDestroyShip endp
 
 asteroid_updateAll proc
 	lea rsi, asteroids_arr
@@ -450,7 +462,7 @@ asteroid_update proc
 	call asteroid_checkUfos    ; returns 1 if hit, 0 else
 	test eax, eax
 	jne _end
-	call asteroid_checkShip    ; returns 1 if hit, 0 else
+	call asteroid_checkAndDestroyShip    ; returns 1 if hit, 0 else
 
 	_end:
 	pop rsi

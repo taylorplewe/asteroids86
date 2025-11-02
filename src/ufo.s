@@ -224,7 +224,7 @@ ufo_update proc
 	call ufo_checkBullets ; returns 1 if hit, 0 else
 	test eax, eax
 	jne _end
-	call ufo_checkShip ; returns 1 if hit, 0 else
+	call ufo_checkAndDestroyShip ; returns 1 if hit, 0 else
 
 	_end:
 	pop r10
@@ -300,14 +300,11 @@ ufo_checkBullets proc
 	ret
 ufo_checkBullets endp
 
+; in:
+	; rdi - pointer to ufo
+; out:
+	; eax - 0 if free, -1 else
 ufo_checkShip proc
-	cmp [ship_num_flashes_left], 0
-	jne noHit
-	cmp [is_in_gameover], 0
-	jne noHit
-	cmp [ship].respawn_counter, 0
-	jne noHit
-
 	; check if bullet is inside UFO's rectangular hitbox
 	; < x
 	xor eax, eax
@@ -330,6 +327,27 @@ ufo_checkShip proc
 	cmp ax, word ptr [ship].y + 2
 	jl noHit
 
+	; hit!
+	mov eax, -1
+	ret
+
+	noHit:
+	xor eax, eax
+	ret
+ufo_checkShip endp
+
+ufo_checkAndDestroyShip proc
+	cmp [ship_num_flashes_left], 0
+	jne noHit
+	cmp [is_in_gameover], 0
+	jne noHit
+	cmp [ship].respawn_counter, 0
+	jne noHit
+
+	call ufo_checkShip
+	test eax, eax
+	je noHit
+
 	call ship_destroy
 	call ufo_destroy
 	mov eax, 1
@@ -338,7 +356,7 @@ ufo_checkShip proc
 	noHit:
 	xor eax, eax
 	ret
-ufo_checkShip endp
+ufo_checkAndDestroyShip endp
 
 ; in:
 	; rdi - pointer to ufo
