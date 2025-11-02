@@ -28,7 +28,7 @@ icon     dq ?
 event    db 2048 dup (?)
 
 ticks     dq   ?
-keys_down Keys <?>
+keys_down Keys ?
 is_paused dd   ?
 
 

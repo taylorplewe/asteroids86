@@ -385,6 +385,11 @@ ship_checkBullets proc
 	ret
 ship_checkBullets endp
 
+ship_teleport proc
+
+	ret
+ship_teleport endp
+
 
 ship_draw proc
 	cmp [ship].respawn_counter, 0

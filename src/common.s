@@ -310,5 +310,39 @@ getVelocityFromRotAndSpeed proc
 	ret
 getVelocityFromRotAndSpeed endp
 
+; out:
+	; rax - Y in upper 32 bits, X in lower; both 16.16 fixed point
+getRandomOnscreenFixedPointPos proc
+	push rbx
+	push rdx
+	push r8
+	
+	; random on-screen pos
+	; x
+	mov r8w, SCREEN_WIDTH
+	xor eax, eax
+	rand ax
+	and ax, 7fffh
+	cwd
+	div r8w
+	mov ebx, edx
+	; y
+	mov r8w, SCREEN_HEIGHT
+	xor eax, eax
+	rand ax
+	and ax, 7fffh
+	cwd
+	div r8w
+	shl rdx, 32
+	or rbx, rdx
+	shl rbx, 16
+
+	mov rax, rbx
+	pop r8
+	pop rdx
+	pop rbx
+	ret
+getRandomOnscreenFixedPointPos endp
+
 
 endif

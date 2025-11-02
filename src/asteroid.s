@@ -121,26 +121,9 @@ asteroid_createRand proc
 	push r9
 	push r10
 
-	; random on-screen pos
-	; x
-	mov r8w, SCREEN_WIDTH
-	xor eax, eax
-	rand ax
-	and ax, 7fffh
-	cwd
-	div r8w
-	mov ebx, edx
-	; y
-	mov r8w, SCREEN_HEIGHT
-	xor eax, eax
-	rand ax
-	and ax, 7fffh
-	cwd
-	div r8w
-	shl rdx, 32
-	or rbx, rdx
-	shl rbx, 16
-
+	call getRandomOnscreenFixedPointPos
+	mov rbx, rax
+	
 	; rot_speed
 	rand r9d
 	mov r10b, r9b
