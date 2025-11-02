@@ -160,19 +160,11 @@ main proc
 			; which key was pressed?
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
-			je upPressed
+			je boostPressed
 			cmp eax, SDLK_UP
 			jne @f
-				upPressed:
+				boostPressed:
 				bts [keys_down], Keys_Boost
-				jmp pollLoopNext
-			@@:
-			cmp eax, SDLK_S
-			je downPressed
-			cmp eax, SDLK_DOWN
-			jne @f
-				downPressed:
-				bts [keys_down], Keys_Teleport
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_A
@@ -189,14 +181,6 @@ main proc
 			jne @f
 				rightPressed:
 				bts [keys_down], Keys_Right
-				jmp pollLoopNext
-			@@:
-			cmp eax, SDLK_SPACE
-			je firePressed
-			cmp eax, SDLK_L
-			jne @f
-				firePressed:
-				bts [keys_down], Keys_Fire
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_Q
@@ -230,6 +214,22 @@ main proc
 			jne @f
 				rightReleased:
 				btr [keys_down], Keys_Right
+				jmp pollLoopNext
+			@@:
+			cmp eax, SDLK_S
+			je teleportPressed
+			cmp eax, SDLK_DOWN
+			jne @f
+				teleportPressed:
+				bts [keys_down], Keys_Teleport
+				jmp pollLoopNext
+			@@:
+			cmp eax, SDLK_SPACE
+			je firePressed
+			cmp eax, SDLK_L
+			jne @f
+				firePressed:
+				bts [keys_down], Keys_Fire
 				jmp pollLoopNext
 			@@:
 			cmp eax, SDLK_ESC
