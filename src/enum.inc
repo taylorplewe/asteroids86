@@ -9,8 +9,11 @@ enum macro name:req
 	enum_val = 0
 	name typedef dword ; so you can use it as a type
 endm
-emem macro name:req
+emem macro name:req, val:=<>
 	memname catstr enum_name, <_>, <name>
+	if (@SizeStr(val) gt 0)
+		enum_val = val
+	endif
 	%memname = enum_val
 	enum_val = enum_val + 1
 endm

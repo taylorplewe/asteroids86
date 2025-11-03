@@ -4,33 +4,41 @@ sdl_defs_h = 1
 include <enum.inc>
 
 
-extern SDL_Init                     : proto :dword
+extern SDL_Init                     : proto
 extern SDL_Quit                     : proto
 extern SDL_GetTicks                 : proto
-extern SDL_Delay                    : proto :dword
-extern SDL_CreateWindow             : proto :ptr, :dword, :dword, :dword
-extern SDL_CreateRenderer           : proto :ptr, :ptr
-extern SDL_CreateSurface            : proto :dword, :dword, :dword
-extern SDL_DestroyWindow            : proto :ptr
-extern SDL_DestroyRenderer          : proto :ptr
-extern SDL_DestroyTexture           : proto :ptr
-extern SDL_DestroySurface           : proto :ptr
-extern SDL_PollEvent                : proto :ptr
-extern SDL_CreateTextureFromSurface : proto :ptr, :ptr
-extern SDL_SetTextureScaleMode      : proto :ptr, :dword
-extern SDL_RenderTexture            : proto :ptr, :ptr, :ptr, :ptr
-extern SDL_RenderClear              : proto :ptr
-extern SDL_RenderPresent            : proto :ptr
-extern SDL_LockSurface              : proto :ptr
-extern SDL_UnlockSurface            : proto :ptr
-extern SDL_LoadBMP                  : proto :ptr
-extern SDL_SetWindowIcon            : proto :ptr, :ptr
+extern SDL_Delay                    : proto
+extern SDL_CreateWindow             : proto
+extern SDL_CreateRenderer           : proto
+extern SDL_CreateSurface            : proto
+extern SDL_DestroyWindow            : proto
+extern SDL_DestroyRenderer          : proto
+extern SDL_DestroyTexture           : proto
+extern SDL_DestroySurface           : proto
+extern SDL_PollEvent                : proto
+extern SDL_CreateTextureFromSurface : proto
+extern SDL_SetTextureScaleMode      : proto
+extern SDL_RenderTexture            : proto
+extern SDL_RenderClear              : proto
+extern SDL_RenderPresent            : proto
+extern SDL_LockSurface              : proto
+extern SDL_UnlockSurface            : proto
+extern SDL_LoadBMP                  : proto
+extern SDL_SetWindowIcon            : proto
+; gamepads
+extern SDL_free                     : proto
+extern SDL_GetGamepads              : proto
+extern SDL_OpenGamepad              : proto
+extern SDL_CloseGamepad             : proto
 SDL_INIT_VIDEO   = 20h
 SDL_INIT_GAMEPAD = 2000h
 
-SDL_EVENT_QUIT     = 100h
-SDL_EVENT_KEY_DOWN = 300h
-SDL_EVENT_KEY_UP   = 301h
+SDL_EVENT_QUIT                = 100h
+SDL_EVENT_KEY_DOWN            = 300h
+SDL_EVENT_KEY_UP              = 301h
+SDL_EVENT_GAMEPAD_AXIS_MOTION = 650h ; Gamepad axis motion
+SDL_EVENT_GAMEPAD_BUTTON_DOWN = 651h ; Gamepad button pressed
+SDL_EVENT_GAMEPAD_BUTTON_UP   = 652h ; Gamepad button released
 
 SDLK_ESC   = 1bh
 SDLK_SPACE = 20h
@@ -61,6 +69,32 @@ SDL_KeyboardEvent struct
 	key        dd ? ; 28
 	; ... more that idc about
 SDL_KeyboardEvent ends
+
+; https://wiki.libsdl.org/SDL3/SDL_GamepadButtonEvent
+SDL_GamepadButtonEvent struct
+	event_type dd ?
+	reserved   dd ?
+	timestamp  dq ?
+	which      dd ? ; JoystickId
+	button     db ?
+	down       db ? ; bool
+	           db ?
+			   db ?
+SDL_GamepadButtonEvent ends
+
+; https://wiki.libsdl.org/SDL3/SDL_GamepadAxisEvent
+SDL_GamepadAxisEvent struct
+	event_type dd ?
+	reserved   dd ?
+	timestamp  dq ?
+	which      dd ? ; JoystickID
+	axis       db ? ; SDL_GamepadAxis
+	           db ?
+			   db ?
+			   db ?
+	value      dw ? ; signed
+	           dw ?
+SDL_GamepadAxisEvent ends
 
 SDL_SurfaceFlags typedef dword
 SDL_PixelFormat  typedef dword

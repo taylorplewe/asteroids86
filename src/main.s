@@ -31,56 +31,11 @@ ticks     dq   ?
 keys_down Keys ?
 is_paused dd   ?
 
+joystick_ids dq ?
+gamepad      dq ?
+
 
 .code
-
-render proc
-	push rbp
-	mov rbp, rsp
-	sub rsp, 100h
-
-	mov rcx, [renderer]
-	call SDL_RenderClear
-
-	mov rcx, [renderer]
-	call SDL_LockSurface
-
-	; memcpy all the pixels over to surface->pixels
-	mov rbx, [surface]
-	mov rdi, [rbx].SDL_Surface.pixels
-	lea rsi, pixels
-	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 32
-	; brk
-	call memcpyAligned32
-
-	mov rcx, [renderer]
-	call SDL_UnlockSurface
-
-	mov rcx, [renderer]
-	mov rdx, [surface]
-	call SDL_CreateTextureFromSurface
-	mov qword ptr [texture], rax
-
-	mov rcx, rax
-	mov edx, SDL_SCALEMODE_NEAREST
-	call SDL_SetTextureScaleMode
-
-	mov rcx, [renderer]
-	mov rdx, [texture]
-	xor r8d, r8d
-	xor r9d, r9d
-	call SDL_RenderTexture
-
-	mov rcx, [renderer]
-	call SDL_RenderPresent
-
-	mov rcx, [texture]
-	call SDL_DestroyTexture
-
-	mov rsp, rbp
-	pop rbp
-	ret
-render endp
 
 setWindowIcon macro
 	lea rcx, icon_path
@@ -110,6 +65,17 @@ main proc
 
 	mov ecx, SDL_INIT_VIDEO or SDL_INIT_GAMEPAD
 	call SDL_Init
+
+	; SDL_GetGamepads
+	xor ecx, ecx
+	call SDL_GetGamepads
+	cmp dword ptr [rax], 0
+	je gamepadInitEnd
+		mov [joystick_ids], rax
+		mov ecx, [rax]
+		call SDL_OpenGamepad
+		mov [gamepad], rax
+	gamepadInitEnd:
 
 	; SDL_CreateWindow
 	lea rcx, [window_title]
@@ -151,6 +117,21 @@ main proc
 			call SDL_PollEvent
 			test al, al
 			je pollLoopEnd
+
+			; NEXT:
+			; mov eax, [event].SDL_Event.event_type
+			; cmp eax, SDL_EVENT_QUIT
+			; je quit
+			; cmp eax, SDL_EVENT_KEY_DOWN
+			; je handleKeyDown
+			; cmp eax, SDL_EVENT_KEY_UP
+			; je handleKeyUp
+			; cmp eax, SDL_EVENT_GAMEPAD_BUTTON_DOWN
+			; je handleGamepadButtonDown
+			; cmp eax, SDL_EVENT_GAMEPAD_BUTTON_UP
+			; je handleGamepadButtonUp
+			; cmp eax, SDL_EVENT_GAMEPAD_AXIS_MOTION
+			; je handleGamepadAxisMotion
 
 			cmp [event].SDL_Event.event_type, SDL_EVENT_QUIT
 			je quit
@@ -272,6 +253,13 @@ main proc
 		jmp mainLoop
 	
 	quit:
+	cmp [joystick_ids], 0
+	je @f
+		mov rcx, [joystick_ids]
+		call SDL_free
+		mov rcx, [gamepad]
+		call SDL_CloseGamepad
+	@@:
 	mov rcx, [surface]
 	call SDL_DestroySurface
 	mov rcx, [renderer]
@@ -288,6 +276,54 @@ main proc
 	call ExitProcess
 	ret
 main endp
+
+render proc
+	push rbp
+	mov rbp, rsp
+	sub rsp, 100h
+
+	mov rcx, [renderer]
+	call SDL_RenderClear
+
+	mov rcx, [renderer]
+	call SDL_LockSurface
+
+	; memcpy all the pixels over to surface->pixels
+	mov rbx, [surface]
+	mov rdi, [rbx].SDL_Surface.pixels
+	lea rsi, pixels
+	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 32
+	; brk
+	call memcpyAligned32
+
+	mov rcx, [renderer]
+	call SDL_UnlockSurface
+
+	mov rcx, [renderer]
+	mov rdx, [surface]
+	call SDL_CreateTextureFromSurface
+	mov qword ptr [texture], rax
+
+	mov rcx, rax
+	mov edx, SDL_SCALEMODE_NEAREST
+	call SDL_SetTextureScaleMode
+
+	mov rcx, [renderer]
+	mov rdx, [texture]
+	xor r8d, r8d
+	xor r9d, r9d
+	call SDL_RenderTexture
+
+	mov rcx, [renderer]
+	call SDL_RenderPresent
+
+	mov rcx, [texture]
+	call SDL_DestroyTexture
+
+	mov rsp, rbp
+	pop rbp
+	ret
+render endp
 
 
 end
