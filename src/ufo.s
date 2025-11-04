@@ -206,7 +206,6 @@ ufo_update proc
 		mov ecx, [ship].x
 		sub ecx, [rdi].Ufo.pos.x
 		sar ecx, 16
-		; brk
 		call atan2
 		xor r10, r10
 		mov r10b, al

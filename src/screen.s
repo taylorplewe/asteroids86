@@ -165,15 +165,6 @@ screen_draw1bppSprite proc
 
 	lea rdi, pixels
 
-	; r8  - color
-	; r9  - in-spritesheet Rect
-	; r10 - w counter
-	; r11 - h counter
-	; r12 - bit position index
-	; r13 - Dim of whole spritesheet
-
-	; brk
-
 	mov r13, rsi
 	add rsi, sizeof Dim
 

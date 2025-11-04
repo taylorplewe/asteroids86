@@ -19,6 +19,7 @@ bin_resource_type db    "BIN", 0
 
 frame_counter       qword ?
 mode                Mode  ?
+event_bus           Event ?
 flash_color         Pixel <>
 num_flashes_left    dd    ?
 score               dd    ?

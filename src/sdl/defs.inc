@@ -28,6 +28,7 @@ extern SDL_SetWindowIcon            : proto
 ; gamepads
 extern SDL_free                     : proto
 extern SDL_GetGamepads              : proto
+extern SDL_RumbleGamepad            : proto
 extern SDL_OpenGamepad              : proto
 extern SDL_CloseGamepad             : proto
 SDL_INIT_VIDEO   = 20h

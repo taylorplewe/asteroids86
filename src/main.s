@@ -110,7 +110,6 @@ main proc
 		mov qword ptr [ticks], rax
 
 		xor eax, eax
-		btr [input].buttons_pressed, Keys_Any
 		pollLoop:
 			lea rcx, event
 			call SDL_PollEvent
@@ -164,13 +163,11 @@ main proc
 			je quit
 			cmp eax, SDLK_ESC
 			je PausePressed
-			jmp pollLoopNext
+			jmp OtherPressed
 			keyDownCheckEnd:
 
 			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_UP
 			jne keyUpCheckEnd
-			bts [input].buttons_pressed, Keys_Any
-			; which key was pressed?
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
 			je BoostReleased
@@ -194,33 +191,8 @@ main proc
 			je FireReleased
 			cmp eax, SDLK_ESC
 			je PauseReleased
-			jmp pollLoopNext
+			jmp OtherReleased
 			keyUpCheckEnd:
-
-			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_BUTTON_UP
-			jne gamepadButtonUpCheckEnd
-			xor eax, eax
-			mov al, [event].SDL_GamepadButtonEvent.button
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_UP
-			je BoostReleased
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_DOWN
-			je TeleportReleased
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_LEFT
-			je LeftReleased
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_RIGHT
-			je RightReleased
-			cmp al, SDL_GAMEPAD_BUTTON_SOUTH
-			je FireReleased
-			cmp al, SDL_GAMEPAD_BUTTON_EAST
-			je FireReleased
-			cmp al, SDL_GAMEPAD_BUTTON_WEST
-			je TeleportReleased
-			cmp al, SDL_GAMEPAD_BUTTON_NORTH
-			je TeleportReleased
-			cmp al, SDL_GAMEPAD_BUTTON_START
-			je PauseReleased
-			jmp pollLoopNext
-			gamepadButtonUpCheckEnd:
 
 			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_BUTTON_DOWN
 			jne gamepadButtonDownCheckEnd
@@ -244,11 +216,37 @@ main proc
 			je TeleportPressed
 			cmp al, SDL_GAMEPAD_BUTTON_START
 			je PausePressed
-			jmp pollLoopNext
+			jmp OtherPressed
 			gamepadButtonDownCheckEnd:
+
+			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_BUTTON_UP
+			jne gamepadButtonUpCheckEnd
+			xor eax, eax
+			mov al, [event].SDL_GamepadButtonEvent.button
+			cmp al, SDL_GAMEPAD_BUTTON_DPAD_UP
+			je BoostReleased
+			cmp al, SDL_GAMEPAD_BUTTON_DPAD_DOWN
+			je TeleportReleased
+			cmp al, SDL_GAMEPAD_BUTTON_DPAD_LEFT
+			je LeftReleased
+			cmp al, SDL_GAMEPAD_BUTTON_DPAD_RIGHT
+			je RightReleased
+			cmp al, SDL_GAMEPAD_BUTTON_SOUTH
+			je FireReleased
+			cmp al, SDL_GAMEPAD_BUTTON_EAST
+			je FireReleased
+			cmp al, SDL_GAMEPAD_BUTTON_WEST
+			je TeleportReleased
+			cmp al, SDL_GAMEPAD_BUTTON_NORTH
+			je TeleportReleased
+			cmp al, SDL_GAMEPAD_BUTTON_START
+			je PauseReleased
+			jmp OtherReleased
+			gamepadButtonUpCheckEnd:
 
 			AXIS_TURN_DEADZONE = 4000h
 			AXIS_BOOST_DEADZONE = 4000h
+			AXIS_FIRE_DEADZONE = 3000h
 			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_AXIS_MOTION
 			jne gamepadAxisCheckEnd
 			xor eax, eax
@@ -271,6 +269,13 @@ main proc
 				btr [input].buttons_down, Keys_Right ; RightReleased
 				jmp LeftReleased
 			@@:
+			cmp al, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
+			jne @f
+				cmp bx, AXIS_FIRE_DEADZONE
+				jg BoostPressed
+				; brk
+				jmp BoostReleased
+			@@:
 			jmp pollLoopNext
 			gamepadAxisCheckEnd:
 
@@ -279,12 +284,12 @@ main proc
 			jmp pollLoop
 
 			; callbacks
-			for key, <Boost, Teleport, Left, Right, Fire, Pause>
+			for key, <Boost, Teleport, Left, Right, Fire, Pause, Other>
 				@CatStr(key, Pressed):
 					bts [input].buttons_down, @CatStr(Keys_, key)
 					jmp pollLoopNext
 			endm
-			for key, <Boost, Teleport, Left, Right, Fire, Pause>
+			for key, <Boost, Teleport, Left, Right, Fire, Pause, Other>
 				@CatStr(key, Released):
 					btr [input].buttons_down, @CatStr(Keys_, key)
 					jmp pollLoopNext
@@ -309,6 +314,8 @@ main proc
 			xor [is_paused], 1
 		@@:
 
+		mov [event_bus], 0
+
 		call screen_clearPixelBuffer
 
 		call star_updateAndDrawAll
@@ -321,6 +328,24 @@ main proc
 		doGameTick:
 			call game_tick
 		ticksEnd:
+
+		; rumble gamepad for events that happened this frame
+		bt [event_bus], Event_Fire
+		jnc @f
+			mov rcx, [gamepad]
+			mov dx, 0afffh
+			mov r8w, 00000h
+			mov r9d, 50
+			call SDL_RumbleGamepad
+		@@:
+		bt [event_bus], Event_ShipDestroy
+		jnc @f
+			mov rcx, [gamepad]
+			mov dx, 03fffh
+			mov r8w, 0afffh
+			mov r9d, 1000
+			call SDL_RumbleGamepad
+		@@:
 
 		call render
 
@@ -377,7 +402,6 @@ render proc
 	mov rdi, [rbx].SDL_Surface.pixels
 	lea rsi, pixels
 	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 32
-	; brk
 	call memcpyAligned32
 
 	mov rcx, [renderer]

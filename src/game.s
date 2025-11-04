@@ -229,8 +229,8 @@ game_setShipLivesPoints endp
 ; in:
 	; rdi - pointer to Input struct
 game_tick proc
-	bt [rdi].Input.buttons_pressed, Keys_Any
-	jnc @f
+	cmp [rdi].Input.buttons_pressed, 0
+	je @f
 		cmp [screen_show_press_any_key], 0
 		je @f
 		call title_init
@@ -258,7 +258,6 @@ game_tick proc
 		i = 0
 		repeat 8
 			local next
-			; brk
 			cmp [game_gameover_flicker_inds + i * 4], flicker_alphas_len
 			jge next
 			inc [game_gameover_flicker_inds + i * 4]
@@ -489,7 +488,6 @@ game_drawScore proc
 		mov [font_current_char_pos].y, eax
 
 		; bounce
-		; brk
 		lea rax, bounce_offsets
 		; mov r12, 0
 		xor ebx, ebx

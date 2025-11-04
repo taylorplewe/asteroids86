@@ -103,6 +103,9 @@ ship_update proc
 		call bullet_create
 		pop rdi
 
+		; send event (for gamepad rumble)
+		bts [event_bus], Event_Fire
+
 		; kick
 		xor rax, rax
 		mov al, [ship].rot
@@ -337,6 +340,8 @@ ship_destroy proc
 	mov edx, 20
 	add r8b, 256/5
 	call shipShard_create
+
+	bts [event_bus], Event_ShipDestroy ; for rumble
 
 	dec [lives]
 	cmp [lives], 0

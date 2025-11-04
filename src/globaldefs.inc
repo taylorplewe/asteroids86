@@ -60,7 +60,6 @@ BasePoint struct
 BasePoint ends
 
 enum Keys
-	emem Any
 	emem Boost
 	emem Teleport
 	emem Left
@@ -68,12 +67,17 @@ enum Keys
 	emem Fire
 	emem Quit
 	emem Pause
+	emem Other ; for detecting if any key was pressed
 
 Input struct
 	buttons_down     Keys ?
 	buttons_pressed  Keys ?
 	buttons_released Keys ?
 Input ends
+
+enum Event
+	emem Fire
+	emem ShipDestroy
 
 abseax macro
 	push rbx
