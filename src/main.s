@@ -136,36 +136,26 @@ main proc
 			cmp [event].SDL_Event.event_type, SDL_EVENT_QUIT
 			je quit
 
+
 			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_DOWN
 			jne keyDownCheckEnd
 			; which key was pressed?
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
-			je boostPressed
+			je BoostPressed
 			cmp eax, SDLK_UP
-			jne @f
-				boostPressed:
-				bts [keys_down], Keys_Boost
-				jmp pollLoopNext
-			@@:
+			je BoostPressed
 			cmp eax, SDLK_A
-			je leftPressed
+			je LeftPressed
 			cmp eax, SDLK_LEFT
-			jne @f
-				leftPressed:
-				bts [keys_down], Keys_Left
-				jmp pollLoopNext
-			@@:
+			je LeftPressed
 			cmp eax, SDLK_D
-			je rightPressed
+			je RightPressed
 			cmp eax, SDLK_RIGHT
-			jne @f
-				rightPressed:
-				bts [keys_down], Keys_Right
-				jmp pollLoopNext
-			@@:
+			je RightPressed
 			cmp eax, SDLK_Q
 			je quit
+			jmp pollLoopNext
 			keyDownCheckEnd:
 
 			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_UP
@@ -174,55 +164,84 @@ main proc
 			; which key was pressed?
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
-			je boostReleased
+			je BoostReleased
 			cmp eax, SDLK_UP
-			jne @f
-				boostReleased:
-				btr [keys_down], Keys_Boost
-				jmp pollLoopNext
-			@@:
+			je BoostReleased
 			cmp eax, SDLK_A
-			je leftReleased
+			je LeftReleased
 			cmp eax, SDLK_LEFT
-			jne @f
-				leftReleased:
-				btr [keys_down], Keys_Left
-				jmp pollLoopNext
-			@@:
+			je LeftReleased
 			cmp eax, SDLK_D
-			je rightReleased
+			je RightReleased
 			cmp eax, SDLK_RIGHT
-			jne @f
-				rightReleased:
-				btr [keys_down], Keys_Right
-				jmp pollLoopNext
-			@@:
+			je RightReleased
 			cmp eax, SDLK_S
-			je teleportPressed
+			je TeleportPressed
 			cmp eax, SDLK_DOWN
-			jne @f
-				teleportPressed:
-				bts [keys_down], Keys_Teleport
-				jmp pollLoopNext
-			@@:
+			je TeleportPressed
 			cmp eax, SDLK_SPACE
-			je firePressed
+			je FirePressed
 			cmp eax, SDLK_L
-			jne @f
-				firePressed:
-				bts [keys_down], Keys_Fire
-				jmp pollLoopNext
-			@@:
+			je FirePressed
 			cmp eax, SDLK_ESC
 			jne @f
 				xor [is_paused], 1
 				; jmp pollLoopNext
 			@@:
+			jmp pollLoopNext
 			keyUpCheckEnd:
 
+			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_BUTTON_DOWN
+			jne gamepadButtonDownCheckEnd
+			bts [keys_down], Keys_Any
+			xor eax, eax
+			mov al, [event].SDL_GamepadButtonEvent.button
+			cmp al, SDL_GAMEPAD_BUTTON_DPAD_UP
+			je BoostPressed
+			cmp al, SDL_GAMEPAD_BUTTON_DPAD_LEFT
+			je LeftPressed
+			cmp al, SDL_GAMEPAD_BUTTON_DPAD_RIGHT
+			je RightPressed
+			jmp pollLoopNext
+			gamepadButtonDownCheckEnd:
+
+			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_BUTTON_UP
+			jne gamepadButtonUpCheckEnd
+			xor eax, eax
+			mov al, [event].SDL_GamepadButtonEvent.button
+			cmp al, SDL_GAMEPAD_BUTTON_SOUTH
+			je FirePressed
+			cmp al, SDL_GAMEPAD_BUTTON_EAST
+			je FirePressed
+			cmp al, SDL_GAMEPAD_BUTTON_WEST
+			je TeleportPressed
+			cmp al, SDL_GAMEPAD_BUTTON_NORTH
+			je TeleportPressed
+			cmp al, SDL_GAMEPAD_BUTTON_DPAD_DOWN
+			je TeleportPressed
+			cmp al, SDL_GAMEPAD_BUTTON_DPAD_UP
+			je BoostReleased
+			cmp al, SDL_GAMEPAD_BUTTON_DPAD_LEFT
+			je LeftReleased
+			cmp al, SDL_GAMEPAD_BUTTON_DPAD_RIGHT
+			je RightReleased
+			jmp pollLoopNext
+			gamepadButtonUpCheckEnd:
 
 			pollLoopNext:
 			jmp pollLoop
+
+			; callbacks
+			for key, <Boost, Teleport, Fire, Left, Right>
+				@CatStr(key, Pressed):
+					bts [keys_down], @CatStr(Keys_, key)
+					jmp pollLoopNext
+			endm
+			for key, <Boost, Left, Right>
+				@CatStr(key, Released):
+					btr [keys_down], @CatStr(Keys_, key)
+					jmp pollLoopNext
+			endm
 		pollLoopEnd:
 
 		call screen_clearPixelBuffer

@@ -113,7 +113,7 @@ SDL_Surface ends
 SDL_SCALEMODE_NEAREST = 0
 
 ; https://wiki.libsdl.org/SDL3/SDL_GamepadButton
-enum SDL_GamepadButton
+enum SDL_GamepadButton, noscope
     emem SDL_GAMEPAD_BUTTON_SOUTH           ; Bottom face button (e.g. Xbox A button)
     emem SDL_GAMEPAD_BUTTON_EAST            ; Right face button (e.g. Xbox B button)
     emem SDL_GAMEPAD_BUTTON_WEST            ; Left face button (e.g. Xbox X button)
@@ -142,7 +142,7 @@ enum SDL_GamepadButton
     emem SDL_GAMEPAD_BUTTON_MISC6           ; Additional button
     emem SDL_GAMEPAD_BUTTON_COUNT
 
-enum SDL_GamepadAxis
+enum SDL_GamepadAxis, noscope
     emem SDL_GAMEPAD_AXIS_LEFTX
     emem SDL_GAMEPAD_AXIS_LEFTY
     emem SDL_GAMEPAD_AXIS_RIGHTX

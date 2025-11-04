@@ -360,8 +360,6 @@ ship_checkBullets proc
 	push r8
 	push r9
 
-	jmp noHit
-
 	cmp [ship_num_flashes_left], 0
 	jne noHit
 
