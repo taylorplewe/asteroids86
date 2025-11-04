@@ -60,6 +60,8 @@ ship_respawn proc
 	mov [ship].is_boosting, 0
 	mov [ship_num_flashes_left], SHIP_NUM_FLASHES
 	mov [ship_flash_counter], SHIP_FLASH_COUNTER_AMT
+	mov [ship_teleport_shrink_vals_ind], 0
+	mov [ship_teleport_is_growing], 0
 
 	ret
 ship_respawn endp

@@ -228,6 +228,34 @@ main proc
 			jmp pollLoopNext
 			gamepadButtonUpCheckEnd:
 
+			AXIS_TURN_DEADZONE = 4000h
+			AXIS_BOOST_DEADZONE = 4000h
+			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_AXIS_MOTION
+			jne gamepadAxisCheckEnd
+			xor eax, eax
+			mov al, [event].SDL_GamepadAxisEvent.axis
+			mov bx, [event].SDL_GamepadAxisEvent.value
+			cmp al, SDL_GAMEPAD_AXIS_LEFTY
+			jne @f
+				cmp bx, -AXIS_BOOST_DEADZONE
+				jl BoostPressed
+				cmp bx, AXIS_BOOST_DEADZONE
+				jl BoostReleased
+				jmp pollLoopNext
+			@@:
+			cmp al, SDL_GAMEPAD_AXIS_LEFTX
+			jne @f
+				cmp bx, AXIS_TURN_DEADZONE
+				jg RightPressed
+				cmp bx, -AXIS_TURN_DEADZONE
+				jl LeftPressed
+				btr [keys_down], Keys_Right ; RightReleased
+				jmp LeftReleased
+			@@:
+			jmp pollLoopNext
+			gamepadAxisCheckEnd:
+
+
 			pollLoopNext:
 			jmp pollLoop
 
