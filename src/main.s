@@ -184,10 +184,7 @@ main proc
 			cmp eax, SDLK_L
 			je FirePressed
 			cmp eax, SDLK_ESC
-			jne @f
-				xor [is_paused], 1
-				; jmp pollLoopNext
-			@@:
+			je pausePressed
 			jmp pollLoopNext
 			keyUpCheckEnd:
 
@@ -225,6 +222,8 @@ main proc
 			je LeftReleased
 			cmp al, SDL_GAMEPAD_BUTTON_DPAD_RIGHT
 			je RightReleased
+			cmp al, SDL_GAMEPAD_BUTTON_START
+			je pausePressed
 			jmp pollLoopNext
 			gamepadButtonUpCheckEnd:
 
@@ -270,6 +269,8 @@ main proc
 					btr [keys_down], @CatStr(Keys_, key)
 					jmp pollLoopNext
 			endm
+			pausePressed:
+				xor [is_paused], 1
 		pollLoopEnd:
 
 		call screen_clearPixelBuffer
