@@ -67,7 +67,13 @@ enum Keys
 	emem Right
 	emem Fire
 	emem Quit
-	emem Menu
+	emem Pause
+
+Input struct
+	buttons_down     Keys ?
+	buttons_pressed  Keys ?
+	buttons_released Keys ?
+Input ends
 
 abseax macro
 	push rbx

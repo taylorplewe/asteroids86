@@ -227,9 +227,9 @@ game_setShipLivesPoints proc
 game_setShipLivesPoints endp
 
 ; in:
-	; rdi - pointer to Keys struct of keys pressed
+	; rdi - pointer to Input struct
 game_tick proc
-	bt Keys ptr [rdi], Keys_Any
+	bt [rdi].Input.buttons_pressed, Keys_Any
 	jnc @f
 		cmp [screen_show_press_any_key], 0
 		je @f

@@ -48,9 +48,9 @@ title_init proc
 title_init endp
 
 ; in:
-	; rdi - pointer to Keys struct of keys pressed
+	; rdi - pointer to Input struct
 title_tick proc
-	bt Keys ptr [rdi], Keys_Any
+	bt [rdi].Input.buttons_pressed, Keys_Any
 	jnc anyKeyPressEnd
 		cmp [screen_show_press_any_key], 0
 		je @f

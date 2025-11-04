@@ -67,7 +67,7 @@ ship_respawn proc
 ship_respawn endp
 
 ; in:
-	; rdi - pointer to keys_down: Keys struct
+	; rdi - pointer to Input struct
 ship_update proc
 	cmp [ship].respawn_counter, 0
 	je normalUpdate
@@ -80,18 +80,18 @@ ship_update proc
 		@@:
 		ret
 	normalUpdate:
-	bt Keys ptr [rdi], Keys_Left
+	bt [rdi].Input.buttons_down, Keys_Left
 	jnc @f
 		sub [ship].rot, 3
 		jmp turnCheckEnd
 	@@:
-	bt Keys ptr [rdi], Keys_Right
+	bt [rdi].Input.buttons_down, Keys_Right
 	jnc @f
 		add [ship].rot, 3
 	@@:
 	turnCheckEnd:
 
-	bt Keys ptr [rdi], Keys_Fire
+	bt [rdi].Input.buttons_pressed, Keys_Fire
 	jnc @f
 		mov r8d, [ship_points].x
 		shl r8d, 16
@@ -142,7 +142,7 @@ ship_update proc
 				mov [ship_teleport_shrink_vals_ind], eax
 	teleportAnimEnd:
 
-	bt Keys ptr [rdi], Keys_Teleport
+	bt [rdi].Input.buttons_pressed, Keys_Teleport
 	jnc @f
 	cmp [ship_teleport_shrink_vals_ind], 0
 	jne @f
@@ -151,7 +151,7 @@ ship_update proc
 
 	; boost
 	mov [ship].is_boosting, 0
-	bt Keys ptr [rdi], Keys_Boost
+	bt [rdi].Input.buttons_down, Keys_Boost
 	jnc @f
 		inc [ship].is_boosting
 	
