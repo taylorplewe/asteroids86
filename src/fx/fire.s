@@ -5,9 +5,9 @@
 %include "array.s"
 
 
-FIRE_VELOCITY       = 1
-FIRE_MAX_NUM_FRAMES = 30
-MAX_NUM_FIRES       = 64
+FIRE_VELOCITY       equ 1
+FIRE_MAX_NUM_FRAMES equ 30
+MAX_NUM_FIRES       equ 64
 
 
 .data

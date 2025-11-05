@@ -4,17 +4,17 @@
 %include "src/globaldefs.inc"
 
 
-FLICKER_100 = 0ffh
-FLICKER_90  = (((0ffh - DIM_ALPHA) / 10) * 9) + DIM_ALPHA
-FLICKER_80  = (((0ffh - DIM_ALPHA) / 10) * 8) + DIM_ALPHA
-FLICKER_70  = (((0ffh - DIM_ALPHA) / 10) * 7) + DIM_ALPHA
-FLICKER_60  = (((0ffh - DIM_ALPHA) / 10) * 6) + DIM_ALPHA
-FLICKER_50  = (((0ffh - DIM_ALPHA) / 10) * 5) + DIM_ALPHA
-FLICKER_40  = (((0ffh - DIM_ALPHA) / 10) * 4) + DIM_ALPHA
-FLICKER_30  = (((0ffh - DIM_ALPHA) / 10) * 3) + DIM_ALPHA
-FLICKER_20  = (((0ffh - DIM_ALPHA) / 10) * 2) + DIM_ALPHA
-FLICKER_10  = (((0ffh - DIM_ALPHA) / 10) * 1) + DIM_ALPHA
-FLICKER_0   = DIM_ALPHA
+FLICKER_100 equ 0ffh
+FLICKER_90  equ (((0ffh - DIM_ALPHA) / 10) * 9) + DIM_ALPHA
+FLICKER_80  equ (((0ffh - DIM_ALPHA) / 10) * 8) + DIM_ALPHA
+FLICKER_70  equ (((0ffh - DIM_ALPHA) / 10) * 7) + DIM_ALPHA
+FLICKER_60  equ (((0ffh - DIM_ALPHA) / 10) * 6) + DIM_ALPHA
+FLICKER_50  equ (((0ffh - DIM_ALPHA) / 10) * 5) + DIM_ALPHA
+FLICKER_40  equ (((0ffh - DIM_ALPHA) / 10) * 4) + DIM_ALPHA
+FLICKER_30  equ (((0ffh - DIM_ALPHA) / 10) * 3) + DIM_ALPHA
+FLICKER_20  equ (((0ffh - DIM_ALPHA) / 10) * 2) + DIM_ALPHA
+FLICKER_10  equ (((0ffh - DIM_ALPHA) / 10) * 1) + DIM_ALPHA
+FLICKER_0   equ DIM_ALPHA
 
 
 
@@ -117,7 +117,7 @@ flicker_alphas:
 	db FLICKER_0
 	db FLICKER_20
 	db FLICKER_0
-flicker_alphas_len = $ - flicker_alphas
+flicker_alphas_len equ $ - flicker_alphas
 
 
 %endif

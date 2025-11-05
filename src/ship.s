@@ -19,21 +19,21 @@ struc Ship
 	velocity         Vector <?> ; 16.16 fixed point
 endstruc
 
-SHIP_RESPAWN_COUNTER   = 60 * 4
-SHIP_VELOCITY_ACCEL    = 00005000h ; 16.16 fixed point
-SHIP_VELOCITY_MAX      = 00080000h ; 16.16 fixed point
-SHIP_VELOCITY_DRAG     = 0000fa00h ; 16.16 fixed point
-SHIP_VELOCITY_KICK     = 00008000h ; 16.16 fixed point
-SHIP_RADIUS            = 40
-SHIP_R_SQ              = SHIP_RADIUS * SHIP_RADIUS
-SHIP_NUM_FLASHES       = 8
-SHIP_FLASH_COUNTER_AMT = 9
+SHIP_RESPAWN_COUNTER   equ 60 * 4
+SHIP_VELOCITY_ACCEL    equ 00005000h ; 16.16 fixed point
+SHIP_VELOCITY_MAX      equ 00080000h ; 16.16 fixed point
+SHIP_VELOCITY_DRAG     equ 0000fa00h ; 16.16 fixed point
+SHIP_VELOCITY_KICK     equ 00008000h ; 16.16 fixed point
+SHIP_RADIUS            equ 40
+SHIP_R_SQ              equ SHIP_RADIUS * SHIP_RADIUS
+SHIP_NUM_FLASHES       equ 8
+SHIP_FLASH_COUNTER_AMT equ 9
 
 
 .data
 
 ship_base_points BasePoint {32, 0}, {16, 96}, {16, 160}, {11, 90}, {11, 166}
-SHIP_NUM_POINTS = ($ - ship_base_points) / sizeof BasePoint
+SHIP_NUM_POINTS equ ($ - ship_base_points) / sizeof BasePoint
 
 .data?
 
@@ -425,7 +425,7 @@ ship_checkBullets proc
 	ret
 ship_checkBullets endp
 
-SHIP_MAX_NUM_TELEPORT_TRIES = 32
+SHIP_MAX_NUM_TELEPORT_TRIES equ 32
 ship_teleport proc
 	push rbx
 	push rcx

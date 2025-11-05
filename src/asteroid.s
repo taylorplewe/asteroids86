@@ -22,7 +22,7 @@ struc Asteroid
 	rot_speed db     ?
 endstruc
 
-MAX_NUM_ASTEROIDS = 64
+MAX_NUM_ASTEROIDS equ 64
 
 
 .data
@@ -33,18 +33,18 @@ asteroid_shapes FatPtr {asteroid_shape1, asteroid_shape1_len}, {asteroid_shape2,
 asteroid_shapes_end:
 
 asteroid_shape1 BasePoint {48, 08h}, {48, 1eh}, {35, 28h}, {42, 42h}, {48, 58h}, {30, 72h}, {40, 87h}, {46, 9eh}, {32, 0bch}, {43, 0c5h}, {46, 0deh}, {37, 0eeh}
-asteroid_shape1_len = ($ - asteroid_shape1) / BasePoint
+asteroid_shape1_len equ ($ - asteroid_shape1) / BasePoint
 
 asteroid_shape2 BasePoint {30, 00h}, {40, 1eh}, {48, 37h}, {44, 53h}, {32, 68h}, {48, 78h}, {49, 8dh}, {46, 0a6h}, {32, 0bbh}, {43, 0c5h}, {49, 0e0h}, {46, 0f4h}
-asteroid_shape2_len = ($ - asteroid_shape2) / BasePoint
+asteroid_shape2_len equ ($ - asteroid_shape2) / BasePoint
 
 asteroid_shape3 BasePoint {48, 10h}, {39, 20h}, {54, 33h}, {35, 41h}, {46, 60h}, {32, 73h}, {45, 88h}, {46, 0a8h}, {28, 0c6h}, {43, 0c6h}, {51, 0e0h}, {35, 0e8h}
-asteroid_shape3_len = ($ - asteroid_shape3) / BasePoint
+asteroid_shape3_len equ ($ - asteroid_shape3) / BasePoint
 
-ASTEROID_MASS1 = 32
-ASTEROID_MASS2 = 50
-ASTEROID_MASS3 = 70
-ASTEROID_MASS4 = 75 ; for checking collision in a bigger area
+ASTEROID_MASS1 equ 32
+ASTEROID_MASS2 equ 50
+ASTEROID_MASS3 equ 70
+ASTEROID_MASS4 equ 75 ; for checking collision in a bigger area
 asteroid_masses       dd 0, ASTEROID_MASS1,                ASTEROID_MASS2,                ASTEROID_MASS3
 asteroid_r_squareds   dd 0, ASTEROID_MASS1*ASTEROID_MASS1, ASTEROID_MASS2*ASTEROID_MASS2, ASTEROID_MASS3*ASTEROID_MASS3, ASTEROID_MASS4*ASTEROID_MASS4
 asteroid_mass_factors dd 0, 00008000h,                     00010000h,                     00018000h

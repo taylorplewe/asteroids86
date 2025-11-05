@@ -16,9 +16,9 @@ struc Bullet
 	is_evil       dd ?
 endstruc
 
-NUM_BULLETS          = 5
-BULLET_SPEED         = 10
-BULLET_TICKS_TO_LIVE = 60
+NUM_BULLETS          equ 5
+BULLET_SPEED         equ 10
+BULLET_TICKS_TO_LIVE equ 60
 
 
 .data

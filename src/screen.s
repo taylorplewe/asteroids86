@@ -10,7 +10,7 @@
 
 cosmic_color       Pixel <37h, 94h, 6eh, 0ffh> ; 37946e
 press_any_key_text db "PRESS ANY KEY TO CONTINUE"
-press_any_key_text_len = $ - press_any_key_text
+press_any_key_text_len equ $ - press_any_key_text
 
 
 .data?
@@ -522,10 +522,10 @@ screen_drawLine proc
 	ret
 screen_drawLine endp
 
-PRESS_ANY_KEY_KERNING    = 4
-PRESS_ANY_KEY_CHAR_WIDTH = FONT_SM_CHAR_WIDTH + PRESS_ANY_KEY_KERNING
-PRESS_ANY_KEY_FULL_WIDTH = (press_any_key_text_len * PRESS_ANY_KEY_CHAR_WIDTH) - PRESS_ANY_KEY_KERNING
-PRESS_ANY_KEY_FIRST_X    = (((SCREEN_WIDTH / 2) - (PRESS_ANY_KEY_FULL_WIDTH / 2)) + (FONT_SM_CHAR_WIDTH / 2)) shl 16
+PRESS_ANY_KEY_KERNING    equ 4
+PRESS_ANY_KEY_CHAR_WIDTH equ FONT_SM_CHAR_WIDTH + PRESS_ANY_KEY_KERNING
+PRESS_ANY_KEY_FULL_WIDTH equ (press_any_key_text_len * PRESS_ANY_KEY_CHAR_WIDTH) - PRESS_ANY_KEY_KERNING
+PRESS_ANY_KEY_FIRST_X    equ (((SCREEN_WIDTH / 2) - (PRESS_ANY_KEY_FULL_WIDTH / 2)) + (FONT_SM_CHAR_WIDTH / 2)) shl 16
 
 ; in:
 	; set [font_current_char_pos].y

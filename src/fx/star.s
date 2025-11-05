@@ -12,7 +12,7 @@ struc Star
 			  db      ?
 endstruc
 
-NUM_STARS = 1000
+NUM_STARS equ 1000
 
 
 .data?

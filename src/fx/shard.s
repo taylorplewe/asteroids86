@@ -14,9 +14,9 @@ struc Shard
 	ticks_to_live dd ?
 endstruc
 
-MAX_NUM_SHARDS          = 128
-SHARD_VELOCITY_DIFF     = 20000h ; 16.16 fixed point
-SHARD_MIN_TICKS_TO_LIVE = 90
+MAX_NUM_SHARDS          equ 128
+SHARD_VELOCITY_DIFF     equ 20000h ; 16.16 fixed point
+SHARD_MIN_TICKS_TO_LIVE equ 90
 
 
 .data
@@ -37,14 +37,14 @@ shard_createBurst proc
 	psrad xmm0, 2
 	movd rcx, xmm0
 
-	SHARD_CREATE_BURST_REPS = 14
-	LoopInd = SHARD_CREATE_BURST_REPS
+	SHARD_CREATE_BURST_REPS equ 14
+	LoopInd equ SHARD_CREATE_BURST_REPS
 
 	xor r8, r8
 	while LoopInd gt 0
 		call shard_create
 		add r8d, 256/SHARD_CREATE_BURST_REPS
-		LoopInd = LoopInd - 1
+		LoopInd equ LoopInd - 1
 	endm
 
 	pop r8

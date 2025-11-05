@@ -34,7 +34,7 @@ bounce_offsets:
 	db 0
 	db 0
 	db 0
-bounce_offset_len = $ - bounce_offsets
+bounce_offset_len equ $ - bounce_offsets
 
 shake_offsets_x:
 	db 8

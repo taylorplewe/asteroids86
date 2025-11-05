@@ -23,22 +23,22 @@ struc WaveData
 	num_ufos             dd ?
 endstruc
 
-NUM_FLASHES                    = 8
-FLASH_COUNTER_AMT              = 9
-GAME_NEXT_WAVE_COUNTER_AMT     = 60 * 3
-GAME_UFO_GEN_COUNTER_MIN_AMT   = 60 * 3
-GAME_UFO_GEN_COUNTER_RAND_MASK = 01ffh
-GAME_UFO_GEN_YPOS_LEEWAY       = (SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4) ; SCREEN_HEIGHT * 0.75
-GAME_START_NUM_LIVES           = 4
-GAME_LIVES_FLICKER_INC         = 0080h
-GAME_GAMEOVER_COUNTER_AMT      = 60 * 4
-GAME_PRESS_ANY_KEY_COUNTER_AMT = 60 * 7
-GAME_PRESS_ANY_KEY_Y           = ((SCREEN_HEIGHT / 2) + 64) shl 16
+NUM_FLASHES                    equ 8
+FLASH_COUNTER_AMT              equ 9
+GAME_NEXT_WAVE_COUNTER_AMT     equ 60 * 3
+GAME_UFO_GEN_COUNTER_MIN_AMT   equ 60 * 3
+GAME_UFO_GEN_COUNTER_RAND_MASK equ 01ffh
+GAME_UFO_GEN_YPOS_LEEWAY       equ (SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4) ; SCREEN_HEIGHT * 0.75
+GAME_START_NUM_LIVES           equ 4
+GAME_LIVES_FLICKER_INC         equ 0080h
+GAME_GAMEOVER_COUNTER_AMT      equ 60 * 4
+GAME_PRESS_ANY_KEY_COUNTER_AMT equ 60 * 7
+GAME_PRESS_ANY_KEY_Y           equ ((SCREEN_HEIGHT / 2) + 64) shl 16
 
 .data
 
 waves          WaveData { 3, 0, 0, 0 }, { 4, 1, 0, 1 }, { 3, 3, 0, 2 }, { 1, 5, 2, 2 }, { 1, 5, 5, 2 }, { 1, 3, 9, 2 }, { 2, 4, 10, 3 }, { 2, 5, 12, 3 }
-waves_end = $
+waves_end equ $
 
 game_score_pos    Point { 64 shl 16, 64 shl 16 }
 game_lives_pos    Point { 64 shl 16, 160 shl 16 }
@@ -83,10 +83,10 @@ game_init proc
 	mov [game_show_gameover], 0
 	mov [game_show_press_any_key_counter], 0
 
-	i = 0
+	i equ 0
 	repeat @SizeStr(GAMEOVER)
 		mov [game_gameover_flicker_inds + i * 4], 0
-		i = i + 1
+		i equ i + 1
 	endm
 
 	mov eax, [lives]
@@ -106,10 +106,10 @@ game_init proc
 	endm
 
 	mov al, 0ffh
-	i = 0
+	i equ 0
 	repeat GAME_START_NUM_LIVES
 		mov [game_lives_alphas + i], al
-		i = i + 1
+		i equ i + 1
 	endm
 
 	; fall thru
@@ -206,7 +206,7 @@ game_setShipLivesPoints proc
 	xor r11, r11
 	mov r12d, 00010000h
 
-	i = 0
+	i equ 0
 	repeat 4
 		lea r8, ship_base_points
 		lea r9, game_lives_points + (i * (sizeof Point * 5))
@@ -220,7 +220,7 @@ game_setShipLivesPoints proc
 	
 		mov eax, 36 shl 16
 		add [game_lives_pos].x, eax
-		i = i + 1
+		i equ i + 1
 	endm
 
 	ret
@@ -255,14 +255,14 @@ game_tick proc
 	; flicker game over
 	cmp [game_gameover_flicker_inds], 0
 	je gameoverFlickerEnd
-		i = 0
+		i equ 0
 		repeat 8
 			local next
 			cmp [game_gameover_flicker_inds + i * 4], flicker_alphas_len
 			jge next
 			inc [game_gameover_flicker_inds + i * 4]
 			next:
-			i = i + 1
+			i equ i + 1
 		endm
 	gameoverFlickerEnd:
 
@@ -272,13 +272,13 @@ game_tick proc
 		dec [game_show_gameover_counter]
 		jne gameoverCounterEnd
 		inc [game_show_gameover]
-		i = 0
+		i equ 0
 		repeat 8
 			rand eax
 			and eax, 11111b
 			inc eax
 			mov [game_gameover_flicker_inds + i * 4], eax
-			i = i + 1
+			i equ i + 1
 		endm
 	gameoverCounterEnd:
 
@@ -541,7 +541,7 @@ game_drawScore proc
 game_drawScore endp
 
 game_setLivesAlphas macro
-	i = 0
+	i equ 0
 	repeat GAME_START_NUM_LIVES
 		
 	endm
@@ -551,7 +551,7 @@ game_drawLives proc
 	game_setLivesAlphas
 	mov r8d, [fg_color]
 
-	i = 0
+	i equ 0
 	repeat GAME_START_NUM_LIVES
 		xor eax, eax
 		mov al, [game_lives_alphas + i]
@@ -561,15 +561,15 @@ game_drawLives proc
 		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*0, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*1
 		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*0, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*2
 		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*3, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*4
-		i = i + 1
+		i equ i + 1
 	endm
 	ret
 game_drawLives endp
 
-GAMEOVER_CHAR_KERNING = 16
-GAMEOVER_CHAR_WIDTH   = FONT_LG_CHAR_WIDTH + GAMEOVER_CHAR_KERNING
-GAMEOVER_FULL_WIDTH   = @SizeStr(GAMEOVER) * GAMEOVER_CHAR_WIDTH
-GAMEOVER_FIRST_X      = (((SCREEN_WIDTH / 2) - (GAMEOVER_FULL_WIDTH / 2)) + (FONT_LG_CHAR_WIDTH / 2)) shl 16
+GAMEOVER_CHAR_KERNING equ 16
+GAMEOVER_CHAR_WIDTH   equ FONT_LG_CHAR_WIDTH + GAMEOVER_CHAR_KERNING
+GAMEOVER_FULL_WIDTH   equ @SizeStr(GAMEOVER) * GAMEOVER_CHAR_WIDTH
+GAMEOVER_FIRST_X      equ (((SCREEN_WIDTH / 2) - (GAMEOVER_FULL_WIDTH / 2)) + (FONT_LG_CHAR_WIDTH / 2)) shl 16
 
 gameoverUs:
 	dw FONT_LG_X_G

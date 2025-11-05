@@ -22,19 +22,19 @@ struc Ufo
 	rot         db     ?
 endstruc
 
-MAX_NUM_UFOS           = 4
-UFO_NUM_FRAMES         = 4
-UFO_FRAME_CTR_AMT      = 6
-UFO_SPR_WIDTH          = 80
-UFO_SPR_HEIGHT         = 112
-UFO_BBOX_WIDTH         = 84
-UFO_BBOX_HEIGHT        = 124
-UFO_SHOOT_TIMER_AMT    = 64
-UFO_TURN_TIMER_MIN_AMT = 60 * 1
-UFO_TURN_TIMER_MAX_AMT = 60 * 6
-UFO_TURN_ROT           = 32
-UFO_SPEED              = 2
-UFO_SCORE_ADD          = 200
+MAX_NUM_UFOS           equ 4
+UFO_NUM_FRAMES         equ 4
+UFO_FRAME_CTR_AMT      equ 6
+UFO_SPR_WIDTH          equ 80
+UFO_SPR_HEIGHT         equ 112
+UFO_BBOX_WIDTH         equ 84
+UFO_BBOX_HEIGHT        equ 124
+UFO_SHOOT_TIMER_AMT    equ 64
+UFO_TURN_TIMER_MIN_AMT equ 60 * 1
+UFO_TURN_TIMER_MAX_AMT equ 60 * 6
+UFO_TURN_ROT           equ 32
+UFO_SPEED              equ 2
+UFO_SCORE_ADD          equ 200
 
 
 .data
@@ -364,9 +364,9 @@ ufo_destroy proc
 	push rdx
 	push r8
 
-	UFO_DESTROY_Y_DIFF = UFO_BBOX_HEIGHT / 9
-	UFO_DESTROY_X_DIFF = UFO_BBOX_WIDTH / 6
-	UFO_DESTROY_ROT    = 30
+	UFO_DESTROY_Y_DIFF equ UFO_BBOX_HEIGHT / 9
+	UFO_DESTROY_X_DIFF equ UFO_BBOX_WIDTH / 6
+	UFO_DESTROY_ROT    equ 30
 
 	mov r8b, -UFO_DESTROY_ROT
 	mov rcx, ((UFO_DESTROY_Y_DIFF) shl 48) or ((UFO_DESTROY_X_DIFF) shl 16)

@@ -2,7 +2,7 @@
 %define global_h
 
 
-GAMEOVER_TIMER_AMT = 60 * 4
+GAMEOVER_TIMER_AMT equ 60 * 4
 
 
 .data

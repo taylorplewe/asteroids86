@@ -16,9 +16,9 @@ struc ShipShard
 	ticks_to_live dd ?
 endstruc
 
-MAX_NUM_SHIP_SHARDS          = 64
-SHIP_SHARD_MIN_TICKS_TO_LIVE = 120
-SHIP_SHARD_VELOCITY_DIFF     = 24000h
+MAX_NUM_SHIP_SHARDS          equ 64
+SHIP_SHARD_MIN_TICKS_TO_LIVE equ 120
+SHIP_SHARD_VELOCITY_DIFF     equ 24000h
 
 
 .data

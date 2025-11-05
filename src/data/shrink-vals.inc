@@ -17,7 +17,7 @@ shrink_vals:
 	dd 00009800h ; - 2000
 	dd 00006800h ; - 3000
 	dd 00002000h ; - 4800
-shrink_vals_len = ($ - shrink_vals) / 4
+shrink_vals_len equ ($ - shrink_vals) / 4
 
 
 %endif

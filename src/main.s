@@ -246,9 +246,9 @@ main proc
 			jmp OtherReleased
 			gamepadButtonUpCheckEnd:
 
-			AXIS_TURN_DEADZONE = 4000h
-			AXIS_BOOST_DEADZONE = 4000h
-			AXIS_FIRE_DEADZONE = 3000h
+			AXIS_TURN_DEADZONE equ 4000h
+			AXIS_BOOST_DEADZONE equ 4000h
+			AXIS_FIRE_DEADZONE equ 3000h
 			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_AXIS_MOTION
 			jne gamepadAxisCheckEnd
 			xor eax, eax

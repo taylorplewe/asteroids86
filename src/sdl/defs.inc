@@ -29,30 +29,30 @@ extern SDL_GetGamepads              : proto
 extern SDL_RumbleGamepad            : proto
 extern SDL_OpenGamepad              : proto
 extern SDL_CloseGamepad             : proto
-SDL_INIT_VIDEO   = 20h
-SDL_INIT_GAMEPAD = 2000h
+SDL_INIT_VIDEO   equ 20h
+SDL_INIT_GAMEPAD equ 2000h
 
-SDL_EVENT_QUIT                = 100h
-SDL_EVENT_KEY_DOWN            = 300h
-SDL_EVENT_KEY_UP              = 301h
-SDL_EVENT_GAMEPAD_AXIS_MOTION = 650h ; Gamepad axis motion
-SDL_EVENT_GAMEPAD_BUTTON_DOWN = 651h ; Gamepad button pressed
-SDL_EVENT_GAMEPAD_BUTTON_UP   = 652h ; Gamepad button released
+SDL_EVENT_QUIT                equ 100h
+SDL_EVENT_KEY_DOWN            equ 300h
+SDL_EVENT_KEY_UP              equ 301h
+SDL_EVENT_GAMEPAD_AXIS_MOTION equ 650h ; Gamepad axis motion
+SDL_EVENT_GAMEPAD_BUTTON_DOWN equ 651h ; Gamepad button pressed
+SDL_EVENT_GAMEPAD_BUTTON_UP   equ 652h ; Gamepad button released
 
-SDLK_ESC   = 1bh
-SDLK_SPACE = 20h
-SDLK_W     = 77h
-SDLK_A     = 61h
-SDLK_S     = 73h
-SDLK_D     = 64h
-SDLK_Q     = 71h
-SDLK_L     = 6ch
-SDLK_UP    = 40000052h
-SDLK_DOWN  = 40000051h
-SDLK_LEFT  = 40000050h
-SDLK_RIGHT = 4000004fh
+SDLK_ESC   equ 1bh
+SDLK_SPACE equ 20h
+SDLK_W     equ 77h
+SDLK_A     equ 61h
+SDLK_S     equ 73h
+SDLK_D     equ 64h
+SDLK_Q     equ 71h
+SDLK_L     equ 6ch
+SDLK_UP    equ 40000052h
+SDLK_DOWN  equ 40000051h
+SDLK_LEFT  equ 40000050h
+SDLK_RIGHT equ 4000004fh
 
-SDL_PIXELFORMAT_RGBA32 = 376840196 ; idk
+SDL_PIXELFORMAT_RGBA32 equ 376840196 ; idk
 
 SDL_Event struct
 	event_type dd ?
@@ -109,7 +109,7 @@ SDL_Surface struct
 	reserved dq               ? ; 36
 SDL_Surface ends
 
-SDL_SCALEMODE_NEAREST = 0
+SDL_SCALEMODE_NEAREST equ 0
 
 ; https://wiki.libsdl.org/SDL3/SDL_GamepadButton
 %define SDL_GamepadButton dd

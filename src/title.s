@@ -8,13 +8,13 @@
 %include "src/screen.s"
 
 
-TITLE_APPEAR_DELAY_COUNTER_AMT     = 60 * 2
-TITLE_MAX_NUM_LINES_TO_DRAW        = 33
-TITLE_NUM_FRAMES                   = 3
-TITLE_FRAME_TIME                   = 12
-TITLE_86_FLICKER_DELAY_COUNTER_AMT = 60 * 2
-TITLE_PRESS_ANY_KEY_Y              = ((SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4)) shl 16
-TITLE_PRESS_ANY_KEY_COUNTER_AMT    = 60 * 4
+TITLE_APPEAR_DELAY_COUNTER_AMT     equ 60 * 2
+TITLE_MAX_NUM_LINES_TO_DRAW        equ 33
+TITLE_NUM_FRAMES                   equ 3
+TITLE_FRAME_TIME                   equ 12
+TITLE_86_FLICKER_DELAY_COUNTER_AMT equ 60 * 2
+TITLE_PRESS_ANY_KEY_Y              equ ((SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4)) shl 16
+TITLE_PRESS_ANY_KEY_COUNTER_AMT    equ 60 * 4
 
 
 .data?
@@ -116,7 +116,7 @@ title_tick proc
 	; advance 86 flicker
 	cmp [title_86_flicker_inds], 0
 	je @f
-		i = 0
+		i equ 0
 		repeat 2
 			local next
 			cmp [title_86_flicker_inds + i * 4], flicker_alphas_len
@@ -124,7 +124,7 @@ title_tick proc
 			inc [title_86_flicker_inds + i * 4]
 
 			next:
-			i = i + 1
+			i equ i + 1
 		endm
 	@@:
 
@@ -134,13 +134,13 @@ title_tick proc
 		dec [title_86_flicker_delay_counter]
 		jne _86FlickerDelayEnd
 		; generate 2 random indexes into the flicker array
-		i = 0
+		i equ 0
 		repeat 2
 			rand eax
 			and eax, 11111b
 			inc eax
 			mov [title_86_flicker_inds + i * 4], eax
-			i = i + 1
+			i equ i + 1
 		endm
 	_86FlickerDelayEnd:
 
@@ -280,10 +280,10 @@ title_draw86 proc
 	ret
 title_draw86 endp
 
-TITLE_CREDIT_X = ((SCREEN_WIDTH / 2) + 248) shl 16
-TITLE_CREDIT_Y = (SCREEN_HEIGHT - 32) shl 16
+TITLE_CREDIT_X equ ((SCREEN_WIDTH / 2) + 248) shl 16
+TITLE_CREDIT_Y equ (SCREEN_HEIGHT - 32) shl 16
 my_name db "TAYLOR PLEWE"
-my_name_len = $ - my_name
+my_name_len equ $ - my_name
 title_drawCredit proc
 	cmp [screen_show_press_any_key], 0
 	je _ret
