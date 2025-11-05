@@ -140,9 +140,9 @@ main proc
 			; which key was pressed?
 			mov eax, [event].SDL_KeyboardEvent.key
 			cmp eax, SDLK_W
-			je BoostPressed
+			je BoostKeyPressed
 			cmp eax, SDLK_UP
-			je BoostPressed
+			je BoostKeyPressed
 			cmp eax, SDLK_S
 			je TeleportPressed
 			cmp eax, SDLK_DOWN
@@ -245,21 +245,14 @@ main proc
 			gamepadButtonUpCheckEnd:
 
 			AXIS_TURN_DEADZONE = 4000h
-			AXIS_BOOST_DEADZONE = 4000h
+			AXIS_BOOST_DEADZONE = 500h
 			AXIS_FIRE_DEADZONE = 3000h
 			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_AXIS_MOTION
 			jne gamepadAxisCheckEnd
 			xor eax, eax
+			xor ebx, ebx
 			mov al, [event].SDL_GamepadAxisEvent.axis
 			mov bx, [event].SDL_GamepadAxisEvent.value
-			cmp al, SDL_GAMEPAD_AXIS_LEFTY
-			jne @f
-				cmp bx, -AXIS_BOOST_DEADZONE
-				jl BoostPressed
-				cmp bx, AXIS_BOOST_DEADZONE
-				jl BoostReleased
-				jmp pollLoopNext
-			@@:
 			cmp al, SDL_GAMEPAD_AXIS_LEFTX
 			jne @f
 				cmp bx, AXIS_TURN_DEADZONE
@@ -271,7 +264,8 @@ main proc
 			@@:
 			cmp al, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
 			jne @f
-				cmp bx, AXIS_FIRE_DEADZONE
+				mov [input].boost_val, bx
+				cmp bx, AXIS_BOOST_DEADZONE
 				jg BoostPressed
 				; brk
 				jmp BoostReleased
@@ -294,6 +288,9 @@ main proc
 					btr [input].buttons_down, @CatStr(Keys_, key)
 					jmp pollLoopNext
 			endm
+			BoostKeyPressed:
+				mov [input].boost_val, 7fffh
+				jmp BoostPressed
 		pollLoopEnd:
 
 		; set pressed & released keys
@@ -333,17 +330,17 @@ main proc
 		bt [event_bus], Event_Fire
 		jnc @f
 			mov rcx, [gamepad]
-			mov dx, 0afffh
-			mov r8w, 00000h
+			mov dx, 8000h
+			mov r8w, 0
 			mov r9d, 50
 			call SDL_RumbleGamepad
 		@@:
 		bt [event_bus], Event_ShipDestroy
 		jnc @f
 			mov rcx, [gamepad]
-			mov dx, 03fffh
+			mov dx, 3fffh
 			mov r8w, 0afffh
-			mov r9d, 1000
+			mov r9d, 700
 			call SDL_RumbleGamepad
 		@@:
 

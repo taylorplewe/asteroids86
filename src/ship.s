@@ -155,14 +155,38 @@ ship_update proc
 	; boost
 	mov [ship].is_boosting, 0
 	bt [rdi].Input.buttons_down, Keys_Boost
-	jnc @f
+	jnc boostEnd
 		inc [ship].is_boosting
+
+		; velocity bounds check
+		xor ebx, ebx
+		mov bx, [rdi].Input.boost_val
+		imul rbx, SHIP_VELOCITY_MAX
+		shr rbx, 15  ; ebx = +max
+		mov ecx, ebx
+		neg ecx      ; ecx = -max
+		mov eax, [ship].velocity.x
+		cmp eax, ebx
+		jg boostEnd
+		cmp eax, ecx
+		jle boostEnd
+		yVeloCheck:
+		mov eax, [ship].velocity.y
+		cmp eax, ebx
+		jg boostEnd
+		cmp eax, ecx
+		jle boostEnd
+
+		xor ebx, ebx
+		mov bx, [rdi].Input.boost_val
+		imul rbx, SHIP_VELOCITY_ACCEL
+		shr rbx, 15
 	
 		xor rax, rax
 		mov al, [ship].rot
 		call sin
 		cdqe
-		imul rax, SHIP_VELOCITY_ACCEL
+		imul rax, rbx
 		sar rax, 31
 		add [ship].velocity.x, eax
 
@@ -170,10 +194,10 @@ ship_update proc
 		mov al, [ship].rot
 		call cos
 		cdqe
-		imul rax, SHIP_VELOCITY_ACCEL
+		imul rax, rbx
 		sar rax, 31
 		sub [ship].velocity.y, eax
-	@@:
+	boostEnd:
 
 	; drag
 	mov eax, [ship].velocity.x
@@ -192,31 +216,6 @@ ship_update proc
 		sar rax, 16
 		mov [ship].velocity.y, eax
 	@@:
-
-	; velocity bounds check
-	mov eax, [ship].velocity.x
-	cmp eax, SHIP_VELOCITY_MAX
-	jg xVelocitySetMax
-	cmp eax, -SHIP_VELOCITY_MAX
-	jg yVeloCheck
-	;xVelocitySetMin:
-		mov [ship].velocity.x, -SHIP_VELOCITY_MAX
-		jmp yVeloCheck
-	xVelocitySetMax:
-		mov [ship].velocity.x, SHIP_VELOCITY_MAX
-	yVeloCheck:
-
-	mov eax, [ship].velocity.y
-	cmp eax, SHIP_VELOCITY_MAX
-	jg yVelocitySetMax
-	cmp eax, -SHIP_VELOCITY_MAX
-	jg yVeloCheckEnd
-	;yVelocitySetMin:
-		mov [ship].velocity.y, -SHIP_VELOCITY_MAX
-		jmp yVeloCheckEnd
-	yVelocitySetMax:
-		mov [ship].velocity.y, SHIP_VELOCITY_MAX
-	yVeloCheckEnd:
 
 	; add velocity to position
 	mov eax, [ship].velocity.x
@@ -454,6 +453,13 @@ ship_teleport proc
 		test eax, eax
 		loopne checkLoop
 	checkLoopEnd:
+
+	; possibly self-destruct
+	rand eax
+	and eax, 111b
+	jne @f
+		call ship_destroy
+	@@:
 
 	pop r8
 	pop rsi

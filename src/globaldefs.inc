@@ -73,6 +73,7 @@ Input struct
 	buttons_down     Keys ?
 	buttons_pressed  Keys ?
 	buttons_released Keys ?
+	boost_val        dw   ?
 Input ends
 
 enum Event
