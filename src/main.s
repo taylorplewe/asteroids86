@@ -193,34 +193,32 @@ main proc
 				next:
 			endm
 
-			; AXIS_TURN_DEADZONE = 4000h
-			; AXIS_BOOST_DEADZONE = 500h
-			; AXIS_FIRE_DEADZONE = 3000h
-			; cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_AXIS_MOTION
-			; jne gamepadAxisCheckEnd
-			; xor eax, eax
-			; xor ebx, ebx
-			; mov al, [event].SDL_GamepadAxisEvent.axis
-			; mov bx, [event].SDL_GamepadAxisEvent.value
-			; cmp al, SDL_GAMEPAD_AXIS_LEFTX
-			; jne @f
-			; 	cmp bx, AXIS_TURN_DEADZONE
-			; 	jg RightPressed
-			; 	cmp bx, -AXIS_TURN_DEADZONE
-			; 	jl LeftPressed
-			; 	btr [input].buttons_down, Keys_Right ; RightReleased
-			; 	jmp LeftReleased
-			; @@:
-			; cmp al, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
-			; jne @f
-			; 	mov [input].boost_val, bx
-			; 	cmp bx, AXIS_BOOST_DEADZONE
-			; 	jg BoostPressed
-			; 	; brk
-			; 	jmp BoostReleased
-			; @@:
-			; jmp pollLoopNext
-			; gamepadAxisCheckEnd:
+			; axis
+			AXIS_TURN_DEADZONE = 4000h
+			AXIS_BOOST_DEADZONE = 500h
+
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_AXIS_LEFTX
+			call SDL_GetGamepadAxis
+			cmp ax, AXIS_TURN_DEADZONE
+			jle @f
+				bts [input].buttons_down, Keys_Right
+				jmp leftXCheckEnd
+			@@:
+			cmp ax, -AXIS_TURN_DEADZONE
+			jge @f
+				bts [input].buttons_down, Keys_Left
+			@@:
+			leftXCheckEnd:
+
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
+			call SDL_GetGamepadAxis
+			cmp ax, AXIS_BOOST_DEADZONE
+			jle @f
+			mov [input].boost_val, ax
+			bts [input].buttons_down, Keys_Boost
+			@@:
 		inputEnd:
 
 		; set pressed & released keys
