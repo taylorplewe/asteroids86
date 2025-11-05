@@ -1,12 +1,12 @@
-ifndef array_h
-array_h = 1
+%ifndef array_h
+%define array_h
 
 
-Array struct
+struc Array
     data    FatPtr <?>
     cap     dd     ?
     el_size dq     ?
-Array ends
+endstruc
 
 
 .code
@@ -133,4 +133,4 @@ array_clear proc
 array_clear endp
 
 
-endif
+%endif

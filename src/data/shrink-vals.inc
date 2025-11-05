@@ -1,5 +1,5 @@
-ifndef shrinkVals_h
-shrinkVals_h = 1
+%ifndef shrinkVals_h
+%define shrinkVals_h
 
 
 .data
@@ -20,4 +20,4 @@ shrink_vals:
 shrink_vals_len = ($ - shrink_vals) / 4
 
 
-endif
+%endif

@@ -1,18 +1,17 @@
-ifndef ufo_h
-ufo_h = 1
+%ifndef ufo_h
+%define ufo_h
 
-include <globaldefs.inc>
-include <windows\defs.inc>
+%include "src/globaldefs.inc"
 
-include <global.s>
-include <common.s>
-include <array.s>
-include <screen.s>
-include <bullet.s>
-include <ship.s>
+%include "src/global.s"
+%include "src/common.s"
+%include "src/array.s"
+%include "src/screen.s"
+%include "src/bullet.s"
+%include "src/ship.s"
 
 
-Ufo struct
+struc Ufo
 	pos         Point  <?>
 	velocity    Vector <?>
 	targ_pos    Point  <?>
@@ -21,7 +20,7 @@ Ufo struct
 	frame_ctr   dd     ?
 	turn_timer  dd     ?
 	rot         db     ?
-Ufo ends
+endstruc
 
 MAX_NUM_UFOS           = 4
 UFO_NUM_FRAMES         = 4
@@ -469,4 +468,4 @@ ufo_draw endp
 
 
 
-endif
+%endif

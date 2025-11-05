@@ -1,9 +1,7 @@
-ifndef font_h
-font_h = 1
+%ifndef font_h
+%define font_h
 
-include <windows\defs.inc>
-
-include <global.s>
+%include "src/global.s"
 
 
 FONT_SM_CHAR_WIDTH    = 16
@@ -83,4 +81,4 @@ font_initSprData proc
 font_initSprData endp
 
 
-endif
+%endif

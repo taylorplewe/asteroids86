@@ -1,23 +1,23 @@
-ifndef ship_h
-ship_h = 1
+%ifndef ship_h
+%define ship_h
 
-include <globaldefs.inc>
+%include "src/globaldefs.inc"
 
-include <data\shrink-vals.inc>
-include <fx\fire.s>
-include <fx\ship-shard.s>
-include <bullet.s>
-include <screen.s>
+%include "src/data/shrink-vals.inc"
+%include "src/fx/fire.s"
+%include "src/fx/ship-shard.s"
+%include "src/bullet.s"
+%include "src/screen.s"
 
 
-Ship struct
+struc Ship
 	x                dd     ?   ; 16.16 fixed point
 	y                dd     ?   ; 16.16 fixed point
 	rot              db     ?
 	is_boosting      db     ?
 	respawn_counter  dd     ?
 	velocity         Vector <?> ; 16.16 fixed point
-Ship ends
+endstruc
 
 SHIP_RESPAWN_COUNTER   = 60 * 4
 SHIP_VELOCITY_ACCEL    = 00005000h ; 16.16 fixed point
@@ -477,4 +477,4 @@ ship_draw proc
 ship_draw endp
 
 
-endif
+%endif

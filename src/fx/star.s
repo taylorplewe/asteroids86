@@ -1,16 +1,16 @@
-ifndef star_h
-star_h = 1
+%ifndef star_h
+%define star_h
 
-include <global.s>
+%include "global.s"
 
 
-Star struct 8
+struc Star
 	pos       Point16 <>
 	luminence db      ?
 	          db      ?
 			  db      ?
 			  db      ?
-Star ends
+endstruc
 
 NUM_STARS = 1000
 
@@ -127,4 +127,4 @@ star_updateAndDrawAll proc
 star_updateAndDrawAll endp
 
 
-endif
+%endif

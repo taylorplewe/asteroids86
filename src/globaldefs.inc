@@ -1,83 +1,82 @@
-ifndef globaldefs_h
-globaldefs_h = 1
-
-include <enum.inc>
+%ifndef globaldefs_h
+%define globaldefs_h
 
 
-; SCREEN_WIDTH  = 1920
-; SCREEN_HEIGHT = 1080
+; SCREEN_WIDTH  equ 1920
+; SCREEN_HEIGHT equ 1080
 
-; SCREEN_WIDTH  = 1600
-; SCREEN_HEIGHT = 900
+; SCREEN_WIDTH  equ 1600
+; SCREEN_HEIGHT equ 900
 
-; SCREEN_WIDTH  = 1440
-; SCREEN_HEIGHT = 810
+; SCREEN_WIDTH  equ 1440
+; SCREEN_HEIGHT equ 810
 
-SCREEN_WIDTH  = 1280
-SCREEN_HEIGHT = 720
+SCREEN_WIDTH  equ 1280
+SCREEN_HEIGHT equ 720
 
-DIM_ALPHA = 20h
+DIM_ALPHA equ 20h
 
 
-enum Mode
-	emem Title
-	emem Game
+%define Mode dd
+Title equ 0
+Game  equ 1
 
-FatPtr struct
-	pntr qword ?
-	len  dd    ?
-FatPtr ends
+struc FatPtr
+	pntr: qword ?
+	len:  dd    ?
+endstruc
 
-Pixel struct
-	r db ?
-	g db ?
-	b db ?
-	a db ?
-Pixel ends
+struc Pixel
+	r: resb 1
+	g: resb 1
+	b: resb 1
+	a: resb 1
+endstruc
 
-Point struct
+struc Point
 	x dd ?
 	y dd ?
-Point ends
-Point16 struct
+endstruc
+struc Point16
 	x dw ?
 	y dw ?
-Point16 ends
+endstruc
 Vector typedef Point ; ??
-Dim struct
+struc Dim
 	w dd ?
 	h dd ?
-Dim ends
-Rect struct
+endstruc
+struc Rect
 	pos Point <>
 	dim Dim   <>
-Rect ends
+endstruc
 
 ; rotations and line lengths for drawing things
-BasePoint struct
+struc BasePoint
 	vec dd ?
 	rad db ? ; 256-based radians; 256 = 360 degrees
-BasePoint ends
+endstruc
 
-enum Keys
-	emem Boost
-	emem Teleport
-	emem Left
-	emem Right
-	emem Fire
-	emem Quit
-	emem Pause
-	emem Other ; for detecting if any key was pressed
+%define Keys dd
+Keys_Boost    equ 0
+Keys_Teleport equ 1
+Keys_Left     equ 2
+Keys_Right    equ 3
+Keys_Fire     equ 4
+Keys_Quit     equ 5
+Keys_Pause    equ 6
+Keys_Other    equ 7 ; for detecting if any key was pressed
 
-Input struct
+struc Input
 	buttons_down     Keys ?
 	buttons_pressed  Keys ?
 	buttons_released Keys ?
-Input ends
+endstruc
 
 enum Event
-	emem Fire
-	emem ShipDestroy
+%define Event dd
+Event_Fire        equ 0
+Event_ShipDestroy equ 1
 
 abseax macro
 	push rbx
@@ -105,4 +104,4 @@ rand macro reg:req
 endm
 
 
-endif
+%endif

@@ -1,5 +1,5 @@
-ifndef global_h
-global_h = 1
+%ifndef global_h
+%define global_h
 
 
 GAMEOVER_TIMER_AMT = 60 * 4
@@ -29,4 +29,4 @@ gameover_visibility dd    ?
 is_in_gameover      dd    ?
 
 
-endif
+%endif

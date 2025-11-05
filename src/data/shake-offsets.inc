@@ -1,5 +1,5 @@
-ifndef shakeOffsets_h
-shakeOffsets_h = 1
+%ifndef shakeOffsets_h
+%define shakeOffsets_h
 
 
 .data
@@ -42,4 +42,4 @@ shake_offsets_x:
 	db 6
 
 
-endif
+%endif

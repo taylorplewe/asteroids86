@@ -1,11 +1,11 @@
-ifndef title_h
-title_h = 1
+%ifndef title_h
+%define title_h
 
-include <globaldefs.inc>
-include <data\title-points.inc>
+%include "src/globaldefs.inc"
+%include "src/data/title-points.inc"
 
-include <global.s>
-include <screen.s>
+%include "src/global.s"
+%include "src/screen.s"
 
 
 TITLE_APPEAR_DELAY_COUNTER_AMT     = 60 * 2
@@ -387,4 +387,4 @@ title_drawCredit proc
 title_drawCredit endp
 
 
-endif
+%endif

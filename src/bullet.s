@@ -1,20 +1,20 @@
-ifndef bullet_h
-bullet_h = 1
+%ifndef bullet_h
+%define bullet_h
 
-include <globaldefs.inc>
+%include "src/globaldefs.inc"
 
-include <common.s>
-include <global.s>
-include <array.s>
-include <screen.s>
+%include "src/common.s"
+%include "src/global.s"
+%include "src/array.s"
+%include "src/screen.s"
 
 
-Bullet struct
+struc Bullet
 	pos           Point  <?> ; 16.16 fixed point x and y
 	velocity      Vector <?> ; 16.16 fixed point x and y
 	ticks_to_live dd ?
 	is_evil       dd ?
-Bullet ends
+endstruc
 
 NUM_BULLETS          = 5
 BULLET_SPEED         = 10
@@ -148,4 +148,4 @@ bullet_draw proc
 bullet_draw endp
 
 
-endif
+%endif

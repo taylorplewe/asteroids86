@@ -1,27 +1,27 @@
-ifndef game_h
-game_h = 1
+%ifndef game_h
+%define game_h
 
-include <data\shake-offsets.inc>
-include <data\flicker-alphas.inc>
+%include "src/data/shake-offsets.inc"
+%include "src/data/flicker-alphas.inc"
 
-include <global.s>
-include <font.s>
-include <fx\shard.s>
-include <fx\ship-shard.s>
-include <fx\fire.s>
-include <fx\star.s>
-include <bullet.s>
-include <ship.s>
-include <asteroid.s>
-include <ufo.s>
+%include "src/global.s"
+%include "src/font.s"
+%include "src/fx/shard.s"
+%include "src/fx/ship-shard.s"
+%include "src/fx/fire.s"
+%include "src/fx/star.s"
+%include "src/bullet.s"
+%include "src/ship.s"
+%include "src/asteroid.s"
+%include "src/ufo.s"
 
 
-WaveData struct
+struc WaveData
 	num_large_asteroids  dd ?
 	num_medium_asteroids dd ?
 	num_small_asteroids  dd ?
 	num_ufos             dd ?
-WaveData ends
+endstruc
 
 NUM_FLASHES                    = 8
 FLASH_COUNTER_AMT              = 9
@@ -658,4 +658,4 @@ game_drawGameOver proc
 game_drawGameOver endp
 
 
-endif
+%endif

@@ -1,18 +1,18 @@
-ifndef shard_h
-shard_h = 1
+%ifndef shard_h
+%define shard_h
 
-include <globaldefs.inc>
+%include "globaldefs.inc"
 
-include <array.s>
-include <screen.s>
+%include "array.s"
+%include "screen.s"
 
 
-Shard struct
+struc Shard
 	pos           Point  <?> ; 16.16 fixed point
 	velocity      Vector <?> ; 16.16 fixed point
 	radius        dd ?
 	ticks_to_live dd ?
-Shard ends
+endstruc
 
 MAX_NUM_SHARDS          = 128
 SHARD_VELOCITY_DIFF     = 20000h ; 16.16 fixed point
@@ -192,4 +192,4 @@ shard_draw proc
 shard_draw endp
 
 
-endif
+%endif

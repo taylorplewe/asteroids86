@@ -1,18 +1,18 @@
-ifndef asteroid_h
-asteroid_h = 1
+%ifndef asteroid_h
+%define asteroid_h
 
-include <globaldefs.inc>
+%include "src/globaldefs.inc"
 
-include <common.s>
-include <array.s>
-include <fx\shard.s>
-include <screen.s>
-include <bullet.s>
-include <ufo.s>
-include <ship.s>
+%include "src/common.s"
+%include "src/array.s"
+%include "src/fx/shard.s"
+%include "src/screen.s"
+%include "src/bullet.s"
+%include "src/ufo.s"
+%include "src/ship.s"
 
 
-Asteroid struct
+struc Asteroid
 	pos       Point  <?> ; 16.16 fixed point
 	velocity  Vector <?> ; 16.16 fixed point
 	mass      dd     ?   ; 0 when dead ; 'size' is a reserved word
@@ -20,7 +20,7 @@ Asteroid struct
 	dir       db     ?   ; which way this asteroid is flying, in 256-based radians
 	rot       db     ?
 	rot_speed db     ?
-Asteroid ends
+endstruc
 
 MAX_NUM_ASTEROIDS = 64
 
@@ -531,4 +531,4 @@ asteroid_draw proc
 asteroid_draw endp
 
 
-endif
+%endif

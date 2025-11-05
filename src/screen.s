@@ -1,9 +1,9 @@
-ifndef screen_h
-screen_h = 1
+%ifndef screen_h
+%define screen_h
 
-include <globaldefs.inc>
+%include "src/globaldefs.inc"
 
-include <font.s>
+%include "src/font.s"
 
 
 .data
@@ -597,4 +597,4 @@ screen_clearPixelBuffer proc
 screen_clearPixelBuffer endp
 
 
-endif
+%endif

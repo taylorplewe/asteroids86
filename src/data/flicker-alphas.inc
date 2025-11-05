@@ -1,7 +1,7 @@
-ifndef flickerAlphas_h
-flickerAlphas_h = 1
+%ifndef flickerAlphas_h
+%define flickerAlphas_h
 
-include <globaldefs.inc>
+%include "src/globaldefs.inc"
 
 
 FLICKER_100 = 0ffh
@@ -120,4 +120,4 @@ flicker_alphas:
 flicker_alphas_len = $ - flicker_alphas
 
 
-endif
+%endif

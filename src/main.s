@@ -1,14 +1,16 @@
-include <windows\defs.inc>
-include <globaldefs.inc>
-include <sdl\defs.inc>
+%use masm
 
-include <data\flicker-alphas.inc>
-include <common.s>
-include <screen.s>
-include <font.s>
 
-include <game.s>
-include <title.s>
+%include "src/globaldefs.inc"
+%include "src/sdl/defs.inc"
+
+%include "src/data/flicker-alphas.inc"
+%include "src/common.s"
+%include "src/screen.s"
+%include "src/font.s"
+
+%include "src/game.s"
+%include "src/title.s"
 
 
 .data

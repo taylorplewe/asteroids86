@@ -1,20 +1,20 @@
-ifndef shipShard_h
-shipShard_h = 1
+%ifndef shipShard_h
+%define shipShard_h
 
-include <globaldefs.inc>
+%include "globaldefs.inc"
 
-include <common.s>
-include <array.s>
+%include "common.s"
+%include "array.s"
 
 
-ShipShard struct
+struc ShipShard
 	pos           Point  <?> ; 16.16 fixed point
 	velocity      Vector <?> ; 16.16 fixed point
 	len           dd     ?
 	rot           dw     ?   ; 8.8 fixed point
 	rot_velocity  dw     ?   ; 8.8 fixed point
 	ticks_to_live dd ?
-ShipShard ends
+endstruc
 
 MAX_NUM_SHIP_SHARDS          = 64
 SHIP_SHARD_MIN_TICKS_TO_LIVE = 120
@@ -216,4 +216,4 @@ shipShard_draw proc
 shipShard_draw endp
 
 
-endif
+%endif

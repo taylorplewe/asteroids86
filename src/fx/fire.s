@@ -1,8 +1,8 @@
-ifndef fire_h
-fire_h = 1
+%ifndef fire_h
+%define fire_h
 
-include <screen.s>
-include <array.s>
+%include "screen.s"
+%include "array.s"
 
 
 FIRE_VELOCITY       = 1
@@ -12,13 +12,13 @@ MAX_NUM_FIRES       = 64
 
 .data
 
-Fire struct
+struc Fire
 	num_frames_alive dd     ?
 	p1               Point  <?> ; 16.16 fixed point
 	p2               Point  <?> ; 16.16 fixed point
     shrink_vec       Vector <?> ; p1 will ADD this value to get towards the center, p2 will SUBTRACT
 	rot              db     ?
-Fire ends
+endstruc
 fires      Fire  MAX_NUM_FIRES dup (<?>)
 fires_arr  Array { { fires, 0 }, MAX_NUM_FIRES, sizeof Fire }
 fire_color Pixel <0ffh, 0, 0, 0ffh>
@@ -260,4 +260,4 @@ fire_draw proc
 fire_draw endp
 
 
-endif
+%endif

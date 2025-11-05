@@ -1,8 +1,8 @@
-ifndef common_h
-common_h = 1
+%ifndef common_h
+%define common_h
 
-include <globaldefs.inc>
-include <data\sintab.inc>
+%include "src/globaldefs.inc"
+%include "src/data/sintab.inc"
 
 
 .code
@@ -345,4 +345,4 @@ getRandomOnscreenFixedPointPos proc
 getRandomOnscreenFixedPointPos endp
 
 
-endif
+%endif
