@@ -32,6 +32,7 @@ input     Input <>
 keys_prev Keys  ?
 is_paused dd    ?
 
+; input
 joystick_ids dq ?
 gamepad      dq ?
 
@@ -109,6 +110,7 @@ main proc
 		call SDL_GetTicks
 		mov qword ptr [ticks], rax
 
+		mov [input].buttons_down, 0
 		xor eax, eax
 		pollLoop:
 			lea rcx, event
@@ -116,182 +118,110 @@ main proc
 			test al, al
 			je pollLoopEnd
 
-			; NEXT:
-			; mov eax, [event].SDL_Event.event_type
-			; cmp eax, SDL_EVENT_QUIT
-			; je quit
-			; cmp eax, SDL_EVENT_KEY_DOWN
-			; je handleKeyDown
-			; cmp eax, SDL_EVENT_KEY_UP
-			; je handleKeyUp
-			; cmp eax, SDL_EVENT_GAMEPAD_BUTTON_DOWN
-			; je handleGamepadButtonDown
-			; cmp eax, SDL_EVENT_GAMEPAD_BUTTON_UP
-			; je handleGamepadButtonUp
-			; cmp eax, SDL_EVENT_GAMEPAD_AXIS_MOTION
-			; je handleGamepadAxisMotion
-
 			cmp [event].SDL_Event.event_type, SDL_EVENT_QUIT
 			je quit
 
-
 			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_DOWN
-			jne keyDownCheckEnd
-			; which key was pressed?
-			mov eax, [event].SDL_KeyboardEvent.key
-			cmp eax, SDLK_W
-			je BoostKeyPressed
-			cmp eax, SDLK_UP
-			je BoostKeyPressed
-			cmp eax, SDLK_S
-			je TeleportPressed
-			cmp eax, SDLK_DOWN
-			je TeleportPressed
-			cmp eax, SDLK_A
-			je LeftPressed
-			cmp eax, SDLK_LEFT
-			je LeftPressed
-			cmp eax, SDLK_D
-			je RightPressed
-			cmp eax, SDLK_RIGHT
-			je RightPressed
-			cmp eax, SDLK_SPACE
-			je FirePressed
-			cmp eax, SDLK_L
-			je FirePressed
-			cmp eax, SDLK_Q
+			jne @f
+			bts [input].buttons_down, Keys_Other
+			cmp [event].SDL_KeyboardEvent.key, SDLK_Q
 			je quit
-			cmp eax, SDLK_ESC
-			je PausePressed
-			jmp OtherPressed
-			keyDownCheckEnd:
-
-			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_UP
-			jne keyUpCheckEnd
-			mov eax, [event].SDL_KeyboardEvent.key
-			cmp eax, SDLK_W
-			je BoostReleased
-			cmp eax, SDLK_UP
-			je BoostReleased
-			cmp eax, SDLK_S
-			je TeleportReleased
-			cmp eax, SDLK_DOWN
-			je TeleportReleased
-			cmp eax, SDLK_A
-			je LeftReleased
-			cmp eax, SDLK_LEFT
-			je LeftReleased
-			cmp eax, SDLK_D
-			je RightReleased
-			cmp eax, SDLK_RIGHT
-			je RightReleased
-			cmp eax, SDLK_SPACE
-			je FireReleased
-			cmp eax, SDLK_L
-			je FireReleased
-			cmp eax, SDLK_ESC
-			je PauseReleased
-			jmp OtherReleased
-			keyUpCheckEnd:
+			jmp pollLoopNext
+			@@:
 
 			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_BUTTON_DOWN
 			jne gamepadButtonDownCheckEnd
-			xor eax, eax
-			mov al, [event].SDL_GamepadButtonEvent.button
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_UP
-			je BoostPressed
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_DOWN
-			je TeleportPressed
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_LEFT
-			je LeftPressed
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_RIGHT
-			je RightPressed
-			cmp al, SDL_GAMEPAD_BUTTON_SOUTH
-			je FirePressed
-			cmp al, SDL_GAMEPAD_BUTTON_EAST
-			je FirePressed
-			cmp al, SDL_GAMEPAD_BUTTON_WEST
-			je TeleportPressed
-			cmp al, SDL_GAMEPAD_BUTTON_NORTH
-			je TeleportPressed
-			cmp al, SDL_GAMEPAD_BUTTON_START
-			je PausePressed
-			jmp OtherPressed
+			bts [input].buttons_down, Keys_Other
 			gamepadButtonDownCheckEnd:
-
-			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_BUTTON_UP
-			jne gamepadButtonUpCheckEnd
-			xor eax, eax
-			mov al, [event].SDL_GamepadButtonEvent.button
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_UP
-			je BoostReleased
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_DOWN
-			je TeleportReleased
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_LEFT
-			je LeftReleased
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_RIGHT
-			je RightReleased
-			cmp al, SDL_GAMEPAD_BUTTON_SOUTH
-			je FireReleased
-			cmp al, SDL_GAMEPAD_BUTTON_EAST
-			je FireReleased
-			cmp al, SDL_GAMEPAD_BUTTON_WEST
-			je TeleportReleased
-			cmp al, SDL_GAMEPAD_BUTTON_NORTH
-			je TeleportReleased
-			cmp al, SDL_GAMEPAD_BUTTON_START
-			je PauseReleased
-			jmp OtherReleased
-			gamepadButtonUpCheckEnd:
-
-			AXIS_TURN_DEADZONE = 4000h
-			AXIS_BOOST_DEADZONE = 500h
-			AXIS_FIRE_DEADZONE = 3000h
-			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_AXIS_MOTION
-			jne gamepadAxisCheckEnd
-			xor eax, eax
-			xor ebx, ebx
-			mov al, [event].SDL_GamepadAxisEvent.axis
-			mov bx, [event].SDL_GamepadAxisEvent.value
-			cmp al, SDL_GAMEPAD_AXIS_LEFTX
-			jne @f
-				cmp bx, AXIS_TURN_DEADZONE
-				jg RightPressed
-				cmp bx, -AXIS_TURN_DEADZONE
-				jl LeftPressed
-				btr [input].buttons_down, Keys_Right ; RightReleased
-				jmp LeftReleased
-			@@:
-			cmp al, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
-			jne @f
-				mov [input].boost_val, bx
-				cmp bx, AXIS_BOOST_DEADZONE
-				jg BoostPressed
-				; brk
-				jmp BoostReleased
-			@@:
-			jmp pollLoopNext
-			gamepadAxisCheckEnd:
-
 
 			pollLoopNext:
 			jmp pollLoop
-
-			; callbacks
-			for key, <Boost, Teleport, Left, Right, Fire, Pause, Other>
-				@CatStr(key, Pressed):
-					bts [input].buttons_down, @CatStr(Keys_, key)
-					jmp pollLoopNext
-			endm
-			for key, <Boost, Teleport, Left, Right, Fire, Pause, Other>
-				@CatStr(key, Released):
-					btr [input].buttons_down, @CatStr(Keys_, key)
-					jmp pollLoopNext
-			endm
-			BoostKeyPressed:
-				mov [input].boost_val, 7fffh
-				jmp BoostPressed
 		pollLoopEnd:
+
+		; get input
+		cmp [gamepad], 0
+		jne getGamepadInput
+		;getKeyboardInput:
+			call SDL_GetKeyboardState
+			mov rbx, rax
+			BTN_W      textequ <Boost>
+			BTN_A      textequ <Left>
+			BTN_S      textequ <Teleport>
+			BTN_D      textequ <Right>
+			BTN_L      textequ <Fire>
+			BTN_ESCAPE textequ <Pause>
+			BTN_SPACE  textequ <Fire>
+			BTN_UP     textequ <Boost>
+			BTN_DOWN   textequ <Teleport>
+			BTN_LEFT   textequ <Left>
+			BTN_RIGHT  textequ <Right>
+			for key, <A, D, L, S, W, ESCAPE, SPACE, UP, DOWN, LEFT, RIGHT>
+				local press
+				local next
+				mov al, @CatStr(SDL_SCANCODE_, key)
+				xlatb
+				test al, al
+				je next
+				bts [input].buttons_down, @CatStr(Keys_, %@CatStr(BTN_, key))
+				next:
+			endm
+
+			mov [input].boost_val, 7fffh
+			jmp inputEnd
+		getGamepadInput:
+
+			BTN_DPAD_UP    textequ <Boost>
+			BTN_DPAD_DOWN  textequ <Teleport>
+			BTN_DPAD_LEFT  textequ <Left>
+			BTN_DPAD_RIGHT textequ <Right>
+			BTN_SOUTH      textequ <Fire>
+			BTN_EAST       textequ <Fire>
+			BTN_WEST       textequ <Teleport>
+			BTN_NORTH      textequ <Teleport>
+			BTN_START      textequ <Pause>
+			for btn, <DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT, SOUTH, EAST, WEST, NORTH, START>
+				local next
+
+				mov [input].boost_val, 7fffh
+				mov rcx, [gamepad]
+				mov edx, @CatStr(SDL_GAMEPAD_BUTTON_, btn)
+				call SDL_GetGamepadButton
+				test al, al
+				je next
+				bts [input].buttons_down, @CatStr(Keys_, %@CatStr(BTN_, btn))
+			
+				next:
+			endm
+
+			; AXIS_TURN_DEADZONE = 4000h
+			; AXIS_BOOST_DEADZONE = 500h
+			; AXIS_FIRE_DEADZONE = 3000h
+			; cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_AXIS_MOTION
+			; jne gamepadAxisCheckEnd
+			; xor eax, eax
+			; xor ebx, ebx
+			; mov al, [event].SDL_GamepadAxisEvent.axis
+			; mov bx, [event].SDL_GamepadAxisEvent.value
+			; cmp al, SDL_GAMEPAD_AXIS_LEFTX
+			; jne @f
+			; 	cmp bx, AXIS_TURN_DEADZONE
+			; 	jg RightPressed
+			; 	cmp bx, -AXIS_TURN_DEADZONE
+			; 	jl LeftPressed
+			; 	btr [input].buttons_down, Keys_Right ; RightReleased
+			; 	jmp LeftReleased
+			; @@:
+			; cmp al, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
+			; jne @f
+			; 	mov [input].boost_val, bx
+			; 	cmp bx, AXIS_BOOST_DEADZONE
+			; 	jg BoostPressed
+			; 	; brk
+			; 	jmp BoostReleased
+			; @@:
+			; jmp pollLoopNext
+			; gamepadAxisCheckEnd:
+		inputEnd:
 
 		; set pressed & released keys
 		; pressed = (down ^ prev) & down

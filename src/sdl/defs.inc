@@ -16,6 +16,7 @@ extern SDL_DestroyRenderer          : proto
 extern SDL_DestroyTexture           : proto
 extern SDL_DestroySurface           : proto
 extern SDL_PollEvent                : proto
+extern SDL_GetKeyboardState         : proto
 extern SDL_CreateTextureFromSurface : proto
 extern SDL_SetTextureScaleMode      : proto
 extern SDL_RenderTexture            : proto
@@ -28,6 +29,8 @@ extern SDL_SetWindowIcon            : proto
 ; gamepads
 extern SDL_free                     : proto
 extern SDL_GetGamepads              : proto
+extern SDL_GetGamepadButton         : proto
+extern SDL_GetGamepadAxis           : proto
 extern SDL_RumbleGamepad            : proto
 extern SDL_OpenGamepad              : proto
 extern SDL_CloseGamepad             : proto
@@ -41,18 +44,22 @@ SDL_EVENT_GAMEPAD_AXIS_MOTION = 650h ; Gamepad axis motion
 SDL_EVENT_GAMEPAD_BUTTON_DOWN = 651h ; Gamepad button pressed
 SDL_EVENT_GAMEPAD_BUTTON_UP   = 652h ; Gamepad button released
 
-SDLK_ESC   = 1bh
-SDLK_SPACE = 20h
-SDLK_W     = 77h
-SDLK_A     = 61h
-SDLK_S     = 73h
-SDLK_D     = 64h
 SDLK_Q     = 71h
-SDLK_L     = 6ch
-SDLK_UP    = 40000052h
-SDLK_DOWN  = 40000051h
-SDLK_LEFT  = 40000050h
-SDLK_RIGHT = 4000004fh
+
+SDL_SCANCODE_A      = 4
+SDL_SCANCODE_D      = 7
+SDL_SCANCODE_L      = 15
+SDL_SCANCODE_Q      = 20
+SDL_SCANCODE_S      = 22
+SDL_SCANCODE_W      = 26
+
+SDL_SCANCODE_ESCAPE = 41
+SDL_SCANCODE_SPACE  = 44
+
+SDL_SCANCODE_RIGHT  = 79
+SDL_SCANCODE_LEFT   = 80
+SDL_SCANCODE_DOWN   = 81
+SDL_SCANCODE_UP     = 82
 
 SDL_PIXELFORMAT_RGBA32 = 376840196 ; idk
 
