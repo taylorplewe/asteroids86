@@ -586,13 +586,16 @@ screen_drawPressAnyKey proc
 screen_drawPressAnyKey endp
 
 screen_clearPixelBuffer proc
-	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT*4)/32
-	lea rdi, [pixels]
+	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT*4) / 32
+	lea rdi, pixels
 	vmovdqu ymm0, ymmword ptr [zero64]
 	_loop:
 		vmovdqu ymmword ptr [rdi], ymm0
 		add rdi, 32
 		loop _loop
+
+	; unlike the memcpy routine, the following instruction does NOT outperform the SIMD loop (see notes/clearPixelBuffer-profiling.txt)
+	; rep stosq
 	ret
 screen_clearPixelBuffer endp
 

@@ -1,0 +1,48 @@
+Just the "moveRightAndDownLoop"
+
+------
+REGULAR INSTRUCTION LOOP
+------
+rdtsc
+mov r9d, edx
+shl r9, 32
+or r9, rax
+mov edx, NUM_STARS
+moveRightAndDownLoop:
+	star_updateAndDrawAll_drawStar
+
+	inc [rsi].Star.pos.x
+	cmp [rsi].Star.pos.x, SCREEN_WIDTH
+	jl @f
+		mov [rsi].Star.pos.x, 0
+	@@:
+
+	inc [rsi].Star.pos.y
+	cmp [rsi].Star.pos.y, SCREEN_HEIGHT
+	jl @f
+		mov [rsi].Star.pos.y, 0
+	@@:
+
+	star_updateAndDrawAll_loopCmp moveRightAndDownLoop
+rdtsc
+shl rdx, 32
+or rdx, rax
+sub rdx, r9
+brk
+; read RDX
+
+14568
+0CD95
+0C48F
+0C8FA
+18310
+17B80
+0C88B
+0CA50
+0C11A
+0C798
+0D263
+0D52A
+
+Average (sum/12):
+0F2D9 = 62,169 clock cycles

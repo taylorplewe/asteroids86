@@ -104,3 +104,31 @@ FINDINGS
   3,102,652 clock cycles saved using SIMD instructions to clear the pixel buffer
 
 Basically, it takes about 1/4 the time because you're moving 4 times the memory for each loop iteration. 8 (with rax) vs 32 (with ymm)
+
+
+------
+REP MOVSQ INSTRUCTION
+------
+This instruction tells the CPU to move RCX qwords (8 bytes at a time) from [RSI] to [RDI].
+
+rdtsc
+mov r8d, edx
+shl r8, 32
+or r8, rax
+
+mov rcx, (SCREEN_WIDTH*SCREEN_HEIGHT*4)/8
+lea rdi, [pixels]
+xor rax, rax
+rep stosq
+
+rdtsc
+shl rdx, 32
+or rdx, rax
+sub rdx, r8
+brk
+; read RDX
+
+Averaged about:
+150000 = 1,376,256 clock cycles
+
+So unlike the memcpy loop, the "rep" instruction does NOT outperform the SIMD loop.

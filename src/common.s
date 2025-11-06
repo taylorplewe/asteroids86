@@ -11,20 +11,16 @@ include <data\sintab.inc>
 	; rdi = destination ptr
 	; rsi = source ptr
 	; ecx = count of qwords
-memcpyAligned32 proc
-	mainLoop:
-		vmovdqu ymm0, ymmword ptr [rsi]
-		vmovdqu ymmword ptr [rdi], ymm0
-		add rsi, 32
-		add rdi, 32
-		loop mainLoop
-	ret
-
+memcpyAligned32 macro
+	rep movsq
 	; loop duration (in clock cycles) moving 8 bytes at a time with RAX:
-		; 7,340,032 cycles
+		; ~7,340,032 cycles
 	; loop duration (in clock cycles) moving 32 bytes at a time with YMM0 (SIMD):
-		; 2,246,728 cycles
-memcpyAligned32 endp
+		; ~2,246,728 cycles
+	; loop duration (in clock cycles) moving 8 bytes at a time with the "rep movsq" instruction:
+		; ~1,966,080 cycles
+		; my theory as to why this is faster is that it doesn't have to fetch & decode your instructions every single loop iteration
+endm
 
 cos proc
 	add al, 40h

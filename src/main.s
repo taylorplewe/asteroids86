@@ -326,8 +326,8 @@ render proc
 	mov rbx, [surface]
 	mov rdi, [rbx].SDL_Surface.pixels
 	lea rsi, pixels
-	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 32
-	call memcpyAligned32
+	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 8
+	memcpyAligned32
 
 	mov rcx, [renderer]
 	call SDL_UnlockSurface
