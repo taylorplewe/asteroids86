@@ -6,7 +6,7 @@ include <global.s>
 
 NUM_STARS = 1024
 ; struct of arrays
-Stars struct
+Stars struct 16
 	x         dw NUM_STARS dup (?)
 	y         dw NUM_STARS dup (?)
 	luminence db NUM_STARS dup (?)
@@ -16,9 +16,10 @@ Stars ends
 .data
 
 ; could also just use one word for each and broadcast them into a ymm register
-one_w_256           dw (256 / 2) dup (1)
-screen_width_w_256  dw (256 / 2) dup (SCREEN_WIDTH)
-screen_height_w_256 dw (256 / 2) dup (SCREEN_HEIGHT)
+one_w_256                   dw (256 / 2) dup (1)
+screen_width_mi1_w_256      dw (256 / 2) dup (SCREEN_WIDTH - 1) ; minus one makes the comparison much easier since it can only do > and not >=
+screen_height_mi1_w_256     dw (256 / 2) dup (SCREEN_HEIGHT - 1)
+opaque_pixel_no_alpha_d_256 dd (256 / 4) dup (00ffffffh)
 
 
 .data?
@@ -126,48 +127,76 @@ star_updateAndDrawAll proc
 	ret
 
 	moveRightAndDownLoopBefore:
+	; brk
 	rdtsc
 	mov r10d, edx
 	shl r10, 32
 	or r10, rax
-	mov edx, NUM_STARS
+	mov edx, NUM_STARS / 16
 	moveRightAndDownLoop:
-		star_updateAndDrawAll_drawStar
+		; UPDATE (16 at a time)
 
-		vmovdqu16 ymm0, [r13]
-		vmovdqu16 ymm1, [r14]
+		; load 16 X and Y word values
+		vmovdqu ymm0, ymmword ptr [r13]
+		vmovdqu ymm1, ymmword ptr [r14]
 
+		; inc both X and Y
 		vpaddw ymm0, ymm0, [one_w_256]
 		vpaddw ymm1, ymm1, [one_w_256]
 
-		vpcmpgtw ymm2, ymm0, [screen_width_w_256]
-		vpcmpgtw ymm3, ymm1, [screen_height_w_256]
+		; cmp > screen boundaries
+		vpcmpgtw ymm2, ymm0, [screen_width_mi1_w_256]
+		vpcmpgtw ymm3, ymm1, [screen_height_mi1_w_256]
 
+		; zero the ones that were out of bounds
 		vpandn ymm0, ymm2, ymm0
 		vpandn ymm1, ymm3, ymm1
 
-		vmovdqu16 [r13], ymm0
-		vmovdqu16 [r14], ymm1
+		; store new X and Y word values back into memory
+		vmovdqu ymmword ptr [r13], ymm0
+		vmovdqu ymmword ptr [r14], ymm1
 
-		; inc word ptr [r13]
-		; cmp word ptr [r13], SCREEN_WIDTH
-		; jl @f
-		; 	mov word ptr [r13], 0
-		; @@:
+		; DRAW (8 at a time) (2 iterations)
 
-		; inc word ptr [r14]
-		; cmp word ptr [r14], SCREEN_HEIGHT
-		; jl @f
-		; 	mov word ptr [r14], 0
-		; @@:
+		; 8 LOWER words
+		vpmovzxwd ymm2, xmm0
+		vpmovzxwd ymm3, xmm1
+		; get colors for 8 stars
+		vmovq xmm4, qword ptr [r15]
+		vpmovzxbd ymm4, xmm4
+		vpslld ymm4, ymm4, 24
+		vpor ymm4, ymm4, ymmword ptr [opaque_pixel_no_alpha_d_256]
 
-		star_updateAndDrawAll_loopCmp moveRightAndDownLoop
+		call screen_setPixelOnscreenVerifiedSimd
+
+		add r13, 16
+		add r14, 16
+		add r15, 8
+
+		; 8 UPPER words
+		vmovdqu xmm0, xmmword ptr [r13]
+		vmovdqu xmm1, xmmword ptr [r14]
+		vpmovzxwd ymm2, xmm0
+		vpmovzxwd ymm3, xmm1
+		; get colors for 8 stars
+		vmovq xmm4, qword ptr [r15]
+		vpmovzxbd ymm4, xmm4
+		vpslld ymm4, ymm4, 24
+		vpor ymm4, ymm4, ymmword ptr [opaque_pixel_no_alpha_d_256]
+
+		call screen_setPixelOnscreenVerifiedSimd
+
+		add r13, 16
+		add r14, 16
+		add r15, 8
+
+		dec edx
+		jne moveRightAndDownLoop
 	rdtsc
 	shl rdx, 32
 	or rdx, rax
 	sub rdx, r10
-	; brk
-	; read RDX
+	brk
 	ret
 star_updateAndDrawAll endp
 

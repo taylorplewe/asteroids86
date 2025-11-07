@@ -12,6 +12,9 @@ cosmic_color       Pixel <37h, 94h, 6eh, 0ffh> ; 37946e
 press_any_key_text db "PRESS ANY KEY TO CONTINUE"
 press_any_key_text_len = $ - press_any_key_text
 
+screen_width_d_256 dd (256 / 4) dup (SCREEN_WIDTH)
+screen_height_d_256 dd (256 / 4) dup (SCREEN_HEIGHT)
+
 
 .data?
 
@@ -95,6 +98,38 @@ screen_setPixelOnscreenVerified proc
 
 	ret
 screen_setPixelOnscreenVerified endp
+
+; Draws 8 pixels to the screen
+; in:
+	; ymm2[dwords] - x
+	; ymm3[dwords] - y
+	; ymm4[dwords] - color
+	; rdi          - point to pixels
+screen_setPixelOnscreenVerifiedSimd proc
+	push rbx
+	push rbp
+	mov rbp, rsp
+	sub rsp, 64
+
+	vpmulld ymm3, ymm3, ymmword ptr [screen_width_d_256] ; foreach y: y *= SCREEN_WIDTH
+	vpaddd ymm3, ymm3, ymm2                              ; foreach x,y: ind = y + x
+	vpslld ymm3, ymm3, 2                                 ; foreach ind: ind *= sizeof Pixel (which is 4) (<< 2)
+	vmovdqu ymmword ptr [rsp], ymm3
+	vmovdqu ymmword ptr [rsp + 32], ymm4 ; store all the colors
+
+	i = 0
+	repeat 8
+		mov eax, [rsp + i]
+		mov ebx, [rsp + 32 + i]
+		mov [rdi + rax], ebx
+		i = i + 4
+	endm
+
+	mov rsp, rbp
+	pop rbp
+	pop rbx
+	ret
+screen_setPixelOnscreenVerifiedSimd endp
 
 ; in:
 	; ebx  - x
