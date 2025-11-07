@@ -1,4 +1,4 @@
-.data
+section .data
 
 title_points_tab:
 	dq title_points_0

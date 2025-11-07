@@ -2,7 +2,7 @@
 %define shrinkVals_h
 
 
-.data
+section .data
 
 shrink_vals:
 	dd 00010000h

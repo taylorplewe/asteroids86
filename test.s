@@ -36,7 +36,7 @@ enum Ben
 	emem Two
 	emem Three
 
-.code
+section .text
 start:
 	mov eax, 4
 	mov eax, Ben_One

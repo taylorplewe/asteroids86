@@ -3,31 +3,37 @@
 
 %include "src/globaldefs.inc"
 
-%include "src/font.s"
+%include "src/font.asm"
 
 
-.data
+section .data
 
-cosmic_color       Pixel <37h, 94h, 6eh, 0ffh> ; 37946e
+cosmic_color:
+	istruc Pixel
+		at .r, db 37h
+		at .g, db 94h
+		at .b, db 6eh
+		at .a, db 0ffh
+	iend
 press_any_key_text db "PRESS ANY KEY TO CONTINUE"
 press_any_key_text_len equ $ - press_any_key_text
 
 
-.data?
+section .bss
 
-pixels                    Pixel SCREEN_WIDTH*SCREEN_HEIGHT dup (<?>)
-screen_point1             Point <?>
-screen_point2             Point <?>
-x_diff                    dd ?
-y_diff                    dd ?
-x_add                     dd ? ; 16.16 fixed point
-y_add                     dd ? ; 16.16 fixed point
-is_xdiff_neg              db ?
-is_ydiff_neg              db ?
-screen_show_press_any_key dd ?
+pixels                    resb Pixel_size * SCREEN_WIDTH * SCREEN_HEIGHT
+screen_point1             resb Point_size
+screen_point2             resb Point_size
+x_diff                    resd 1
+y_diff                    resd 1
+x_add                     resd 1 ; 16.16 fixed point
+y_add                     resd 1 ; 16.16 fixed point
+is_xdiff_neg              resb 1
+is_ydiff_neg              resb 1
+screen_show_press_any_key resd 1
 
 
-.code
+section .text
 
 ; in:
 	; ebx  - x
@@ -39,81 +45,81 @@ screen_show_press_any_key dd ?
 ; clobbers:
 	; rdx
 	; r13
-screen_setPixelWrapped macro
+%macro screen_setPixelWrapped 0
 	; wrap x
 	mov eax, ebx
 	add eax, r14d
 	cdq
 	div r14d
-	imul edx, sizeof Pixel
+	imul edx, Pixel_size
 	mov r13d, edx
 	; wrap y
 	mov eax, ecx
 	add eax, r15d
 	cdq
 	div r15d
-	imul edx, SCREEN_WIDTH * sizeof Pixel
+	imul edx, SCREEN_WIDTH * Pixel_size
 	add r13d, edx
 	; plot pixel
 	mov [rdi + r13], r8d
 	; NOTE: I tried changing the above instruction to an 'add' to get transparent objects on top of each other to work. It mostly worked, but is funky with colors, like the fire.
-endm
+%endmacro
 
 ; in:
 	; ebx  - x
 	; ecx  - y
 	; r8d  - color
 	; rdi  - point to pixels
-screen_setPixelClipped proc
+screen_setPixelClipped:
 	test ebx, ebx
-	js _end
+	js .end
 	cmp ebx, SCREEN_WIDTH
-	jge _end
+	jge .end
 
 	test ecx, ecx
-	js _end
+	js .end
 	cmp ecx, SCREEN_HEIGHT
-	jl @f
-	_end: ret
-	@@:
+	jl ._
+	.end: ret
+	._:
 	; fall thru
-screen_setPixelClipped endp
+
 
 ; in:
 	; ebx  - x
 	; ecx  - y
 	; r8d  - color
 	; rdi  - point to pixels
-screen_setPixelOnscreenVerified proc
+screen_setPixelOnscreenVerified:
 	mov eax, ecx
 	imul eax, SCREEN_WIDTH
 	add eax, ebx
-	imul eax, sizeof Pixel
+	imul eax, Pixel_size
 
 	; plot pixel
 	mov [rdi + rax], r8d
 
 	ret
-screen_setPixelOnscreenVerified endp
+
 
 ; in:
 	; ebx  - x
 	; ecx  - y
 	; r8d  - color
 	; rdi  - point to pixels
-screen_draw3difiedPixelOnscreenVerified proc
+screen_draw3difiedPixelOnscreenVerified:
 	push rbx
 	push rcx
 	push r8
 
 	; 3d effect
-	mov r8d, [cosmic_color]
+	mov r8d, dword [cosmic_color]
 
-	repeat 6
+	%rep 6
 	inc ebx
 	inc ecx
 	call screen_setPixelOnscreenVerified
-	endm
+	%endrep
 
 	pop r8
 	pop rcx
@@ -122,7 +128,7 @@ screen_draw3difiedPixelOnscreenVerified proc
 	jmp screen_setPixelOnscreenVerified
 
 	; ret
-screen_draw3difiedPixelOnscreenVerified endp
+
 
 ; in:
 	; ebx  - x
@@ -131,7 +137,7 @@ screen_draw3difiedPixelOnscreenVerified endp
 	; rdi  - point to pixels
 	; r14d - SCREEN_WIDTH
 	; r15d - SCREEN_HEIGHT
-screen_plotPoint macro
+%macro screen_plotPoint 0
 	screen_setPixelWrapped
 	dec ebx
 	screen_setPixelWrapped
@@ -143,7 +149,7 @@ screen_plotPoint macro
 	add ecx, 2
 	screen_setPixelWrapped
 	dec ecx
-endm
+%endmacro
 
 ; Draws a 1bpp sprite comprised of a bitplane; one byte represents 8 pixels in a row.
 ; Position should be in the center of the drawn sprite.
@@ -153,7 +159,7 @@ endm
 	; r8d - color
 	; r9  - pointer to in-spritesheet Rect, dimensions of sprite
 	; r14 - pointer to pixel plotting routine to call
-screen_draw1bppSprite proc
+screen_draw1bppSprite:
 	push rbx
 	push rcx
 	push rsi
@@ -166,65 +172,65 @@ screen_draw1bppSprite proc
 	lea rdi, pixels
 
 	mov r13, rsi
-	add rsi, sizeof Dim
+	add rsi, Dim_size
 
 	; NOTE: will need to add Y pos logic here if ever have a spritesheet with multiple rows of sprites
-	mov eax, [r9].Rect.pos.x
+	mov eax, dword [r9 + Rect.pos.x]
 	shr eax, 3 ; /8
 	add rsi, rax
 
 	; set x
 	xor eax, eax
-	mov ax, word ptr [rdx].Point.x + 2
+	mov ax, word [rdx + Point.x + 2]
 	cwde
-	mov ebx, [r9].Rect.dim.w
+	mov ebx, dword [r9 + Rect.dim.w]
 	sar ebx, 1
 	sub eax, ebx
 	mov ebx, eax
 	; set y
 	xor eax, eax
-	mov ax, word ptr [rdx].Point.y + 2
+	mov ax, word [rdx + Point.y + 2]
 	cwde
-	mov ecx, [r9].Rect.dim.h
+	mov ecx, dword [r9 + Rect.dim.h]
 	sar ecx, 1
 	sub eax, ecx
 	mov ecx, eax
 	; w and h counters
-	mov r10d, [r9].Rect.dim.w
-	mov r11d, [r9].Rect.dim.h
+	mov r10d, dword [r9 + Rect.dim.w]
+	mov r11d, dword [r9 + Rect.dim.h]
 
 	xor r12d, r12d ; bit position index
 
-	rowLoop:
-		colLoop:
-			; cmp byte ptr [rsi], 0
-			bt word ptr [rsi], r12w
-			jnc colNext
+	.rowLoop:
+		.colLoop:
+			; cmp byte [rsi], 0
+			bt word [rsi], r12w
+			jnc .colNext
 			call r14
 			
-			colNext:
+			.colNext:
 			inc r12w
 			and r12w, 7
-			jne @f
+			jne ._
 				inc rsi
-			@@:
+			._:
 
 			inc ebx
 			dec r10d
-			jne colLoop
-		rowNext:	
+			jne .colLoop
+		.rowNext:	
 		; wrap around to next line of pixels in this particular rect
-		mov eax, [r13].Dim.w
+		mov eax, [r13 + Dim.w]
 		add rsi, rax
-		mov eax, [r9].Rect.dim.w
+		mov eax, [r9 + Rect.dim.w]
 		shr eax, 3 ; /8
 		sub rsi, rax
 
-		sub ebx, [r9].Rect.dim.w
-		mov r10d, [r9].Rect.dim.w
+		sub ebx, [r9 + Rect.dim.w]
+		mov r10d, [r9 + Rect.dim.w]
 		inc ecx
 		dec r11d
-		jne rowLoop
+		jne .rowLoop
 
 	pop r13
 	pop r12
@@ -235,7 +241,7 @@ screen_draw1bppSprite proc
 	pop rcx
 	pop rbx
 	ret
-screen_draw1bppSprite endp
+
 
 ; TODO: this routine is pretty gnarly with the stack frame. Can probably be improved.
 ; in:
@@ -245,7 +251,7 @@ screen_draw1bppSprite endp
 	; r8d - color
 	; r14d - SCREEN_WIDTH
 	; r15d - SCREEN_HEIGHT
-screen_drawCircle proc
+screen_drawCircle:
 	push rbp
 	push rdi
 	mov rbp, rsp
@@ -253,62 +259,62 @@ screen_drawCircle proc
 
 	lea rdi, pixels
 
-	mov dword ptr [rsp + 8], ebx
-	mov dword ptr [rsp + 12], ecx
+	mov dword [rsp + 8], ebx
+	mov dword [rsp + 12], ecx
 	sub ebx, edx
 	sub ecx, edx
 
-	mov dword ptr [rsp + 20], edx
-	shl dword ptr [rsp + 20], 1
+	mov dword [rsp + 20], edx
+	shl dword [rsp + 20], 1
 	imul edx, edx
-	mov dword ptr [rsp + 16], edx
-	mov edx, dword ptr [rsp + 20]
+	mov dword [rsp + 16], edx
+	mov edx, dword [rsp + 20]
 
-	mov dword ptr [rsp + 4], edx
-	rowLoop:
-		mov dword ptr [rsp], edx
-		colLoop:
+	mov dword [rsp + 4], edx
+	.rowLoop:
+		mov dword [rsp], edx
+		.colLoop:
 			; inside circle if (dx^2 + dy^2) < r^2
 			mov eax, ebx
-			sub eax, dword ptr [rsp + 8]
+			sub eax, dword [rsp + 8]
 			imul eax, eax
 			mov edx, ecx
-			sub edx, dword ptr [rsp + 12]
+			sub edx, dword [rsp + 12]
 			imul edx, edx
 			add eax, edx
-			cmp eax, dword ptr [rsp + 16]
-			jge colLoopNext
+			cmp eax, dword [rsp + 16]
+			jge .colLoopNext
 
 			screen_setPixelWrapped
 
-			colLoopNext:
+			.colLoopNext:
 			inc ebx
-			dec dword ptr [rsp]
-			jne colLoop
-		rowLoopNext:
-		mov edx, dword ptr [rsp + 20]
+			dec dword [rsp]
+			jne .colLoop
+		.rowLoopNext:
+		mov edx, dword [rsp + 20]
 		sub ebx, edx
 		inc ecx
-		dec dword ptr [rsp + 4]
-		jne rowLoop
+		dec dword [rsp + 4]
+		jne .rowLoop
 
 	mov rsp, rbp
 	pop rdi
 	pop rbp
 	ret
-screen_drawCircle endp
 
-screen_mDrawLine macro point1:req, point2:req
-	mov eax, [point1].Point.x
-	mov [screen_point1].x, eax
-	mov eax, [point1].Point.y
-	mov [screen_point1].y, eax
-	mov eax, [point2].Point.x
-	mov [screen_point2].x, eax
-	mov eax, [point2].Point.y
-	mov [screen_point2].y, eax
+
+%macro screen_mDrawLine 2 ;point1:req, point2:req
+	mov eax, [%1 + Point.x]
+	mov [screen_point1 + Point.x], eax
+	mov eax, [%1 + Point.y]
+	mov [screen_point1 + Point.y], eax
+	mov eax, [%2 + Point.x]
+	mov [screen_point2 + Point.x], eax
+	mov eax, [%2 + Point.y]
+	mov [screen_point2 + Point.y], eax
 	call screen_drawLine
-endm
+%endmacro
 
 ; TODO: convert statically allocated bss variables to stack variables
 ; in:
@@ -326,9 +332,9 @@ endm
 	; r13
 	; r14
 	; r15
-screen_drawLine proc
-	mov [is_xdiff_neg], 0
-	mov [is_ydiff_neg], 0
+screen_drawLine:
+	mov byte [is_xdiff_neg], 0
+	mov byte [is_ydiff_neg], 0
 
 	; rdi = pointer into pixels
 	lea rdi, pixels
@@ -336,34 +342,34 @@ screen_drawLine proc
 	mov r15d, SCREEN_HEIGHT
 
 	; x_diff = |p2.x - p1.x|
-	mov eax, [screen_point2].x
-	sub eax, [screen_point1].x
+	mov eax, [screen_point2 + Point.x]
+	sub eax, [screen_point1 + Point.x]
 	mov ebx, eax
 	shl ebx, 1
-	rcl [is_xdiff_neg], 1
+	rcl byte [is_xdiff_neg], 1
 	abseax
 	mov [x_diff], eax
 	
 	; y_diff = |p2.y - p1.y|
-	mov eax, [screen_point2].y
-	sub eax, [screen_point1].y
+	mov eax, [screen_point2 + Point.y]
+	sub eax, [screen_point1 + Point.y]
 	mov ebx, eax
 	shl ebx, 1
-	rcl [is_ydiff_neg], 1
+	rcl byte [is_ydiff_neg], 1
 	abseax
 	mov [y_diff], eax
 
 	; if both are zero, exit
 	test eax, eax
-	jne @f
+	jne ._
 	cmp [x_diff], 0
-	jne @f
+	jne ._
 	ret
-	@@:
+	._:
 
 	cmp eax, [x_diff]
-	jl xDiffGreater
-	yDiffGreater:
+	jl .xDiffGreater
+	.yDiffGreater:
 		; x_add = x_diff / y_diff
 		mov eax, [x_diff]
 		shl eax, 16
@@ -372,76 +378,76 @@ screen_drawLine proc
 		idiv ebx
 		mov [x_add], eax
 
-		mov ebx, [screen_point1].x
-		mov ecx, [screen_point1].y
+		mov ebx, [screen_point1 + Point.x]
+		mov ecx, [screen_point1 + Point.y]
 
 		mov r11d, [y_diff]
 		mov r10d, 00008000h ; 0.5 fixed point
-		cmp [is_ydiff_neg], 0
-		je yIncLoop
-		yDecLoop:
-			cmp [is_xdiff_neg], 0
-			je yDecXIncLoop
-			yDecXDecLoop:
+		cmp byte [is_ydiff_neg], 0
+		je .yIncLoop
+		.yDecLoop:
+			cmp byte [is_xdiff_neg], 0
+			je .yDecXIncLoop
+			.yDecXDecLoop:
 				screen_plotPoint
 				dec ecx
 
 				add r10d, [x_add]
 				cmp r10d, 00010000h
-				jl @f
+				jl ._1
 				dec ebx
 				and r10d, 0000ffffh
-				@@:
+				._1:
 
 				dec r11d
-				jne yDecXDecLoop
+				jne .yDecXDecLoop
 			ret
-			yDecXIncLoop:
+			.yDecXIncLoop:
 				screen_plotPoint
 				dec ecx
 
 				add r10d, [x_add]
 				cmp r10d, 00010000h
-				jl @f
+				jl ._2
 				inc ebx
 				and r10d, 0000ffffh
-				@@:
+				._2:
 
 				dec r11d
-				jne yDecXIncLoop
+				jne .yDecXIncLoop
 			ret
-		yIncLoop:
-			cmp [is_xdiff_neg], 0
-			je yIncXIncLoop
-			yIncXDecLoop:
+		.yIncLoop:
+			cmp byte [is_xdiff_neg], 0
+			je .yIncXIncLoop
+			.yIncXDecLoop:
 				screen_plotPoint
 				inc ecx
 
 				add r10d, [x_add]
 				cmp r10d, 00010000h
-				jl @f
+				jl ._3
 				dec ebx
 				and r10d, 0000ffffh
-				@@:
+				._3:
 
 				dec r11d
-				jne yIncXDecLoop
+				jne .yIncXDecLoop
 			ret
-			yIncXIncLoop:
+			.yIncXIncLoop:
 				screen_plotPoint
 				inc ecx
 
 				add r10d, [x_add]
 				cmp r10d, 00010000h
-				jl @f
+				jl ._4
 				inc ebx
 				and r10d, 0000ffffh
-				@@:
+				._4:
 
 				dec r11d
-				jne yIncXIncLoop
+				jne .yIncXIncLoop
 			ret
-	xDiffGreater:	
+	.xDiffGreater:
 		; x_add = x_diff / y_diff
 		mov eax, [y_diff]
 		shl eax, 16
@@ -450,88 +456,88 @@ screen_drawLine proc
 		idiv ebx
 		mov [y_add], eax
 
-		mov ebx, [screen_point1].x
-		mov ecx, [screen_point1].y
+		mov ebx, [screen_point1 + Point.x]
+		mov ecx, [screen_point1 + Point.y]
 
 		mov r11d, [x_diff]
 		mov r10d, 00008000h ; 0.5 fixed point
-		cmp [is_xdiff_neg], 0
-		je xIncLoop
-		xDecLoop:
-			cmp [is_ydiff_neg], 0
-			je xDecYIncLoop
-			xDecYDecLoop:
+		cmp byte [is_xdiff_neg], 0
+		je .xIncLoop
+		.xDecLoop:
+			cmp byte [is_ydiff_neg], 0
+			je .xDecYIncLoop
+			.xDecYDecLoop:
 				screen_plotPoint
 				dec ebx
 
 				add r10d, [y_add]
 				cmp r10d, 00010000h
-				jl @f
+				jl ._5
 				dec ecx
 				and r10d, 0000ffffh
-				@@:
+				._5:
 
 				dec r11d
-				jne xDecYDecLoop
+				jne .xDecYDecLoop
 			ret
-			xDecYIncLoop:
+			.xDecYIncLoop:
 				screen_plotPoint
 				dec ebx
 
 				add r10d, [y_add]
 				cmp r10d, 00010000h
-				jl @f
+				jl ._6
 				inc ecx
 				and r10d, 0000ffffh
-				@@:
+				._6:
 
 				dec r11d
-				jne xDecYIncLoop
+				jne .xDecYIncLoop
 			ret
-		xIncLoop:
-			cmp [is_ydiff_neg], 0
-			je xIncYIncLoop
-			xIncYDecLoop:
+		.xIncLoop:
+			cmp byte [is_ydiff_neg], 0
+			je .xIncYIncLoop
+			.xIncYDecLoop:
 				screen_plotPoint
 				inc ebx
 
 				add r10d, [y_add]
 				cmp r10d, 00010000h
-				jl @f
+				jl ._7
 				dec ecx
 				and r10d, 0000ffffh
-				@@:
+				._7:
 
 				dec r11d
-				jne xIncYDecLoop
+				jne .xIncYDecLoop
 			ret
-			xIncYIncLoop:
+			.xIncYIncLoop:
 				screen_plotPoint
 				inc ebx
 
 				add r10d, [y_add]
 				cmp r10d, 00010000h
-				jl @f
+				jl ._8
 				inc ecx
 				and r10d, 0000ffffh
-				@@:
+				._8:
 
 				dec r11d
-				jne xIncYIncLoop
+				jne .xIncYIncLoop
 			ret
 	ret
-screen_drawLine endp
+
 
 PRESS_ANY_KEY_KERNING    equ 4
 PRESS_ANY_KEY_CHAR_WIDTH equ FONT_SM_CHAR_WIDTH + PRESS_ANY_KEY_KERNING
 PRESS_ANY_KEY_FULL_WIDTH equ (press_any_key_text_len * PRESS_ANY_KEY_CHAR_WIDTH) - PRESS_ANY_KEY_KERNING
-PRESS_ANY_KEY_FIRST_X    equ (((SCREEN_WIDTH / 2) - (PRESS_ANY_KEY_FULL_WIDTH / 2)) + (FONT_SM_CHAR_WIDTH / 2)) shl 16
+PRESS_ANY_KEY_FIRST_X    equ (((SCREEN_WIDTH / 2) - (PRESS_ANY_KEY_FULL_WIDTH / 2)) + (FONT_SM_CHAR_WIDTH / 2)) << 16
 
 ; in:
 	; set [font_current_char_pos].y
-screen_drawPressAnyKey proc
+screen_drawPressAnyKey:
 	cmp [screen_show_press_any_key], 0
-	je _ret
+	je ._ret
 
 	push rbx
 	push rcx
@@ -547,32 +553,32 @@ screen_drawPressAnyKey proc
 	lea r9, font_current_char_rect
 	lea r14, screen_setPixelOnscreenVerified
 
-	mov [font_current_char_pos].x, PRESS_ANY_KEY_FIRST_X
-	mov [font_current_char_rect].pos.x, 0
-	mov [font_current_char_rect].pos.y, 0
-	mov [font_current_char_rect].dim.w, FONT_SM_CHAR_WIDTH
-	mov [font_current_char_rect].dim.h, FONT_SM_CHAR_HEIGHT
+	mov dword [font_current_char_pos + Point.x], PRESS_ANY_KEY_FIRST_X
+	mov dword [font_current_char_rect + Rect.pos.x], 0
+	mov dword [font_current_char_rect + Rect.pos.y], 0
+	mov dword [font_current_char_rect + Rect.dim.w], FONT_SM_CHAR_WIDTH
+	mov dword [font_current_char_rect + Rect.dim.h], FONT_SM_CHAR_HEIGHT
 
 	lea rbx, press_any_key_text
 	xor ecx, ecx
-	charLoop:
+	.charLoop:
 		xor eax, eax
 		mov al, cl
-		xlatb ; Table Look-up Translation; al = byte ptr [rbx + al]
+		xlatb ; Table Look-up Translation; al = byte [rbx + al]
 		cmp al, ' '
-		je drawCharEnd
+		je .drawCharEnd
 		sub al, 'A'
 		imul eax, FONT_SM_CHAR_WIDTH
-		mov [font_current_char_rect].pos.x, eax
+		mov [font_current_char_rect + Rect.pos.x], eax
 
 		call screen_draw1bppSprite
 
-		drawCharEnd:
-		add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+		.drawCharEnd:
+		add [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
 
 		inc ecx
 		cmp ecx, press_any_key_text_len
-		jl charLoop
+		jl .charLoop
 
 	pop r14
 	pop r9
@@ -581,20 +587,20 @@ screen_drawPressAnyKey proc
 	pop rdx
 	pop rcx
 	pop rbx
-	_ret:
+	._ret:
 	ret
-screen_drawPressAnyKey endp
 
-screen_clearPixelBuffer proc
-	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT*4)/32
+
+screen_clearPixelBuffer:
+	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 32
 	lea rdi, [pixels]
-	vmovdqu ymm0, ymmword ptr [zero64]
-	_loop:
-		vmovdqu ymmword ptr [rdi], ymm0
+	vmovdqu ymm0, ymmword [zero64]
+	.loop:
+		vmovdqu ymmword [rdi], ymm0
 		add rdi, 32
-		loop _loop
+		loop .loop
 	ret
-screen_clearPixelBuffer endp
+
 
 
 %endif

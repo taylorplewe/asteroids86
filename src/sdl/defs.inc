@@ -2,33 +2,33 @@
 %define sdl_defs_h
 
 
-extern SDL_Init                     : proto
-extern SDL_Quit                     : proto
-extern SDL_GetTicks                 : proto
-extern SDL_Delay                    : proto
-extern SDL_CreateWindow             : proto
-extern SDL_CreateRenderer           : proto
-extern SDL_CreateSurface            : proto
-extern SDL_DestroyWindow            : proto
-extern SDL_DestroyRenderer          : proto
-extern SDL_DestroyTexture           : proto
-extern SDL_DestroySurface           : proto
-extern SDL_PollEvent                : proto
-extern SDL_CreateTextureFromSurface : proto
-extern SDL_SetTextureScaleMode      : proto
-extern SDL_RenderTexture            : proto
-extern SDL_RenderClear              : proto
-extern SDL_RenderPresent            : proto
-extern SDL_LockSurface              : proto
-extern SDL_UnlockSurface            : proto
-extern SDL_LoadBMP                  : proto
-extern SDL_SetWindowIcon            : proto
+extern SDL_Init
+extern SDL_Quit
+extern SDL_GetTicks
+extern SDL_Delay
+extern SDL_CreateWindow
+extern SDL_CreateRenderer
+extern SDL_CreateSurface
+extern SDL_DestroyWindow
+extern SDL_DestroyRenderer
+extern SDL_DestroyTexture
+extern SDL_DestroySurface
+extern SDL_PollEvent
+extern SDL_CreateTextureFromSurface
+extern SDL_SetTextureScaleMode
+extern SDL_RenderTexture
+extern SDL_RenderClear
+extern SDL_RenderPresent
+extern SDL_LockSurface
+extern SDL_UnlockSurface
+extern SDL_LoadBMP
+extern SDL_SetWindowIcon
 ; gamepads
-extern SDL_free                     : proto
-extern SDL_GetGamepads              : proto
-extern SDL_RumbleGamepad            : proto
-extern SDL_OpenGamepad              : proto
-extern SDL_CloseGamepad             : proto
+extern SDL_free
+extern SDL_GetGamepads
+extern SDL_RumbleGamepad
+extern SDL_OpenGamepad
+extern SDL_CloseGamepad
 SDL_INIT_VIDEO   equ 20h
 SDL_INIT_GAMEPAD equ 2000h
 
@@ -54,60 +54,58 @@ SDLK_RIGHT equ 4000004fh
 
 SDL_PIXELFORMAT_RGBA32 equ 376840196 ; idk
 
-SDL_Event struct
-	event_type dd ?
-SDL_Event ends
+struc SDL_Event
+	.event_type: resd 1
+endstruc
 
-SDL_KeyboardEvent struct
-	event_type dd ? ; 0
-	reserved   dd ? ; 4
-	timestamp  dq ? ; 8
-	windowID   dd ? ; 16
-	which      dd ? ; 20
-	scancode   dd ? ; 24
-	key        dd ? ; 28
+struc SDL_KeyboardEvent
+	.event_type: resd 1 ; 0
+	.reserved:   resd 1 ; 4
+	.timestamp:  resq 1 ; 8
+	.windowID:   resd 1 ; 16
+	.which:      resd 1 ; 20
+	.scancode:   resd 1 ; 24
+	.key:        resd 1 ; 28
 	; ... more that idc about
-SDL_KeyboardEvent ends
+endstruc
 
 ; https://wiki.libsdl.org/SDL3/SDL_GamepadButtonEvent
-SDL_GamepadButtonEvent struct
-	event_type dd ?
-	reserved   dd ?
-	timestamp  dq ?
-	which      dd ? ; JoystickId
-	button     db ?
-	down       db ? ; bool
-	           db ?
-			   db ?
-SDL_GamepadButtonEvent ends
+struc SDL_GamepadButtonEvent
+	.event_type: resd 1
+	.reserved:   resd 1
+	.timestamp:  resq 1
+	.which:      resd 1 ; JoystickId
+	.button:     resb 1
+	.down:       resb 1 ; bool
+	             resb 1
+			     resb 1
+endstruc
 
 ; https://wiki.libsdl.org/SDL3/SDL_GamepadAxisEvent
-SDL_GamepadAxisEvent struct
-	event_type dd ?
-	reserved   dd ?
-	timestamp  dq ?
-	which      dd ? ; JoystickID
-	axis       db ? ; SDL_GamepadAxis
-	           db ?
-			   db ?
-			   db ?
-	value      dw ? ; signed
-	           dw ?
-SDL_GamepadAxisEvent ends
+struc SDL_GamepadAxisEvent
+	.event_type: resd 1
+	.reserved:   resd 1
+	.timestamp:  resq 1
+	.which:      resd 1 ; JoystickID
+	.axis:       resb 1 ; SDL_GamepadAxis
+	             resb 1
+			     resb 1
+			     resb 1
+	.value:      resw 1 ; signed
+	             resw 1
+endstruc
 
-SDL_SurfaceFlags typedef dword
-SDL_PixelFormat  typedef dword
-SDL_Surface struct
-	flags    SDL_SurfaceFlags ? ; 0
-	format   SDL_PixelFormat  ? ; 4
-	w        dd               ? ; 8
-	h        dd               ? ; 12
-	pitch    dd               ? ; 16
-	         dd               ? ; 20
-	pixels   dq               ? ; 24
-	refcount dd               ? ; 32
-	reserved dq               ? ; 36
-SDL_Surface ends
+struc SDL_Surface
+	.flags:    resd 1 ; 0
+	.format:   resd 1 ; 4
+	.w:        resd 1 ; 8
+	.h:        resd 1 ; 12
+	.pitch:    resd 1 ; 16
+	           resd 1 ; 20
+	.pixels:   resq 1 ; 24
+	.refcount: resd 1 ; 32
+	.reserved: resq 1 ; 36
+endstruc
 
 SDL_SCALEMODE_NEAREST equ 0
 

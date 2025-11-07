@@ -4,23 +4,23 @@
 %include "src/data/shake-offsets.inc"
 %include "src/data/flicker-alphas.inc"
 
-%include "src/global.s"
-%include "src/font.s"
-%include "src/fx/shard.s"
-%include "src/fx/ship-shard.s"
-%include "src/fx/fire.s"
-%include "src/fx/star.s"
-%include "src/bullet.s"
-%include "src/ship.s"
-%include "src/asteroid.s"
-%include "src/ufo.s"
+%include "src/global.asm"
+%include "src/font.asm"
+%include "src/fx/shard.asm"
+%include "src/fx/ship-shard.asm"
+%include "src/fx/fire.asm"
+%include "src/fx/star.asm"
+%include "src/bullet.asm"
+%include "src/ship.asm"
+%include "src/asteroid.asm"
+%include "src/ufo.asm"
 
 
 struc WaveData
-	num_large_asteroids  dd ?
-	num_medium_asteroids dd ?
-	num_small_asteroids  dd ?
-	num_ufos             dd ?
+	.num_large_asteroids:  resd 1
+	.num_medium_asteroids: resd 1
+	.num_small_asteroids:  resd 1
+	.num_ufos:             resd 1
 endstruc
 
 NUM_FLASHES                    equ 8
@@ -35,39 +35,39 @@ GAME_GAMEOVER_COUNTER_AMT      equ 60 * 4
 GAME_PRESS_ANY_KEY_COUNTER_AMT equ 60 * 7
 GAME_PRESS_ANY_KEY_Y           equ ((SCREEN_HEIGHT / 2) + 64) shl 16
 
-.data
+section .data
 
 waves          WaveData { 3, 0, 0, 0 }, { 4, 1, 0, 1 }, { 3, 3, 0, 2 }, { 1, 5, 2, 2 }, { 1, 5, 5, 2 }, { 1, 3, 9, 2 }, { 2, 4, 10, 3 }, { 2, 5, 12, 3 }
 waves_end equ $
 
-game_score_pos    Point { 64 shl 16, 64 shl 16 }
-game_lives_pos    Point { 64 shl 16, 160 shl 16 }
+game_score_pos    Point { 64 << 16, 64 << 16 }
+game_lives_pos    Point { 64 << 16, 160 << 16 }
 
 
-.data?
+section .bss
 
-current_wave      dq    ?
-flash_counter     dd    ?
-ufo_gen_counter   dd    ?
-next_wave_counter dd    ?
+current_wave      resq    1
+flash_counter     resd    1
+ufo_gen_counter   resd    1
+next_wave_counter resd    1
 
-game_lives_points      Point GAME_START_NUM_LIVES * SHIP_NUM_POINTS dup (<>)
-game_lives_alphas      db    GAME_START_NUM_LIVES dup (?)
-game_lives_prev        dd    ? ; previous state of lives, for detecting change
-game_lives_flicker_ind dw    ? ; 8.8 fixed point, upper byte is the actual index
+game_lives_points      resb Point_size * GAME_START_NUM_LIVES * SHIP_NUM_POINTS
+game_lives_alphas      resb GAME_START_NUM_LIVES
+game_lives_prev        resd    1 ; previous state of lives, for detecting change
+game_lives_flicker_ind resw    1 ; 8.8 fixed point, upper byte is the actual index
 
-game_score_prev      dd ? ; previous state of score, for detecting change
-game_score_shake_ind dd ?
+game_score_prev      resd 1 ; previous state of score, for detecting change
+game_score_shake_ind resd 1
 
-game_show_gameover_counter      dd ?
-game_show_gameover              dd ?
-game_show_press_any_key_counter dd ?
-game_gameover_flicker_inds      dd @SizeStr(GAMEOVER) dup (?)
+game_show_gameover_counter      resd 1
+game_show_gameover              resd 1
+game_show_press_any_key_counter resd 1
+game_gameover_flicker_inds      resd %strlen("GAMEOVER")
 
 
-.code
+section .text
 
-game_init proc
+game_init:
 	call ship_respawn
 	lea rax, waves
 	mov [current_wave], rax
@@ -84,10 +84,10 @@ game_init proc
 	mov [game_show_press_any_key_counter], 0
 
 	i equ 0
-	repeat @SizeStr(GAMEOVER)
+	%rep %strlen("GAMEOVER")
 		mov [game_gameover_flicker_inds + i * 4], 0
 		i equ i + 1
-	endm
+	%endrep
 
 	mov eax, [lives]
 	mov [game_lives_prev], eax
@@ -107,22 +107,22 @@ game_init proc
 
 	mov al, 0ffh
 	i equ 0
-	repeat GAME_START_NUM_LIVES
+	%rep GAME_START_NUM_LIVES
 		mov [game_lives_alphas + i], al
 		i equ i + 1
-	endm
+	%endrep
 
 	; fall thru
-game_init endp
 
-game_initWave proc
+
+game_initWave:
 	push rbx
 	push rdx
 	push rsi
 	push rdi
 	push r15
 
-	; mov rbx, (100 shl (32 + 16)) or (500 shl 16)
+	; mov rbx, (100 << (32 + 16)) or (500 << 16)
 	; call ufo_create
 
 	mov rsi, [current_wave]
@@ -130,58 +130,57 @@ game_initWave proc
 	lea rdi, asteroid_shapes
 	lea r15, asteroid_shapes_end
 
-	game_initWave_incAsteroidShapePtr macro
-		local _end
-		add rdi, sizeof FatPtr
+	%macro game_initWave_incAsteroidShapePtr
+		add rdi, FatPtr_size
 		cmp rdi, r15
-		jl _end
+		jl %%end
 		lea rdi, asteroid_shapes
-		_end:
+		%%end:
 	endm
 
 	mov ecx, 3
-	mov edx, [rsi].WaveData.num_large_asteroids
+	mov edx, [rsi + WaveData.num_large_asteroids]
 	test edx, edx
-	je createLargeAsteroidsLoopEnd
-	createLargeAsteroidsLoop:
+	je .createLargeAsteroidsLoopEnd
+	.createLargeAsteroidsLoop:
 		call asteroid_createRand
 		game_initWave_incAsteroidShapePtr
 		dec edx
-		jne createLargeAsteroidsLoop
-	createLargeAsteroidsLoopEnd:
+		jne .createLargeAsteroidsLoop
+	.createLargeAsteroidsLoopEnd:
 
 	dec ecx
-	mov edx, [rsi].WaveData.num_medium_asteroids
+	mov edx, [rsi + WaveData.num_medium_asteroids]
 	test edx, edx
-	je createMediumAsteroidsLoopEnd
-	createMediumAsteroidsLoop:
+	je .createMediumAsteroidsLoopEnd
+	.createMediumAsteroidsLoop:
 		call asteroid_createRand
 		game_initWave_incAsteroidShapePtr
 		dec edx
-		jne createMediumAsteroidsLoop
-	createMediumAsteroidsLoopEnd:
+		jne .createMediumAsteroidsLoop
+	.createMediumAsteroidsLoopEnd:
 
 	dec ecx
-	mov edx, [rsi].WaveData.num_small_asteroids
+	mov edx, [rsi + WaveData.num_small_asteroids]
 	test edx, edx
-	je createSmallAsteroidsLoopEnd
-	createSmallAsteroidsLoop:
+	je .createSmallAsteroidsLoopEnd
+	.createSmallAsteroidsLoop:
 		call asteroid_createRand
 		game_initWave_incAsteroidShapePtr
 		dec edx
-		jne createSmallAsteroidsLoop
-	createSmallAsteroidsLoopEnd:
+		jne .createSmallAsteroidsLoop
+	.createSmallAsteroidsLoopEnd:
 
-	mov eax, [rsi].WaveData.num_ufos
+	mov eax, [rsi + WaveData.num_ufos]
 	mov [ufos_arr].cap, eax
 
 	mov rax, [current_wave]
 	lea rdx, waves
 	cmp rax, rdx
-	je @f
+	je ._
 	mov [flash_counter], FLASH_COUNTER_AMT
 	mov [num_flashes_left], NUM_FLASHES
-	@@:
+	._:
 	call game_setUfoGenCounter
 
 	pop r15
@@ -190,61 +189,61 @@ game_initWave proc
 	pop rdx
 	pop rbx
 	ret
-game_initWave endp
 
-game_setUfoGenCounter proc
+
+game_setUfoGenCounter:
 	xor eax, eax
 	rand ax
 	and ax, GAME_UFO_GEN_COUNTER_RAND_MASK
 	add eax, GAME_UFO_GEN_COUNTER_MIN_AMT
 	mov [ufo_gen_counter], eax
 	ret
-game_setUfoGenCounter endp
 
-game_setShipLivesPoints proc
+
+game_setShipLivesPoints:
 	lea r10, game_lives_pos
 	xor r11, r11
 	mov r12d, 00010000h
 
 	i equ 0
-	repeat 4
+	%rep 4
 		lea r8, ship_base_points
-		lea r9, game_lives_points + (i * (sizeof Point * 5))
+		lea r9, game_lives_points + (i * (Point_size * 5))
 		call applyBasePointToPoint
 
-		repeat 4
-		add r8, sizeof BasePoint
-		add r9, sizeof Point
+		%rep 4
+		add r8, BasePoint_size
+		add r9, Point_size
 		call applyBasePointToPoint
-		endm
+		%endrep
 	
-		mov eax, 36 shl 16
+		mov eax, 36 << 16
 		add [game_lives_pos].x, eax
 		i equ i + 1
-	endm
+	%endrep
 
 	ret
-game_setShipLivesPoints endp
+
 
 ; in:
 	; rdi - pointer to Input struct
-game_tick proc
-	cmp [rdi].Input.buttons_pressed, 0
-	je @f
+game_tick:
+	cmp [rdi + Input.buttons_pressed], 0
+	je ._
 		cmp [screen_show_press_any_key], 0
-		je @f
+		je ._
 		call title_init
 		mov [mode], Mode_Title
 		ret
-	@@:
+	._:
 
 	cmp [is_paused], 0
-	jne draw
+	jne .draw
 
 	cmp [is_in_gameover], 0
-	jne @f
+	jne ._
 	call ship_update
-	@@:
+	._:
 	call bullet_updateAll
 	call asteroid_updateAll
 	call ufo_updateAll
@@ -254,58 +253,57 @@ game_tick proc
 
 	; flicker game over
 	cmp [game_gameover_flicker_inds], 0
-	je gameoverFlickerEnd
+	je .gameoverFlickerEnd
 		i equ 0
-		repeat 8
-			local next
+		%rep 8
 			cmp [game_gameover_flicker_inds + i * 4], flicker_alphas_len
-			jge next
+			jge %%next
 			inc [game_gameover_flicker_inds + i * 4]
-			next:
+			%%next:
 			i equ i + 1
-		endm
-	gameoverFlickerEnd:
+		%endrep
+	.gameoverFlickerEnd:
 
 	; gameover counter
 	cmp [game_show_gameover_counter], 0
-	je gameoverCounterEnd
+	je .gameoverCounterEnd
 		dec [game_show_gameover_counter]
-		jne gameoverCounterEnd
+		jne .gameoverCounterEnd
 		inc [game_show_gameover]
 		i equ 0
-		repeat 8
+		%rep 8
 			rand eax
 			and eax, 11111b
 			inc eax
 			mov [game_gameover_flicker_inds + i * 4], eax
 			i equ i + 1
-		endm
-	gameoverCounterEnd:
+		%endrep
+	.gameoverCounterEnd:
 
 	; "press any key" counter
 	cmp [game_show_press_any_key_counter], 0
-	je pressAnyKeyEnd
+	je .pressAnyKeyEnd
 		dec [game_show_press_any_key_counter]
-		sete byte ptr [screen_show_press_any_key]
-	pressAnyKeyEnd:
+		sete byte [screen_show_press_any_key]
+	.pressAnyKeyEnd:
 
 	; lives counter
 	mov eax, [lives]
 	cmp [game_lives_prev], eax
-	je livesCheckEnd
-		setge byte ptr [game_lives_flicker_ind + 1]
+	je .livesCheckEnd
+		setge byte [game_lives_flicker_ind + 1]
 		mov [game_lives_prev], eax
 		test eax, eax
-		jne livesCheckEnd
+		jne .livesCheckEnd
 			mov [game_show_gameover_counter], GAME_GAMEOVER_COUNTER_AMT
 			mov [game_show_press_any_key_counter], GAME_PRESS_ANY_KEY_COUNTER_AMT
-	livesCheckEnd:
+	.livesCheckEnd:
 
 	; lives flicker
-	cmp byte ptr [game_lives_flicker_ind + 1], 0
-	je @f
+	cmp byte [game_lives_flicker_ind + 1], 0
+	je ._
 		xor eax, eax
-		mov al, byte ptr [game_lives_flicker_ind + 1]
+		mov al, byte [game_lives_flicker_ind + 1]
 		lea rsi, flicker_alphas
 		mov dl, [rsi + rax]
 		mov ebx, [lives]
@@ -314,69 +312,69 @@ game_tick proc
 		mov ax, GAME_LIVES_FLICKER_INC
 		add [game_lives_flicker_ind], ax
 		xor eax, eax
-		mov al, byte ptr [game_lives_flicker_ind + 1]
+		mov al, byte [game_lives_flicker_ind + 1]
 		cmp eax, flicker_alphas_len
-		jl @f
+		jl ._
 		mov [game_lives_flicker_ind], 0
-	@@:
+	._:
 
 	; score bounce update
 	cmp [game_score_shake_ind], 0
-	je @f
+	je ._
 		inc [game_score_shake_ind]
 		cmp [game_score_shake_ind], bounce_offset_len
-		jl @f
+		jl ._
 		mov [game_score_shake_ind], 0
-	@@:
+	._:
 
 	; score bounce
 	mov eax, [score]
 	cmp [game_score_prev], eax
-	je scoreCheckEnd
-		; jg @f ; I don't know why it would go down but def don't want to bounce it in that case
+	je .scoreCheckEnd
+		; jg ._ ; I don't know why it would go down but def don't want to bounce it in that case
 			mov [game_score_shake_ind], 1
-		; @@:
+		; ._:
 		mov [game_score_prev], eax
-	scoreCheckEnd:
+	.scoreCheckEnd:
 
 	; gameover counter
 	cmp [gameover_timer], 0
-	je @f
+	je ._
 		dec [gameover_timer]
-	@@:
+	._:
 
 	; flash asteroids
 	cmp [num_flashes_left], 0
-	je flashEnd
+	je .flashEnd
 	dec [flash_counter]
-	jne flashEnd
+	jne .flashEnd
 		mov [flash_counter], FLASH_COUNTER_AMT
 		dec [num_flashes_left]
 		bt [num_flashes_left], 0
-		jc @f
+		jc ._
 			mov eax, [fg_color]
-			jmp flashColStore
-		@@:
+			jmp .flashColStore
+		._:
 			mov eax, [dim_color]
-		flashColStore:
+		.flashColStore:
 		mov [flash_color], eax
-	flashEnd:
+	.flashEnd:
 
 	; generate UFOs
 	dec [ufo_gen_counter]
-	jne ufoGenEnd
+	jne .ufoGenEnd
 		call game_setUfoGenCounter
 
 		; x
 		rand eax
 		test eax, eax
-		js ufoGenLeftSide
+		js .ufoGenLeftSide
 		;ufoGenRightSide:
 			mov ebx, (SCREEN_WIDTH + UFO_BBOX_WIDTH / 2) - 1
-			jmp ufoGenRest
-		ufoGenLeftSide:
+			jmp .ufoGenRest
+		.ufoGenLeftSide:
 			mov ebx, -UFO_BBOX_WIDTH / 2
-		ufoGenRest:
+		.ufoGenRest:
 
 		; y
 		mov ecx, GAME_UFO_GEN_YPOS_LEEWAY
@@ -390,32 +388,32 @@ game_tick proc
 		or rbx, rdx
 		shl rbx, 16
 		call ufo_create
-	ufoGenEnd:
+	.ufoGenEnd:
 
 	; wave complete?
 	cmp [next_wave_counter], 0
-	je decWaveCounterEnd
+	je .decWaveCounterEnd
 		dec [next_wave_counter]
-		jne nextWaveLogicEnd
-		add [current_wave], sizeof WaveData
+		jne .nextWaveLogicEnd
+		add [current_wave], WaveData_size
 		lea rax, waves_end
 		cmp [current_wave], rax
-		jl @f
-			sub [current_wave], sizeof WaveData
-		@@:
+		jl ._
+			sub [current_wave], WaveData_size
+		._:
 		call game_initWave
-		jmp nextWaveLogicEnd
-	decWaveCounterEnd:
+		jmp .nextWaveLogicEnd
+	.decWaveCounterEnd:
 	cmp [asteroids_arr].data.len, 0
-	jne nextWaveLogicEnd
+	jne .nextWaveLogicEnd
 		mov [next_wave_counter], GAME_NEXT_WAVE_COUNTER_AMT
-	nextWaveLogicEnd:
+	.nextWaveLogicEnd:
 
-	draw:
+	.draw:
 	cmp [is_in_gameover], 0
-	jne @f
+	jne ._
 	call ship_draw
-	@@:
+	._:
 	call bullet_drawAll
 	call asteroid_drawAll
 	call ufo_drawAll
@@ -429,9 +427,9 @@ game_tick proc
 	call screen_drawPressAnyKey
 
 	ret
-game_tick endp
 
-game_drawScore proc
+
+game_drawScore:
 	push rbx
 	push rdx
 	push rsi
@@ -458,7 +456,7 @@ game_drawScore proc
 	mov r11d, 1000000
 	mov r12d, [game_score_shake_ind]
 
-	charLoop:
+	.charLoop:
 		; t /= 10
 		mov eax, r11d
 		mov ebx, 10
@@ -476,12 +474,12 @@ game_drawScore proc
 
 		; if t != 1 and !digit and !numDigitsDrawn then continue
 		cmp r11d, 1
-		je @f
+		je ._
 		test edx, edx
-		jne @f
+		jne ._
 		test r10d, r10d
-		je charLoopNext
-		@@:
+		je .charLoopNext
+		._:
 
 		; reset onscreen y
 		mov eax, [game_score_pos].y
@@ -501,13 +499,13 @@ game_drawScore proc
 		lea rdx, font_current_char_pos
 		call screen_draw1bppSprite
 
-		add [font_current_char_pos].x, FONT_DIGIT_KERNING shl 16
+		add [font_current_char_pos].x, FONT_DIGIT_KERNING << 16
 		saturatingSub32 r12d, 4
 
 		; if numDigitsDrawn == 4 then draw comma
 		inc r10d
 		cmp r11d, 1000
-		jne @f
+		jne ._
 			; draw comma
 			push rsi
 			push r9
@@ -515,19 +513,19 @@ game_drawScore proc
 			lea r9, font_comma_rect
 			mov rsi, [font_comma_spr_data]
 			add [font_current_char_pos].y, (FONT_DIGIT_HEIGHT - 24) shl 16
-			sub [font_current_char_pos].x, 12 shl 16
+			sub [font_current_char_pos].x, 12 << 16
 			; lea rdx, font_current_char_pos
 			call screen_draw1bppSprite
 			sub [font_current_char_pos].y, (FONT_DIGIT_HEIGHT - 24) shl 16
-			add [font_current_char_pos].x, 26 shl 16
+			add [font_current_char_pos].x, 26 << 16
 
 			pop r9
 			pop rsi
-		@@:
+		._:
 
-		charLoopNext:
+		.charLoopNext:
 		cmp r11d, 1
-		jne charLoop
+		jne .charLoop
 
 	pop r12
 	pop r11
@@ -538,37 +536,37 @@ game_drawScore proc
 	pop rdx
 	pop rbx
 	ret
-game_drawScore endp
 
-game_setLivesAlphas macro
+
+%macro game_setLivesAlphas
 	i equ 0
-	repeat GAME_START_NUM_LIVES
+	%rep GAME_START_NUM_LIVES
 		
-	endm
+	%endrep
 endm
 
-game_drawLives proc
+game_drawLives:
 	game_setLivesAlphas
 	mov r8d, [fg_color]
 
 	i equ 0
-	repeat GAME_START_NUM_LIVES
+	%rep GAME_START_NUM_LIVES
 		xor eax, eax
 		mov al, [game_lives_alphas + i]
 		shl eax, 24
 		and r8d, 00ffffffh
 		or r8d, eax
-		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*0, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*1
-		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*0, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*2
-		screen_mDrawLine (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*3, (game_lives_points + (i * (5 * sizeof Point))) + sizeof Point*4
+		screen_mDrawLine (game_lives_points + (i * (5 * Point_size))) + Point_size*0, (game_lives_points + (i * (5 * Point_size))) + Point_size*1
+		screen_mDrawLine (game_lives_points + (i * (5 * Point_size))) + Point_size*0, (game_lives_points + (i * (5 * Point_size))) + Point_size*2
+		screen_mDrawLine (game_lives_points + (i * (5 * Point_size))) + Point_size*3, (game_lives_points + (i * (5 * Point_size))) + Point_size*4
 		i equ i + 1
-	endm
+	%endrep
 	ret
-game_drawLives endp
+
 
 GAMEOVER_CHAR_KERNING equ 16
 GAMEOVER_CHAR_WIDTH   equ FONT_LG_CHAR_WIDTH + GAMEOVER_CHAR_KERNING
-GAMEOVER_FULL_WIDTH   equ @SizeStr(GAMEOVER) * GAMEOVER_CHAR_WIDTH
+GAMEOVER_FULL_WIDTH   equ %strlen("GAMEOVER") * GAMEOVER_CHAR_WIDTH
 GAMEOVER_FIRST_X      equ (((SCREEN_WIDTH / 2) - (GAMEOVER_FULL_WIDTH / 2)) + (FONT_LG_CHAR_WIDTH / 2)) shl 16
 
 gameoverUs:
@@ -581,9 +579,9 @@ gameoverUs:
 	dw FONT_LG_X_E
 	dw FONT_LG_X_R
 
-game_drawGameOver proc
+game_drawGameOver:
 	cmp [game_show_gameover], 0
-	je _ret
+	je ._ret
 
 	push rbx
 	push rcx
@@ -591,7 +589,7 @@ game_drawGameOver proc
 	push rdi
 
 	; cmp [game_show_gameover], 0
-	; je _end
+	; je .end
 
 	lea rdx, font_current_char_pos
 	mov rsi, [font_large_spr_data]
@@ -606,7 +604,7 @@ game_drawGameOver proc
 	mov [font_current_char_pos].x, GAMEOVER_FIRST_X
 
 	xor ecx, ecx
-	charLoop:
+	.charLoop:
 		; set U coordinate of char sprite
 		lea rdi, gameoverUs
 		xor eax, eax
@@ -638,24 +636,24 @@ game_drawGameOver proc
 		; r14 - pointer to pixel plotting routine to call
 		call screen_draw1bppSprite
 
-		add [font_current_char_pos].x, GAMEOVER_CHAR_WIDTH shl 16
+		add [font_current_char_pos].x, GAMEOVER_CHAR_WIDTH << 16
 		cmp ecx, 3
-		jne @f
-			add [font_current_char_pos].x, GAMEOVER_CHAR_KERNING shl 16 ; add the space
-		@@:
+		jne ._
+			add [font_current_char_pos].x, GAMEOVER_CHAR_KERNING << 16 ; add the space
+		._:
 
 		inc ecx
 		cmp ecx, 8
-		jl charLoop
+		jl .charLoop
 
-	_end:
+	.end:
 	pop rdi
 	pop rsi
 	pop rcx
 	pop rbx
-	_ret:
+	._ret:
 	ret
-game_drawGameOver endp
+
 
 
 %endif

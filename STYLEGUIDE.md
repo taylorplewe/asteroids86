@@ -98,7 +98,7 @@ Following is the source of truth for this codebase's style of code.
 	```
 - MASM's unnamed labels (`@@:`) are fine to use for short, single-level blocks. MASM itself will enforce the latter, since unlike other assemblers, it doesn't support jumping over unnamed labels to get to other unnamed labels, only the immediate next one or previous one.
 	```
-	dec [rdi].Bullet.ticks_to_live
+	dec [rdi + Bullet.ticks_to_live]
 	jne @f
 		; destroy bullet
 		mov eax, ecx

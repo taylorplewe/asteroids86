@@ -1,0 +1,7 @@
+The search and replace regex I used for replacing
+    mov [rdi].MyStruct.member, x
+with
+    mov [rdi + MyStruct.member], x
+was:
+    replace: \[(\w{3})\]\.([^\s^,]+)
+    with:    [$1 + $2]

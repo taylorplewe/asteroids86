@@ -18,7 +18,7 @@ FLICKER_0   equ DIM_ALPHA
 
 
 
-.data
+section .data
 
 flicker_alphas:
 	db FLICKER_100

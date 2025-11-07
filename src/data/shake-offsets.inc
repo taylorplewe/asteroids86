@@ -2,7 +2,7 @@
 %define shakeOffsets_h
 
 
-.data
+section .data
 
 bounce_offsets:
 	db 0 ; logic checks that the index is NOT zero, so starts on 1

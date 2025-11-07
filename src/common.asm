@@ -5,34 +5,34 @@
 %include "src/data/sintab.inc"
 
 
-.code
+section .text
 
 ; in:
 	; rdi = destination ptr
 	; rsi = source ptr
 	; ecx = count of qwords
-memcpyAligned32 proc
-	mainLoop:
-		vmovdqu ymm0, ymmword ptr [rsi]
-		vmovdqu ymmword ptr [rdi], ymm0
+memcpyAligned32:
+	.mainLoop:
+		vmovdqu ymm0, ymmword [rsi]
+		vmovdqu ymmword [rdi], ymm0
 		add rsi, 32
 		add rdi, 32
-		loop mainLoop
+		loop .mainLoop
 	ret
 
 	; loop duration (in clock cycles) moving 8 bytes at a time with RAX:
 		; 7,340,032 cycles
 	; loop duration (in clock cycles) moving 32 bytes at a time with YMM0 (SIMD):
 		; 2,246,728 cycles
-memcpyAligned32 endp
 
-cos proc
+
+cos:
 	add al, 40h
-cos endp
 
-sin proc
+
+sin:
 	cmp al, 80h
-	jb sinCos
+	jb .sinCos
 
 	and al, 7fh
 	call sinCos
@@ -40,24 +40,24 @@ sin proc
 	neg eax
 	ret
 
-	sinCos:
+	.sinCos:
 	cmp al, 41h
-	jb quadrant
+	jb .quadrant
 
 	xor al, 7fh
 	inc al
 
-	quadrant:
+	.quadrant:
 	push rdx
 
 	shl eax, 2 ; 4-byte values
 
 	lea rdx, sintab
-	mov eax, dword ptr [rdx + rax]
+	mov eax, dword [rdx + rax]
 
 	pop rdx
 	ret
-sin endp
+
 
 ; This is a translation of a "FastAtan2" method from a disassembly of Legacy of Kain: Soul Reaver (https://github.com/FedericoMilesi/soul-re/blob/8d859e8a3885e8c57f51e42bdb299fa2180258cc/src/Game/MATH3D.c#L132)
 ; in:
@@ -65,7 +65,7 @@ sin endp
 	; ecx - x
 ; out:
 	; al - angle in 256-based radians
-atan2 proc
+atan2:
 	push rdx
 	push r8
 	push r9
@@ -74,22 +74,22 @@ atan2 proc
     ;     x = 1;
     ; }
 	test ecx, ecx
-	jne @f
+	jne ._
 		inc ecx
-	@@:
+	._:
 
     ; if (y == 0) {
     ;     return (x < 1) * 128;
     ; }
     test ebx, ebx
-	jne @f
+	jne ._1
 		xor eax, eax
 		sub ecx, 1
 		sar ecx, 24
 		and ecx, 80h
 		mov eax, ecx
-		jmp _end
-	@@:
+		jmp .end
+	._1:
 	
     ; ax = abs(x);
     ; ay = abs(y);
@@ -102,13 +102,13 @@ atan2 proc
 
     ; if (x > 0)
 	cmp ecx, 0
-	jl xGreaterThanZeroEnd
+	jl .xGreaterThanZeroEnd
 	    ; if (y > 0)
 		cmp ebx, 0
-		jl xGreaterThanZeroYGreaterThanZeroEnd
+		jl .xGreaterThanZeroYGreaterThanZeroEnd
 		    ; if (ax < ay)
 			cmp r8d, r9d
-			jge @f
+			jge ._2
         		; return (64 - ((ax * 32) / ay));
 				shl r8d, 5
 				mov eax, r8d
@@ -117,18 +117,18 @@ atan2 proc
 				mov ebx, 64
 				sub ebx, eax
 				mov eax, ebx
-				jmp _end
-			@@:
+				jmp .end
+			._2:
 				; return ((ay * 32) / ax);
 				shl r9d, 5
 				mov eax, r9d
 				cdq
 				div r8d
-				jmp _end
-		xGreaterThanZeroYGreaterThanZeroEnd:
+				jmp .end
+		.xGreaterThanZeroYGreaterThanZeroEnd:
 		    ; if (ay < ax)
 		    cmp r9d, r8d
-			jge @f
+			jge ._3
 				; return (256 - ((ay * 32) / ax));
 				shl r9d, 5
 				mov eax, r9d
@@ -139,33 +139,33 @@ atan2 proc
 				mov eax, ebx
 				; could be 256 (al would be 0 which is very wrong)
 				cmp eax, 256
-				jl _end
+				jl .end
 				dec eax
-				jmp _end
-			@@:
+				jmp .end
+			._3:
 				; return (((ax * 32) / ay) + 196);
 				shl r8d, 5
 				mov eax, r8d
 				cdq
 				div r9d
 				add eax, 196
-				jmp _end
-    xGreaterThanZeroEnd:
+				jmp .end
+    .xGreaterThanZeroEnd:
 
     ; if (y > 0)
 	cmp ebx, 0
-	jl yGreaterThanZeroEnd
+	jl .yGreaterThanZeroEnd
 		; if (ax < ay)
 		cmp r8d, r9d
-		jge @f
+		jge ._4
 			; return (((ax * 32) / ay) + 64);
 			shl r8d, 5
 			mov eax, r8d
 			cdq
 			div r9d
 			add eax, 64
-			jmp _end
-		@@:
+			jmp .end
+		._4:
 			; return (128 - ((ay * 32) / ax));
 			shl r9d, 5
 			mov eax, r9d
@@ -174,20 +174,20 @@ atan2 proc
 			mov ebx, 128
 			sub ebx, eax
 			mov eax, ebx
-			jmp _end
-	yGreaterThanZeroEnd:
+			jmp .end
+	.yGreaterThanZeroEnd:
 
     ; if (ay < ax)
     cmp r9d, r8d
-	jge @f
+	jge ._5
 		; return (((ay * 32) / ax) + 128);
 		shl r9d, 5
 		mov eax, r9d
 		cdq
 		div r8d
 		add eax, 128
-		jmp _end
-	@@:
+		jmp .end
+	._5:
 		; return (196 - ((ax * 32) / ay));
 		shl r8d, 5
 		mov eax, r8d
@@ -196,15 +196,15 @@ atan2 proc
 		mov ebx, 196
 		sub ebx, eax
 		mov eax, ebx
-		; jmp _end
+		; jmp .end
 
-	_end:
+	.end:
 	add al, 64
 	pop r9
 	pop r8
 	pop rdx
 	ret
-atan2 endp
+
 
 ; in:
 	; r8   - pointer to source BasePoint
@@ -212,70 +212,70 @@ atan2 endp
 	; r10  - pointer to origin point (16.16 fixed point)
 	; r11b - rotation in 256-based radians
 	; r12d - factor to multiply vector by (16.16 fixed point)
-applyBasePointToPoint proc
+applyBasePointToPoint:
 	push rbx
 	push rcx
 
 	xor rax, rax
-	mov al, [r8].BasePoint.rad
+	mov al, byte [r8 + BasePoint.rad]
 	add al, r11b
 	mov bl, al
 	; x
 	mov al, bl
 	call sin
-	mov ecx, [r8].BasePoint.vec
+	mov ecx, dword [r8 + BasePoint.vec]
 	cdqe
 	imul rax, rcx
 	sar rax, 31
 	imul rax, r12
 	sar rax, 16
 	mov ecx, eax
-	mov eax, [r10].Point.x
+	mov eax, dword [r10 + Point.x]
 	shr eax, 16
 	add eax, ecx
-	mov [r9].Point.x, eax
+	mov dword [r9 + Point.x], eax
 	; y
 	xor eax, eax ; clear upper bits
 	mov al, bl
 	call cos
-	mov ecx, [r8].BasePoint.vec
+	mov ecx, dword [r8 + BasePoint.vec]
 	cdqe
 	imul rax, rcx
 	sar rax, 31
 	imul rax, r12
 	sar rax, 16
 	mov ecx, eax
-	mov eax, [r10].Point.y
+	mov eax, dword [r10 + Point.y]
 	shr eax, 16
 	sub eax, ecx
-	mov [r9].Point.y, eax
+	mov dword [r9 + Point.y], eax
 
 	pop rcx
 	pop rbx
 	ret
-applyBasePointToPoint endp
+
 
 ; in:
 	; rsi - pointer to 16.16 fixed-point point
-wrapPointAroundScreen proc
-	cmp [rsi].Point.x, 0
-	jg @f
-	add [rsi].Point.x, SCREEN_WIDTH shl 16
-	@@:
-	cmp [rsi].Point.x, SCREEN_WIDTH shl 16
-	jb @f
-	sub [rsi].Point.x, SCREEN_WIDTH shl 16
-	@@:
-	cmp [rsi].Point.y, 0
-	jg @f
-	add [rsi].Point.y, SCREEN_HEIGHT shl 16
-	@@:
-	cmp [rsi].Point.y, SCREEN_HEIGHT shl 16
-	jb @f
-	sub [rsi].Point.y, SCREEN_HEIGHT shl 16
-	@@:
+wrapPointAroundScreen:
+	cmp dword [rsi + Point.x], 0
+	jg ._1
+	add dword [rsi + Point.x], SCREEN_WIDTH << 16
+	._1:
+	cmp dword [rsi + Point.x], SCREEN_WIDTH << 16
+	jb ._2
+	sub dword [rsi + Point.x], SCREEN_WIDTH << 16
+	._2:
+	cmp [rsi + Point.y], 0
+	jg ._3
+	add dword [rsi + Point.y], SCREEN_HEIGHT << 16
+	._3:
+	cmp dword [rsi + Point.y], SCREEN_HEIGHT << 16
+	jb ._4
+	sub dword [rsi + Point.y], SCREEN_HEIGHT << 16
+	._4:
 	ret
-wrapPointAroundScreen endp
+
 
 ; Get a 16.16 fixed point X and Y velocity (together in one 64-bit register) from an 8-bit rotation value and a speed scaling vector
 ; in:
@@ -283,7 +283,7 @@ wrapPointAroundScreen endp
 	; ecx  - speed vector
 ; out:
 	; rax  - (velocity.y << 32) | (velocity.x) (16.16 fixed point each)
-getVelocityFromRotAndSpeed proc
+getVelocityFromRotAndSpeed:
 	push rdx
 
 	; x
@@ -308,11 +308,11 @@ getVelocityFromRotAndSpeed proc
 
 	pop rdx
 	ret
-getVelocityFromRotAndSpeed endp
+
 
 ; out:
 	; rax - Y in upper 32 bits, X in lower; both 16.16 fixed point
-getRandomOnscreenFixedPointPos proc
+getRandomOnscreenFixedPointPos:
 	push rbx
 	push rdx
 	push r8
@@ -342,7 +342,7 @@ getRandomOnscreenFixedPointPos proc
 	pop rdx
 	pop rbx
 	ret
-getRandomOnscreenFixedPointPos endp
+
 
 
 %endif

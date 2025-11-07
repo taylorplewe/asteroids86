@@ -4,8 +4,8 @@
 %include "src/globaldefs.inc"
 %include "src/data/title-points.inc"
 
-%include "src/global.s"
-%include "src/screen.s"
+%include "src/global.asm"
+%include "src/screen.asm"
 
 
 TITLE_APPEAR_DELAY_COUNTER_AMT     equ 60 * 2
@@ -17,24 +17,24 @@ TITLE_PRESS_ANY_KEY_Y              equ ((SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4
 TITLE_PRESS_ANY_KEY_COUNTER_AMT    equ 60 * 4
 
 
-.data?
+section .bss
 
 title_point1     Point <>
 title_point2     Point <>
 
 ; animation
-title_appear_delay_counter       dd ?
-title_num_lines_to_draw          dd ?
-title_anim_frame                 dd ?
-title_anim_counter               dd ?
-title_86_flicker_delay_counter   dd ?
+title_appear_delay_counter       resd 1
+title_num_lines_to_draw          resd 1
+title_anim_frame                 resd 1
+title_anim_counter               resd 1
+title_86_flicker_delay_counter   resd 1
 title_86_flicker_inds            dd 2 dup (?)
-title_show_press_any_key_counter dd ?
+title_show_press_any_key_counter resd 1
 
 
-.code
+section .text
 
-title_init proc
+title_init:
 	mov [title_appear_delay_counter], TITLE_APPEAR_DELAY_COUNTER_AMT
 	mov [title_num_lines_to_draw], 0
 	mov [title_anim_frame], 0
@@ -45,21 +45,21 @@ title_init proc
 	mov [screen_show_press_any_key], 0
 
 	ret
-title_init endp
+
 
 ; in:
 	; rdi - pointer to Input struct
-title_tick proc
-	cmp [rdi].Input.buttons_pressed, 0
-	je anyKeyPressEnd
+title_tick:
+	cmp [rdi + Input.buttons_pressed], 0
+	je .anyKeyPressEnd
 		cmp [screen_show_press_any_key], 0
-		je @f
+		je ._
 			call game_init
 			mov [mode], Mode_Game
 			ret
-		@@:
+		._:
 			call title_skipAnim
-	anyKeyPressEnd:
+	.anyKeyPressEnd:
 
 	call title_drawAsteroids
 	call title_draw86
@@ -67,87 +67,86 @@ title_tick proc
 
 	; "Press any key to continue"
 	cmp [screen_show_press_any_key], 0
-	je @f
+	je ._
 		mov [font_current_char_pos].y, TITLE_PRESS_ANY_KEY_Y
 		call screen_drawPressAnyKey
-	@@:
+	._:
 
 	cmp [title_show_press_any_key_counter], 0
-	je @f
+	je ._
 		dec [title_show_press_any_key_counter]
-		jne @f
+		jne ._
 		inc [screen_show_press_any_key]
-	@@:
+	._:
 
 	; sweep left to right drawing lines
 	mov eax, [title_num_lines_to_draw]
 	test eax, eax
-	je @f
+	je ._
 	cmp eax, TITLE_MAX_NUM_LINES_TO_DRAW
-	jge @f
+	jge ._
 		inc eax
 		mov [title_num_lines_to_draw], eax
 		cmp eax, TITLE_MAX_NUM_LINES_TO_DRAW
-		jl @f
+		jl ._
 		mov [title_86_flicker_delay_counter], TITLE_86_FLICKER_DELAY_COUNTER_AMT
 		mov [title_show_press_any_key_counter], TITLE_PRESS_ANY_KEY_COUNTER_AMT
-	@@:
+	._:
 
 	; appear delay counter
 	cmp [title_appear_delay_counter], 0
-	je @f
+	je ._
 		dec [title_appear_delay_counter]
-		jne @f
+		jne ._
 		inc [title_num_lines_to_draw]
-	@@:
+	._:
 
 	; advance ASTEROIDS animation
 	inc [title_anim_counter]
 	cmp [title_anim_counter], TITLE_FRAME_TIME
-	jl @f
-	jne @f
+	jl ._
+	jne ._
 		mov [title_anim_counter], 0
 		inc [title_anim_frame]
 		cmp [title_anim_frame], 3
-		jl @f
+		jl ._
 		mov [title_anim_frame], 0
-	@@:
+	._:
 
 	; advance 86 flicker
 	cmp [title_86_flicker_inds], 0
-	je @f
+	je ._
 		i equ 0
-		repeat 2
-			local next
+		%rep 2
 			cmp [title_86_flicker_inds + i * 4], flicker_alphas_len
-			jge next
+			jge %%next
 			inc [title_86_flicker_inds + i * 4]
 
-			next:
+			%%next:
 			i equ i + 1
-		endm
-	@@:
+		%endrep
+	._:
 
 	; count down 86 appear delay
 	cmp [title_86_flicker_delay_counter], 0
-	je _86FlickerDelayEnd
+	je ._86FlickerDelayEnd
 		dec [title_86_flicker_delay_counter]
-		jne _86FlickerDelayEnd
+		jne ._86FlickerDelayEnd
 		; generate 2 random indexes into the flicker array
 		i equ 0
-		repeat 2
+		%rep 2
 			rand eax
 			and eax, 11111b
 			inc eax
 			mov [title_86_flicker_inds + i * 4], eax
 			i equ i + 1
-		endm
-	_86FlickerDelayEnd:
+		%endrep
+	._86FlickerDelayEnd:
 
 	ret
-title_tick endp
 
-title_skipAnim proc
+
+title_skipAnim:
 	mov [title_appear_delay_counter], 0
 	mov [title_86_flicker_delay_counter], 0
 	mov [title_show_press_any_key_counter], 0
@@ -157,11 +156,11 @@ title_skipAnim proc
 	mov [title_86_flicker_inds + 4], flicker_alphas_len - 1
 	mov [screen_show_press_any_key], 1
 	ret
-title_skipAnim endp
+
 
 ; in:
 	; ebx - index
-title_drawLine proc
+title_drawLine:
 	xor eax, eax
 	mov ax, [rsi]
 	mov [screen_point1].x, eax
@@ -175,11 +174,11 @@ title_drawLine proc
 	call screen_drawLine
 	pop rcx
 	ret
-title_drawLine endp
 
-title_drawAsteroids proc
+
+title_drawAsteroids:
 	cmp [title_appear_delay_counter], 0
-	jne _ret
+	jne ._ret
 
 	push rcx
 	push rsi
@@ -196,7 +195,7 @@ title_drawAsteroids proc
 		call title_drawLine
 		add rsi, ind
 		dec ecx
-		je _end
+		je .end
 	endm
 
  	; close the D
@@ -211,17 +210,17 @@ title_drawAsteroids proc
 	mov [screen_point2].y, eax
 	call screen_drawLine
 
-	_end:
+	.end:
 	pop r8
 	pop rsi
 	pop rcx
-	_ret:
+	._ret:
 	ret
-title_drawAsteroids endp
 
-title_draw86 proc
+
+title_draw86:
 	cmp [title_86_flicker_inds], 0
-	je _ret
+	je ._ret
 
 	push rdx
 	push rsi
@@ -236,8 +235,8 @@ title_draw86 proc
 	lea r9, font_current_char_rect
 	lea r14, screen_setPixelOnscreenVerified
 
-	mov [font_current_char_pos].x, 1010 shl 16
-	mov [font_current_char_pos].y, 428 shl 16
+	mov [font_current_char_pos].x, 1010 << 16
+	mov [font_current_char_pos].y, 428 << 16
 	mov [font_current_char_rect].pos.x, 8 * FONT_DIGIT_WIDTH
 	mov [font_current_char_rect].pos.y, 0
 	mov [font_current_char_rect].dim.w, FONT_DIGIT_WIDTH
@@ -276,17 +275,17 @@ title_draw86 proc
 	pop rdi
 	pop rsi
 	pop rdx
-	_ret:
+	._ret:
 	ret
-title_draw86 endp
+
 
 TITLE_CREDIT_X equ ((SCREEN_WIDTH / 2) + 248) shl 16
 TITLE_CREDIT_Y equ (SCREEN_HEIGHT - 32) shl 16
 my_name db "TAYLOR PLEWE"
 my_name_len equ $ - my_name
-title_drawCredit proc
+title_drawCredit:
 	cmp [screen_show_press_any_key], 0
-	je _ret
+	je ._ret
 
 	push rbx
 	push rcx
@@ -319,42 +318,42 @@ title_drawCredit proc
 	lea rbx, my_name
 	xor ecx, ecx
 	xor r10, r10
-	nameLoop:
+	.nameLoop:
 		xor eax, eax
 		mov al, cl
-		xlatb ; Table Look-up Translation; al = byte ptr [rbx + al]
+		xlatb ; Table Look-up Translation; al = byte [rbx + al]
 		cmp al, ' '
-		je nameLoopDrawCharEnd
+		je .nameLoopDrawCharEnd
 		cmp al, 'W'
 		sete r10b
-		je nameLoopW
+		je .nameLoopW
 			sub al, 'A'
 			mov rsi, [font_small_spr_data]
 			mov [font_current_char_rect].dim.w, FONT_SM_CHAR_WIDTH
 			imul eax, FONT_SM_CHAR_WIDTH
-			jmp nameLoopCharRectSetEnd
-		nameLoopW:
+			jmp .nameLoopCharRectSetEnd
+		.nameLoopW:
 			add [font_current_char_pos].x, (FONT_SM_CHAR_WIDTH / 2) shl 16
 			mov rsi, [font_small_w_spr_data]
 			mov [font_current_char_rect].dim.w, FONT_SM_W_WIDTH
 			mov eax, 0
-		nameLoopCharRectSetEnd:
+		.nameLoopCharRectSetEnd:
 		mov [font_current_char_rect].pos.x, eax
 
 		call screen_draw1bppSprite
 
-		nameLoopDrawCharEnd:
-		add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+		.nameLoopDrawCharEnd:
+		add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH << 16
 		test r10, r10
-		je @f
+		je ._
 			add [font_current_char_pos].x, (FONT_SM_CHAR_WIDTH / 2) shl 16
-		@@:
+		._:
 
 		inc ecx
 		cmp ecx, my_name_len
-		jl nameLoop
+		jl .nameLoop
 
-	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH << 16
 
 	; creation year
 	mov rsi, [font_yr_digits_spr_data]
@@ -362,15 +361,15 @@ title_drawCredit proc
 	mov [font_current_char_rect].pos.x, 0
 	call screen_draw1bppSprite
 
-	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH << 16
 	mov [font_current_char_rect].pos.x, FONT_SM_CHAR_WIDTH
 	call screen_draw1bppSprite
 
-	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH << 16
 	mov [font_current_char_rect].pos.x, 0
 	call screen_draw1bppSprite
 
-	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH shl 16
+	add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH << 16
 	mov [font_current_char_rect].pos.x, FONT_SM_CHAR_WIDTH * 2
 	call screen_draw1bppSprite
 
@@ -382,9 +381,9 @@ title_drawCredit proc
 	pop rdx
 	pop rcx
 	pop rbx
-	_ret:
+	._ret:
 	ret
-title_drawCredit endp
+
 
 
 %endif
