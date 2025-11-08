@@ -7,6 +7,7 @@ include <data\sintab.inc>
 
 .code
 
+; Unfortunately, once I realized I can just modify the SDL surface's pixels directly and didn't need to maintain my own pixel buffer, this routine was no longer needed. Keeping it here because I'm proud of my findings.
 ; in:
 	; rdi = destination ptr
 	; rsi = source ptr

@@ -241,10 +241,6 @@ main proc
 
 		mov [event_bus], 0
 
-		call screen_clearPixelBuffer
-
-		call star_updateAndDrawAll
-
 		lea rdi, input
 		cmp [mode], Mode_Game
 		je doGameTick
@@ -324,10 +320,23 @@ render proc
 
 	; memcpy all the pixels over to surface->pixels
 	mov rbx, [surface]
-	mov rdi, [rbx].SDL_Surface.pixels
-	lea rsi, pixels
-	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 8
-	memcpyAligned32
+	mov rax, [rbx].SDL_Surface.pixels
+	screen_setPixelPtr
+	; lea rsi, pixels
+	; mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 8
+	; memcpyAligned32
+
+	call screen_clearPixelBuffer
+
+	call star_drawAll
+
+	cmp [mode], Mode_Game
+	je doGameDraw
+		call title_draw
+		jmp drawsEnd
+	doGameDraw:
+		call game_draw
+	drawsEnd:
 
 	mov rcx, [renderer]
 	call SDL_UnlockSurface

@@ -18,19 +18,26 @@ screen_height_d_256 dd (256 / 4) dup (SCREEN_HEIGHT)
 
 .data?
 
-pixels                    Pixel SCREEN_WIDTH*SCREEN_HEIGHT dup (<?>)
+; pixels                    Pixel SCREEN_WIDTH * SCREEN_HEIGHT dup (<?>)
+pixels                    dq    ?
 screen_point1             Point <?>
 screen_point2             Point <?>
-x_diff                    dd ?
-y_diff                    dd ?
-x_add                     dd ? ; 16.16 fixed point
-y_add                     dd ? ; 16.16 fixed point
-is_xdiff_neg              db ?
-is_ydiff_neg              db ?
-screen_show_press_any_key dd ?
+x_diff                    dd    ?
+y_diff                    dd    ?
+x_add                     dd    ? ; 16.16 fixed point
+y_add                     dd    ? ; 16.16 fixed point
+is_xdiff_neg              db    ?
+is_ydiff_neg              db    ?
+screen_show_press_any_key dd    ?
 
 
 .code
+
+; in:
+	; rax - pointer to pixel array
+screen_setPixelPtr macro
+	mov [pixels], rax
+endm
 
 ; in:
 	; ebx  - x
@@ -198,7 +205,8 @@ screen_draw1bppSprite proc
 	push r12
 	push r13
 
-	lea rdi, pixels
+	; lea rdi, pixels
+	mov rdi, [pixels]
 
 	mov r13, rsi
 	add rsi, sizeof Dim
@@ -286,7 +294,8 @@ screen_drawCircle proc
 	mov rbp, rsp
 	sub rsp, 24
 
-	lea rdi, pixels
+	; lea rdi, pixels
+	mov rdi, [pixels]
 
 	mov dword ptr [rsp + 8], ebx
 	mov dword ptr [rsp + 12], ecx
@@ -366,7 +375,8 @@ screen_drawLine proc
 	mov [is_ydiff_neg], 0
 
 	; rdi = pointer into pixels
-	lea rdi, pixels
+	; lea rdi, pixels
+	mov rdi, [pixels]
 	mov r14d, SCREEN_WIDTH
 	mov r15d, SCREEN_HEIGHT
 
@@ -622,7 +632,8 @@ screen_drawPressAnyKey endp
 
 screen_clearPixelBuffer proc
 	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT*4) / 32
-	lea rdi, pixels
+	; lea rdi, pixels
+	mov rdi, [pixels]
 	vmovdqu ymm0, ymmword ptr [zero64]
 	_loop:
 		vmovdqu ymmword ptr [rdi], ymm0

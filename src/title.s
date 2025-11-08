@@ -61,17 +61,6 @@ title_tick proc
 			call title_skipAnim
 	anyKeyPressEnd:
 
-	call title_drawAsteroids
-	call title_draw86
-	call title_drawCredit
-
-	; "Press any key to continue"
-	cmp [screen_show_press_any_key], 0
-	je @f
-		mov [font_current_char_pos].y, TITLE_PRESS_ANY_KEY_Y
-		call screen_drawPressAnyKey
-	@@:
-
 	cmp [title_show_press_any_key_counter], 0
 	je @f
 		dec [title_show_press_any_key_counter]
@@ -146,6 +135,19 @@ title_tick proc
 
 	ret
 title_tick endp
+
+title_draw proc
+	; "Press any key to continue"
+	cmp [screen_show_press_any_key], 0
+	je @f
+		mov [font_current_char_pos].y, TITLE_PRESS_ANY_KEY_Y
+		call screen_drawPressAnyKey
+	@@:
+	call title_drawAsteroids
+	call title_draw86
+	call title_drawCredit
+	ret
+title_draw endp
 
 title_skipAnim proc
 	mov [title_appear_delay_counter], 0

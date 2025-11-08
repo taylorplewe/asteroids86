@@ -63,12 +63,13 @@ star_generateAll proc
 	ret
 star_generateAll endp
 
-star_updateAndDrawAll proc
+star_drawAll proc
 	lea r13, stars + Stars.x
 	lea r14, stars + Stars.y
 	lea r15, stars + Stars.luminence
 
-	lea rdi, pixels
+	; lea rdi, pixels
+	mov rdi, [pixels]
 	mov r8d, [fg_color]
 	xor ebx, ebx
 	xor ecx, ecx
@@ -123,7 +124,7 @@ star_updateAndDrawAll proc
 		dec edx
 		jne moveRightAndDownLoop
 	ret
-star_updateAndDrawAll endp
+star_drawAll endp
 
 ; in:
 	; r13 - pointer to X word values

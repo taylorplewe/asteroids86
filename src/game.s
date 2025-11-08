@@ -239,7 +239,7 @@ game_tick proc
 	@@:
 
 	cmp [is_paused], 0
-	jne draw
+	jne _end
 
 	cmp [is_in_gameover], 0
 	jne @f
@@ -411,7 +411,11 @@ game_tick proc
 		mov [next_wave_counter], GAME_NEXT_WAVE_COUNTER_AMT
 	nextWaveLogicEnd:
 
-	draw:
+	_end:
+	ret
+game_tick endp
+
+game_draw proc
 	cmp [is_in_gameover], 0
 	jne @f
 	call ship_draw
@@ -427,9 +431,8 @@ game_tick proc
 	call game_drawGameOver
 	mov [font_current_char_pos].y, GAME_PRESS_ANY_KEY_Y
 	call screen_drawPressAnyKey
-
 	ret
-game_tick endp
+game_draw endp
 
 game_drawScore proc
 	push rbx
