@@ -286,16 +286,61 @@ main:
 			jmp .pollLoop
 
 			; callbacks
-			for key, <Boost, Teleport, Left, Right, Fire, Pause, Other>
-				@CatStr(key, Pressed):
-					bts [input].buttons_down, @CatStr(Keys_, key)
-					jmp .pollLoopNext
-			endm
-			for key, <Boost, Teleport, Left, Right, Fire, Pause, Other>
-				@CatStr(key, Released):
-					btr [input].buttons_down, @CatStr(Keys_, key)
-					jmp .pollLoopNext
-			endm
+			; for key, <Boost, Teleport, Left, Right, Fire, Pause, Other>
+			; 	@CatStr(key, Pressed):
+			; 		bts [input].buttons_down, @CatStr(Keys_, key)
+			; 		jmp .pollLoopNext
+			; endm
+			; for key, <Boost, Teleport, Left, Right, Fire, Pause, Other>
+			; 	@CatStr(key, Released):
+			; 		btr [input].buttons_down, @CatStr(Keys_, key)
+			; 		jmp .pollLoopNext
+			; endm
+
+			Boost_Pressed:
+				bts [input].buttons_down, Keys_Boost
+				jmp .pollLoopNext
+			Teleport_Pressed:
+				bts [input].buttons_down, Keys_Teleport
+				jmp .pollLoopNext
+			Left_Pressed:
+				bts [input].buttons_down, Keys_Left
+				jmp .pollLoopNext
+			Right_Pressed:
+				bts [input].buttons_down, Keys_Right
+				jmp .pollLoopNext
+			Fire_Pressed:
+				bts [input].buttons_down, Keys_Fire
+				jmp .pollLoopNext
+			Pause_Pressed:
+				bts [input].buttons_down, Keys_Pause
+				jmp .pollLoopNext
+			Other_Pressed:
+				bts [input].buttons_down, Keys_Other
+				jmp .pollLoopNext
+
+			Boost_Released:
+				btr [input].buttons_down, Keys_Boost
+				jmp .pollLoopNext
+			Teleport_Released:
+				btr [input].buttons_down, Keys_Teleport
+				jmp .pollLoopNext
+			Left_Released:
+				btr [input].buttons_down, Keys_Left
+				jmp .pollLoopNext
+			Right_Released:
+				btr [input].buttons_down, Keys_Right
+				jmp .pollLoopNext
+			Fire_Released:
+				btr [input].buttons_down, Keys_Fire
+				jmp .pollLoopNext
+			Pause_Released:
+				btr [input].buttons_down, Keys_Pause
+				jmp .pollLoopNext
+			Other_Released:
+				btr [input].buttons_down, Keys_Other
+				jmp .pollLoopNext
+
 		.pollLoopEnd:
 
 		; set pressed & released keys

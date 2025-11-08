@@ -532,12 +532,12 @@ asteroid_checkShip:
 
 	; hit if (dx^2 + dy^2) <= r^2
 	xor eax, eax ; clear upper bits
-	mov ax, word [ship + Point.x] + 2
+	mov ax, word [ship + Point.x + 2]
 	sub ax, word [rdi + Asteroid.pos.x + 2]
 	cwde
 	imul eax, eax
 	mov r8d, eax
-	mov ax, word [ship + Point.y] + 2
+	mov ax, word [ship + Point.y + 2]
 	sub ax, word [rdi + Asteroid.pos.y + 2]
 	cwde
 	imul eax, eax

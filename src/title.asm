@@ -13,7 +13,7 @@ TITLE_MAX_NUM_LINES_TO_DRAW        equ 33
 TITLE_NUM_FRAMES                   equ 3
 TITLE_FRAME_TIME                   equ 12
 TITLE_86_FLICKER_DELAY_COUNTER_AMT equ 60 * 2
-TITLE_PRESS_ANY_KEY_Y              equ ((SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4)) shl 16
+TITLE_PRESS_ANY_KEY_Y              equ ((SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 4)) << 16
 TITLE_PRESS_ANY_KEY_COUNTER_AMT    equ 60 * 4
 
 
@@ -116,14 +116,14 @@ title_tick:
 	; advance 86 flicker
 	cmp [title_86_flicker_inds], 0
 	je ._
-		i equ 0
+		%assign i 0
 		%rep 2
 			cmp [title_86_flicker_inds + i * 4], flicker_alphas_len
 			jge %%next
 			inc [title_86_flicker_inds + i * 4]
 
 			%%next:
-			i equ i + 1
+			%assign i i + 1
 		%endrep
 	._:
 
@@ -133,13 +133,13 @@ title_tick:
 		dec [title_86_flicker_delay_counter]
 		jne ._86FlickerDelayEnd
 		; generate 2 random indexes into the flicker array
-		i equ 0
+		%assign i 0
 		%rep 2
 			rand eax
 			and eax, 11111b
 			inc eax
 			mov [title_86_flicker_inds + i * 4], eax
-			i equ i + 1
+			%assign i i + 1
 		%endrep
 	._86FlickerDelayEnd:
 
@@ -254,7 +254,7 @@ title_draw86:
 
 	call screen_draw1bppSprite
 
-	add [font_current_char_pos].x, (FONT_DIGIT_WIDTH + 5) shl 16
+	add [font_current_char_pos].x, (FONT_DIGIT_WIDTH + 5) << 16
 	mov [font_current_char_rect].pos.x, 6 * FONT_DIGIT_WIDTH
 
 	; flicker alpha
@@ -279,8 +279,8 @@ title_draw86:
 	ret
 
 
-TITLE_CREDIT_X equ ((SCREEN_WIDTH / 2) + 248) shl 16
-TITLE_CREDIT_Y equ (SCREEN_HEIGHT - 32) shl 16
+TITLE_CREDIT_X equ ((SCREEN_WIDTH / 2) + 248) << 16
+TITLE_CREDIT_Y equ (SCREEN_HEIGHT - 32) << 16
 my_name db "TAYLOR PLEWE"
 my_name_len equ $ - my_name
 title_drawCredit:
@@ -311,7 +311,7 @@ title_drawCredit:
 	mov [font_current_char_rect].dim.h, FONT_COPYRIGHT_HEIGHT
 	call screen_draw1bppSprite
 
-	add [font_current_char_pos].x, (PRESS_ANY_KEY_CHAR_WIDTH + 8) shl 16
+	add [font_current_char_pos].x, (PRESS_ANY_KEY_CHAR_WIDTH + 8) << 16
 
 	; my name
 	mov [font_current_char_rect].dim.h, FONT_SM_CHAR_HEIGHT
@@ -333,7 +333,7 @@ title_drawCredit:
 			imul eax, FONT_SM_CHAR_WIDTH
 			jmp .nameLoopCharRectSetEnd
 		.nameLoopW:
-			add [font_current_char_pos].x, (FONT_SM_CHAR_WIDTH / 2) shl 16
+			add [font_current_char_pos].x, (FONT_SM_CHAR_WIDTH / 2) << 16
 			mov rsi, [font_small_w_spr_data]
 			mov [font_current_char_rect].dim.w, FONT_SM_W_WIDTH
 			mov eax, 0
@@ -346,7 +346,7 @@ title_drawCredit:
 		add [font_current_char_pos].x, PRESS_ANY_KEY_CHAR_WIDTH << 16
 		test r10, r10
 		je ._
-			add [font_current_char_pos].x, (FONT_SM_CHAR_WIDTH / 2) shl 16
+			add [font_current_char_pos].x, (FONT_SM_CHAR_WIDTH / 2) << 16
 		._:
 
 		inc ecx
