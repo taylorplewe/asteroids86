@@ -72,113 +72,72 @@ star_updateAndDrawAll proc
 	mov r8d, [fg_color]
 	xor ebx, ebx
 	xor ecx, ecx
-	mov edx, NUM_STARS
-
-	star_updateAndDrawAll_drawStar macro
-		mov bx, word ptr [r13]
-		mov cx, word ptr [r14]
-		and r8d, 00ffffffh
-		mov al, byte ptr [r15]
-		shl eax, 24
-		or r8d, eax
-
-		; in:
-			; ebx  - x
-			; ecx  - y
-			; r8d  - color
-			; rdi  - point to pixels
-		call screen_setPixelOnscreenVerified
-	endm
-
-	star_updateAndDrawAll_loopCmp macro jmpLabel:req
-		inc r13
-		inc r13
-		inc r14
-		inc r14
-		inc r15
-		dec edx
-		jne jmpLabel
-	endm
+	mov edx, NUM_STARS / 16
 
 	cmp [is_paused], 0
 	jne noMoveLoop
 
 	mov rax, [frame_counter]
 	and rax, 1111b
-	je moveRightAndDownLoopBefore
+	je moveRightAndDownLoop
 	and rax, 111b
 	je moveRightLoop
 
 	noMoveLoop:
-		star_updateAndDrawAll_drawStar
-		star_updateAndDrawAll_loopCmp noMoveLoop
+		call star_draw16
+		dec edx
+		jne noMoveLoop
 	ret
 
 	moveRightLoop:
-		star_updateAndDrawAll_drawStar
+		; UPDATE (16 at a time)
+		vmovdqu ymm0, ymmword ptr [r13]               ; load 16 X word values
+		vpaddw ymm0, ymm0, [one_w_256]                ; inc X
+		vpcmpgtw ymm2, ymm0, [screen_width_mi1_w_256] ; cmp > screen boundaries
+		vpandn ymm0, ymm2, ymm0                       ; zero the ones that were out of bounds
+		vmovdqu ymmword ptr [r13], ymm0               ; store new X word values back into memory
 
-		inc word ptr [r13]
-		cmp word ptr [r13], SCREEN_WIDTH
-		jl @f
-			mov word ptr [r13], 0
-		@@:
+		; DRAW (8 at a time) (2 iterations)
+		call star_draw16
 
-		star_updateAndDrawAll_loopCmp moveRightLoop
+		dec edx
+		jne moveRightLoop
 	ret
 
-	moveRightAndDownLoopBefore:
-	; brk
-	rdtsc
-	mov r10d, edx
-	shl r10, 32
-	or r10, rax
-	mov edx, NUM_STARS / 16
 	moveRightAndDownLoop:
 		; UPDATE (16 at a time)
-
-		; load 16 X and Y word values
-		vmovdqu ymm0, ymmword ptr [r13]
+		vmovdqu ymm0, ymmword ptr [r13]                ; load 16 X and Y word values
 		vmovdqu ymm1, ymmword ptr [r14]
-
-		; inc both X and Y
-		vpaddw ymm0, ymm0, [one_w_256]
+		vpaddw ymm0, ymm0, [one_w_256]                 ; inc both X and Y
 		vpaddw ymm1, ymm1, [one_w_256]
-
-		; cmp > screen boundaries
-		vpcmpgtw ymm2, ymm0, [screen_width_mi1_w_256]
+		vpcmpgtw ymm2, ymm0, [screen_width_mi1_w_256]  ; cmp > screen boundaries
 		vpcmpgtw ymm3, ymm1, [screen_height_mi1_w_256]
-
-		; zero the ones that were out of bounds
-		vpandn ymm0, ymm2, ymm0
+		vpandn ymm0, ymm2, ymm0                        ; zero the ones that were out of bounds
 		vpandn ymm1, ymm3, ymm1
-
-		; store new X and Y word values back into memory
-		vmovdqu ymmword ptr [r13], ymm0
+		vmovdqu ymmword ptr [r13], ymm0                ; store new X and Y word values back into memory
 		vmovdqu ymmword ptr [r14], ymm1
 
 		; DRAW (8 at a time) (2 iterations)
+		call star_draw16
+		
+		dec edx
+		jne moveRightAndDownLoop
+	ret
+star_updateAndDrawAll endp
 
-		; 8 LOWER words
-		vpmovzxwd ymm2, xmm0
-		vpmovzxwd ymm3, xmm1
-		; get colors for 8 stars
-		vmovq xmm4, qword ptr [r15]
-		vpmovzxbd ymm4, xmm4
-		vpslld ymm4, ymm4, 24
-		vpor ymm4, ymm4, ymmword ptr [opaque_pixel_no_alpha_d_256]
-
-		call screen_setPixelOnscreenVerifiedSimd
-
-		add r13, 16
-		add r14, 16
-		add r15, 8
-
-		; 8 UPPER words
+; in:
+	; r13 - pointer to X word values
+	; r14 - pointer to Y word values
+	; r15 - pointer to alpha byte values
+star_draw16 proc
+	; 8 LOWER words, followed by 8 UPPER words
+	repeat 2
+		; convert words to dwords
 		vmovdqu xmm0, xmmword ptr [r13]
 		vmovdqu xmm1, xmmword ptr [r14]
 		vpmovzxwd ymm2, xmm0
 		vpmovzxwd ymm3, xmm1
-		; get colors for 8 stars
+		; get color alphas for 8 stars
 		vmovq xmm4, qword ptr [r15]
 		vpmovzxbd ymm4, xmm4
 		vpslld ymm4, ymm4, 24
@@ -189,16 +148,9 @@ star_updateAndDrawAll proc
 		add r13, 16
 		add r14, 16
 		add r15, 8
-
-		dec edx
-		jne moveRightAndDownLoop
-	rdtsc
-	shl rdx, 32
-	or rdx, rax
-	sub rdx, r10
-	brk
+	endm
 	ret
-star_updateAndDrawAll endp
+star_draw16 endp
 
 
 endif

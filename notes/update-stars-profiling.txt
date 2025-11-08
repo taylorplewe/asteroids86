@@ -46,3 +46,80 @@ brk
 
 Average (sum/12):
 0F2D9 = 62,169 clock cycles
+
+
+------
+SIMD INSTRUCTION LOOP
+------
+rdtsc
+mov r10d, edx
+shl r10, 32
+or r10, rax
+mov edx, NUM_STARS / 16
+moveRightAndDownLoop:
+	; UPDATE (16 at a time)
+	vmovdqu ymm0, ymmword ptr [r13]                ; load 16 X and Y word values
+	vmovdqu ymm1, ymmword ptr [r14]
+	vpaddw ymm0, ymm0, [one_w_256]                 ; inc both X and Y
+	vpaddw ymm1, ymm1, [one_w_256]
+	vpcmpgtw ymm2, ymm0, [screen_width_mi1_w_256]  ; cmp > screen boundaries
+	vpcmpgtw ymm3, ymm1, [screen_height_mi1_w_256]
+	vpandn ymm0, ymm2, ymm0                        ; zero the ones that were out of bounds
+	vpandn ymm1, ymm3, ymm1
+	vmovdqu ymmword ptr [r13], ymm0                ; store new X and Y word values back into memory
+	vmovdqu ymmword ptr [r14], ymm1
+
+	; DRAW (8 at a time) (2 iterations)
+
+	; 8 LOWER words, followed by 8 UPPER words
+	repeat 2
+		vmovdqu xmm0, xmmword ptr [r13]
+		vmovdqu xmm1, xmmword ptr [r14]
+		vpmovzxwd ymm2, xmm0
+		vpmovzxwd ymm3, xmm1
+		; get colors for 8 stars
+		vmovq xmm4, qword ptr [r15]
+		vpmovzxbd ymm4, xmm4
+		vpslld ymm4, ymm4, 24
+		vpor ymm4, ymm4, ymmword ptr [opaque_pixel_no_alpha_d_256]
+
+		call screen_setPixelOnscreenVerifiedSimd
+
+		add r13, 16
+		add r14, 16
+		add r15, 8
+	endm
+
+	dec edx
+	jne moveRightAndDownLoop
+rdtsc
+shl rdx, 32
+or rdx, rax
+sub rdx, r10
+; read RDX
+
+6024
+5b20
+5630
+5286
+904a
+64fb
+4d20
+486f
+587e
+49bf
+43e0
+6a8c
+
+Average (sum/12):
+5949 = 22,857 clock cycles
+
+
+------
+FINDINGS
+------
+
+Scalar loop: 62,169 clock cycles
+SIMD loop:   22,857 clock cycles
+
+Roughly a third as much time to execute
