@@ -11,7 +11,6 @@
 %include "src/ship.asm"
 
 
-
 struc Ufo
 	.pos:         resb Point_size
 	.velocity:    resb Vector_size
@@ -66,7 +65,7 @@ ufo_spr_data: incbin "resources/ufo.bin"
 
 section .bss
 
-ufos         resb Ufo_size * MAX_NUM_UFOS
+ufos resb Ufo_size * MAX_NUM_UFOS
 
 
 section .text
@@ -80,14 +79,14 @@ ufo_create:
 	je .end
 
 	mov rsi, rax
-	mov qword [rsi + Ufo.pos], rbx
-	mov [rsi + Ufo.frame_ind], 0
-	mov [rsi + Ufo.frame_ctr], UFO_FRAME_CTR_AMT
-	mov [rsi + Ufo.shoot_timer], UFO_SHOOT_TIMER_AMT
-	mov [rsi + Ufo.turn_timer], UFO_TURN_TIMER_MIN_AMT
+	mov [rsi + Ufo.pos], rbx
+	mov dword [rsi + Ufo.frame_ind], 0
+	mov dword [rsi + Ufo.frame_ctr], UFO_FRAME_CTR_AMT
+	mov dword [rsi + Ufo.shoot_timer], UFO_SHOOT_TIMER_AMT
+	mov dword [rsi + Ufo.turn_timer], UFO_TURN_TIMER_MIN_AMT
 
 	; determine which way to fly based on which side of the screen we're on
-	cmp [rsi + Ufo.pos + Point.x], 0
+	cmp dword [rsi + Ufo.pos + Point.x], 0
 	jg ._
 		mov al, 64
 		jmp .rotSet
@@ -100,7 +99,7 @@ ufo_create:
 	mov r10b, [rsi + Ufo.rot]
 	mov ecx, UFO_SPEED
 	call getVelocityFromRotAndSpeed
-	mov qword [rsi + Ufo.velocity], rax
+	mov [rsi + Ufo.velocity], rax
 	
 	.end:
 	ret
@@ -124,19 +123,19 @@ ufo_update:
 	push r10
 
 	; advance frame
-	dec [rdi + Ufo.frame_ctr]
+	dec dword [rdi + Ufo.frame_ctr]
 	jne .frameCtrIncEnd
-		mov [rdi + Ufo.frame_ctr], UFO_FRAME_CTR_AMT
-		inc [rdi + Ufo.frame_ind]
-		and [rdi + Ufo.frame_ind], 11b
+		mov dword [rdi + Ufo.frame_ctr], UFO_FRAME_CTR_AMT
+		inc dword [rdi + Ufo.frame_ind]
+		and dword [rdi + Ufo.frame_ind], 11b
 	.frameCtrIncEnd:
 
 	; turn
 	xor r10, r10
-	dec [rdi + Ufo.turn_timer]
+	dec dword [rdi + Ufo.turn_timer]
 	jne .turnEnd
-		mov [rdi + Ufo.turn_timer], UFO_TURN_TIMER_MIN_AMT
-		cmp [rdi + Ufo.velocity + Point.y], 0
+		mov dword [rdi + Ufo.turn_timer], UFO_TURN_TIMER_MIN_AMT
+		cmp dword [rdi + Ufo.velocity + Point.y], 0
 		jne .turnStraight
 			mov r10b, [rdi + Ufo.rot]
 			rand eax
@@ -147,7 +146,7 @@ ufo_update:
 			add r10b, al
 			jmp .doTurn
 		.turnStraight:
-		cmp [rdi + Ufo.velocity + Point.x], 0
+		cmp dword [rdi + Ufo.velocity + Point.x], 0
 		jge .turnRight
 		; turnLeft:
 			mov r10b, 192
@@ -155,7 +154,7 @@ ufo_update:
 		.turnRight:
 			mov r10b, 64
 		.doTurn:
-		mov [rdi + Ufo.rot], r10b
+		mov byte [rdi + Ufo.rot], r10b
 		mov ecx, UFO_SPEED
 		call getVelocityFromRotAndSpeed
 		mov qword [rdi + Ufo.velocity], rax
@@ -187,11 +186,11 @@ ufo_update:
 	.boundsCheckEnd:
 
 	; shoot
-	cmp [ship + Ship.respawn_counter], 0
+	cmp dword [ship + Ship.respawn_counter], 0
 	jne .shootEnd
-	cmp [is_in_gameover], 0
+	cmp dword [is_in_gameover], 0
 	jne .shootEnd
-	dec [rdi + Ufo.shoot_timer]
+	dec dword [rdi + Ufo.shoot_timer]
 	jne .shootEnd
 		; r8d - X 16.16 fixed point
 		; r9d - Y 16.16 fixed point
@@ -213,7 +212,7 @@ ufo_update:
 
 		call bullet_create
 
-		mov [rdi + Ufo.shoot_timer], UFO_SHOOT_TIMER_AMT
+		mov dword [rdi + Ufo.shoot_timer], UFO_SHOOT_TIMER_AMT
 	.shootEnd:
 
 	; check for bullets
@@ -244,7 +243,7 @@ ufo_checkBullets:
 	lea rsi, bullets
 	.mainLoop:
 		; must not be evil to hit
-		cmp [rsi + Bullet.is_evil], 0
+		cmp dword [rsi + Bullet.is_evil], 0
 		jne .next
 	
 		; check if bullet is inside UFO's rectangular hitbox
@@ -333,11 +332,11 @@ ufo_checkShip:
 
 
 ufo_checkAndDestroyShip:
-	cmp [ship_num_flashes_left], 0
+	cmp dword [ship_num_flashes_left], 0
 	jne .noHit
-	cmp [is_in_gameover], 0
+	cmp dword [is_in_gameover], 0
 	jne .noHit
-	cmp [ship + Ship.respawn_counter], 0
+	cmp dword [ship + Ship.respawn_counter], 0
 	jne .noHit
 
 	call ufo_checkShip
@@ -426,12 +425,10 @@ ufo_destroy:
 	pop rbx
 	ret
 
-
 ufo_drawAll:
 	lea rsi, ufos_arr
 	lea r8, ufo_draw
 	jmp array_forEach
-
 
 ; in:
 	; rdi - pointer to UFO
@@ -462,8 +459,6 @@ ufo_draw:
 	pop rsi
 	pop rdx
 	ret
-
-
 
 
 %endif

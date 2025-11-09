@@ -58,8 +58,8 @@ shipShard_create:
 	mov rsi, rax
 	mov qword [rsi + ShipShard.pos], rbx
 	mov qword [rsi + ShipShard.velocity], rcx
-	sar [rsi + ShipShard.velocity + Point.x], 2
-	sar [rsi + ShipShard.velocity + Point.y], 2
+	sar dword [rsi + ShipShard.velocity + Point.x], 2
+	sar dword [rsi + ShipShard.velocity + Point.y], 2
 	mov [rsi + ShipShard.len], edx
 
 	; randomize values

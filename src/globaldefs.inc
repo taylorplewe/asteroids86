@@ -72,6 +72,7 @@ struc Input
 	.buttons_down:     resd 1
 	.buttons_pressed:  resd 1
 	.buttons_released: resd 1
+	.boost_val:        resw 1
 endstruc
 
 %define Event dd

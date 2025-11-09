@@ -125,7 +125,7 @@ section .text
 
 game_init:
 	call ship_respawn
-	lea rax, waves
+	lea rax, waves + WaveData_size
 	mov [current_wave], rax
 	mov eax, [fg_color]
 	mov [flash_color], eax
@@ -307,7 +307,7 @@ game_tick:
 	._:
 
 	cmp [is_paused], 0
-	jne .draw
+	jne .end
 
 	cmp [is_in_gameover], 0
 	jne ._1
@@ -502,11 +502,14 @@ game_tick:
 		mov dword [next_wave_counter], GAME_NEXT_WAVE_COUNTER_AMT
 	.nextWaveLogicEnd:
 
-	.draw:
+	.end:
+	ret
+
+game_draw:
 	cmp dword [is_in_gameover], 0
-	jne ._7
+	jne ._
 	call ship_draw
-	._7:
+	._:
 	call bullet_drawAll
 	call asteroid_drawAll
 	call ufo_drawAll
@@ -518,7 +521,6 @@ game_tick:
 	call game_drawGameOver
 	mov dword [font_current_char_pos + Point.y], GAME_PRESS_ANY_KEY_Y
 	call screen_drawPressAnyKey
-
 	ret
 
 

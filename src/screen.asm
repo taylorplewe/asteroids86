@@ -24,7 +24,8 @@ screen_height_d_256 dd (256 / 4) dup (SCREEN_HEIGHT)
 
 section .bss
 
-pixels                    resb Pixel_size * SCREEN_WIDTH * SCREEN_HEIGHT
+; pixels                    resb Pixel_size * SCREEN_WIDTH * SCREEN_HEIGHT
+pixels                    resq 1
 screen_point1             resb Point_size
 screen_point2             resb Point_size
 x_diff                    resd 1
@@ -37,6 +38,12 @@ screen_show_press_any_key resd 1
 
 
 section .text
+
+; in:
+	; rax - pointer to pixel array
+%macro screen_setPixelPtr 0
+	mov [pixels], rax
+%endmacro
 
 ; in:
 	; ebx  - x
@@ -202,7 +209,7 @@ screen_draw1bppSprite:
 	push r12
 	push r13
 
-	lea rdi, pixels
+	mov rdi, [pixels]
 
 	mov r13, rsi
 	add rsi, Dim_size
@@ -290,7 +297,7 @@ screen_drawCircle:
 	mov rbp, rsp
 	sub rsp, 24
 
-	lea rdi, pixels
+	mov rdi, [pixels]
 
 	mov dword [rsp + 8], ebx
 	mov dword [rsp + 12], ecx
@@ -370,7 +377,7 @@ screen_drawLine:
 	mov byte [is_ydiff_neg], 0
 
 	; rdi = pointer into pixels
-	lea rdi, pixels
+	mov rdi, [pixels]
 	mov r14d, SCREEN_WIDTH
 	mov r15d, SCREEN_HEIGHT
 
@@ -626,7 +633,7 @@ screen_drawPressAnyKey:
 
 screen_clearPixelBuffer:
 	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 32
-	lea rdi, [pixels]
+	mov rdi, [pixels]
 	vmovdqu ymm0, yword [zero64]
 	.loop:
 		vmovdqu yword [rdi], ymm0

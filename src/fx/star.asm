@@ -67,7 +67,6 @@ star_drawAll:
 	lea r14, stars + Stars.y
 	lea r15, stars + Stars.luminence
 
-	; lea rdi, pixels
 	mov rdi, [pixels]
 	mov r8d, [fg_color]
 	xor ebx, ebx
@@ -128,8 +127,8 @@ star_drawAll:
 	; r13 - pointer to X word values
 	; r14 - pointer to Y word values
 	; r15 - pointer to alpha byte values
+	; rdi - pointer to pixels array
 star_draw16:
-	lea rdi, pixels
 	; 8 LOWER words, followed by 8 UPPER words
 	%rep 2
 		; convert words to dwords

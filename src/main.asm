@@ -1,6 +1,5 @@
 %use masm
 
-
 %include "src/globaldefs.inc"
 %include "src/sdl/defs.inc"
 
@@ -16,7 +15,7 @@
 section .data
 
 window_title db "asteroids86", 0
-icon_path    db "art\asteroid_512.bmp", 0
+icon_path    db "art/asteroid_512.bmp", 0
 
 
 section .bss
@@ -29,10 +28,10 @@ texture  resq 1
 icon     resq 1
 event    resb 2048
 
-ticks     resq    1
+ticks     resq 1
 input     resb Input_size
-keys_prev resd 1 ;Keys
-is_paused resd    1
+keys_prev resd 1;Keys  ?
+is_paused resd 1
 
 joystick_ids resq 1
 gamepad      resq 1
@@ -109,6 +108,7 @@ main:
 		call SDL_GetTicks
 		mov qword [ticks], rax
 
+		mov dword [input + Input.buttons_down], 0
 		xor eax, eax
 		.pollLoop:
 			lea rcx, event
@@ -116,230 +116,258 @@ main:
 			test al, al
 			je .pollLoopEnd
 
-			; NEXT:
-			; mov eax, [event + SDL_Event.event_type]
-			; cmp eax, SDL_EVENT_QUIT
-			; je .quit
-			; cmp eax, SDL_EVENT_KEY_DOWN
-			; je .handleKeyDown
-			; cmp eax, SDL_EVENT_KEY_UP
-			; je .handleKeyUp
-			; cmp eax, SDL_EVENT_GAMEPAD_BUTTON_DOWN
-			; je .handleGamepadButtonDown
-			; cmp eax, SDL_EVENT_GAMEPAD_BUTTON_UP
-			; je .handleGamepadButtonUp
-			; cmp eax, SDL_EVENT_GAMEPAD_AXIS_MOTION
-			; je .handleGamepadAxisMotion
-
 			cmp dword [event + SDL_Event.event_type], SDL_EVENT_QUIT
 			je .quit
 
-
 			cmp dword [event + SDL_Event.event_type], SDL_EVENT_KEY_DOWN
-			jne .keyDownCheckEnd
-			; which key was pressed?
-			mov eax, [event + SDL_KeyboardEvent.key]
-			cmp eax, SDLK_W
-			je .BoostPressed
-			cmp eax, SDLK_UP
-			je .BoostPressed
-			cmp eax, SDLK_S
-			je .TeleportPressed
-			cmp eax, SDLK_DOWN
-			je .TeleportPressed
-			cmp eax, SDLK_A
-			je .LeftPressed
-			cmp eax, SDLK_LEFT
-			je .LeftPressed
-			cmp eax, SDLK_D
-			je .RightPressed
-			cmp eax, SDLK_RIGHT
-			je .RightPressed
-			cmp eax, SDLK_SPACE
-			je .FirePressed
-			cmp eax, SDLK_L
-			je .FirePressed
-			cmp eax, SDLK_Q
+			jne ._7
+			bts dword [input + Input.buttons_down], Keys_Other
+			cmp dword [event + SDL_KeyboardEvent.key], SDLK_Q
 			je .quit
-			cmp eax, SDLK_ESC
-			je .PausePressed
-			jmp .OtherPressed
-			.keyDownCheckEnd:
-
-			cmp dword [event + SDL_Event.event_type], SDL_EVENT_KEY_UP
-			jne .keyUpCheckEnd
-			mov eax, [event + SDL_KeyboardEvent.key]
-			cmp eax, SDLK_W
-			je .BoostReleased
-			cmp eax, SDLK_UP
-			je .BoostReleased
-			cmp eax, SDLK_S
-			je .TeleportReleased
-			cmp eax, SDLK_DOWN
-			je .TeleportReleased
-			cmp eax, SDLK_A
-			je .LeftReleased
-			cmp eax, SDLK_LEFT
-			je .LeftReleased
-			cmp eax, SDLK_D
-			je .RightReleased
-			cmp eax, SDLK_RIGHT
-			je .RightReleased
-			cmp eax, SDLK_SPACE
-			je .FireReleased
-			cmp eax, SDLK_L
-			je .FireReleased
-			cmp eax, SDLK_ESC
-			je .PauseReleased
-			jmp .OtherReleased
-			.keyUpCheckEnd:
+			jmp .pollLoopNext
+			._7:
 
 			cmp dword [event + SDL_Event.event_type], SDL_EVENT_GAMEPAD_BUTTON_DOWN
 			jne .gamepadButtonDownCheckEnd
-			xor eax, eax
-			mov al, [event + SDL_GamepadButtonEvent.button]
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_UP
-			je .BoostPressed
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_DOWN
-			je .TeleportPressed
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_LEFT
-			je .LeftPressed
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_RIGHT
-			je .RightPressed
-			cmp al, SDL_GAMEPAD_BUTTON_SOUTH
-			je .FirePressed
-			cmp al, SDL_GAMEPAD_BUTTON_EAST
-			je .FirePressed
-			cmp al, SDL_GAMEPAD_BUTTON_WEST
-			je .TeleportPressed
-			cmp al, SDL_GAMEPAD_BUTTON_NORTH
-			je .TeleportPressed
-			cmp al, SDL_GAMEPAD_BUTTON_START
-			je .PausePressed
-			jmp .OtherPressed
+			bts dword [input + Input.buttons_down], Keys_Other
 			.gamepadButtonDownCheckEnd:
-
-			cmp dword [event + SDL_Event.event_type], SDL_EVENT_GAMEPAD_BUTTON_UP
-			jne .gamepadButtonUpCheckEnd
-			xor eax, eax
-			mov al, [event + SDL_GamepadButtonEvent.button]
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_UP
-			je .BoostReleased
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_DOWN
-			je .TeleportReleased
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_LEFT
-			je .LeftReleased
-			cmp al, SDL_GAMEPAD_BUTTON_DPAD_RIGHT
-			je .RightReleased
-			cmp al, SDL_GAMEPAD_BUTTON_SOUTH
-			je .FireReleased
-			cmp al, SDL_GAMEPAD_BUTTON_EAST
-			je .FireReleased
-			cmp al, SDL_GAMEPAD_BUTTON_WEST
-			je .TeleportReleased
-			cmp al, SDL_GAMEPAD_BUTTON_NORTH
-			je .TeleportReleased
-			cmp al, SDL_GAMEPAD_BUTTON_START
-			je .PauseReleased
-			jmp .OtherReleased
-			.gamepadButtonUpCheckEnd:
-
-			AXIS_TURN_DEADZONE equ 4000h
-			AXIS_BOOST_DEADZONE equ 4000h
-			AXIS_FIRE_DEADZONE equ 3000h
-			cmp dword [event + SDL_Event.event_type], SDL_EVENT_GAMEPAD_AXIS_MOTION
-			jne .gamepadAxisCheckEnd
-			xor eax, eax
-			mov al, [event + SDL_GamepadAxisEvent.axis]
-			mov bx, [event + SDL_GamepadAxisEvent.value]
-			cmp al, SDL_GAMEPAD_AXIS_LEFTY
-			jne ._
-				cmp bx, -AXIS_BOOST_DEADZONE
-				jl .BoostPressed
-				cmp bx, AXIS_BOOST_DEADZONE
-				jl .BoostReleased
-				jmp .pollLoopNext
-			._:
-			cmp al, SDL_GAMEPAD_AXIS_LEFTX
-			jne ._1
-				cmp bx, AXIS_TURN_DEADZONE
-				jg .RightPressed
-				cmp bx, -AXIS_TURN_DEADZONE
-				jl .LeftPressed
-				btr [input + Input.buttons_down], Keys_Right ; RightReleased
-				jmp .LeftReleased
-			._1:
-			cmp al, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
-			jne ._2
-				cmp bx, AXIS_FIRE_DEADZONE
-				jg .BoostPressed
-				; brk
-				jmp .BoostReleased
-			._2:
-			jmp .pollLoopNext
-			.gamepadAxisCheckEnd:
-
 
 			.pollLoopNext:
 			jmp .pollLoop
-
-			; callbacks
-			; for key, <Boost, Teleport, Left, Right, Fire, Pause, Other>
-			; 	@CatStr(key, Pressed):
-			; 		bts [input + Input.buttons_down], @CatStr(Keys_, key)
-			; 		jmp .pollLoopNext
-			; endm
-			; for key, <Boost, Teleport, Left, Right, Fire, Pause, Other>
-			; 	@CatStr(key, Released):
-			; 		btr [input + Input.buttons_down], @CatStr(Keys_, key)
-			; 		jmp .pollLoopNext
-			; endm
-
-			.BoostPressed:
-				bts dword [input + Input.buttons_down], Keys_Boost
-				jmp .pollLoopNext
-			.TeleportPressed:
-				bts dword [input + Input.buttons_down], Keys_Teleport
-				jmp .pollLoopNext
-			.LeftPressed:
-				bts dword [input + Input.buttons_down], Keys_Left
-				jmp .pollLoopNext
-			.RightPressed:
-				bts dword [input + Input.buttons_down], Keys_Right
-				jmp .pollLoopNext
-			.FirePressed:
-				bts dword [input + Input.buttons_down], Keys_Fire
-				jmp .pollLoopNext
-			.PausePressed:
-				bts dword [input + Input.buttons_down], Keys_Pause
-				jmp .pollLoopNext
-			.OtherPressed:
-				bts dword [input + Input.buttons_down], Keys_Other
-				jmp .pollLoopNext
-
-			.BoostReleased:
-				btr dword [input + Input.buttons_down], Keys_Boost
-				jmp .pollLoopNext
-			.TeleportReleased:
-				btr dword [input + Input.buttons_down], Keys_Teleport
-				jmp .pollLoopNext
-			.LeftReleased:
-				btr dword [input + Input.buttons_down], Keys_Left
-				jmp .pollLoopNext
-			.RightReleased:
-				btr dword [input + Input.buttons_down], Keys_Right
-				jmp .pollLoopNext
-			.FireReleased:
-				btr dword [input + Input.buttons_down], Keys_Fire
-				jmp .pollLoopNext
-			.PauseReleased:
-				btr dword [input + Input.buttons_down], Keys_Pause
-				jmp .pollLoopNext
-			.OtherReleased:
-				btr dword [input + Input.buttons_down], Keys_Other
-				jmp .pollLoopNext
-
 		.pollLoopEnd:
+
+		; get input
+		mov word [input + Input.boost_val], 7fffh
+		cmp qword [gamepad], 0
+		jne .getGamepadInput
+		;getKeyboardInput:
+			call SDL_GetKeyboardState
+			mov rbx, rax
+			; BTN_W      textequ <Boost>
+			; BTN_A      textequ <Left>
+			; BTN_S      textequ <Teleport>
+			; BTN_D      textequ <Right>
+			; BTN_L      textequ <Fire>
+			; BTN_ESCAPE textequ <Pause>
+			; BTN_SPACE  textequ <Fire>
+			; BTN_UP     textequ <Boost>
+			; BTN_DOWN   textequ <Teleport>
+			; BTN_LEFT   textequ <Left>
+			; BTN_RIGHT  textequ <Right>
+			; for key, <A, D, L, S, W, ESCAPE, SPACE, UP, DOWN, LEFT, RIGHT>
+			; 	local press
+			; 	local next
+			; 	mov al, @CatStr(SDL_SCANCODE_, key)
+			; 	xlatb
+			; 	test al, al
+			; 	je next
+			; 	bts dword [input + Input.buttons_down], @CatStr(Keys_, %@CatStr(BTN_, key))
+			; 	next:
+			; endm
+
+			mov al, SDL_SCANCODE_A
+			xlatb
+			test al, al
+			je .keyTestNext0
+			bts dword [input + Input.buttons_down], Keys_Left
+			.keyTestNext0:
+			
+			mov al, SDL_SCANCODE_D
+			xlatb
+			test al, al
+			je .keyTestNext1
+			bts dword [input + Input.buttons_down], Keys_Right
+			.keyTestNext1:
+			
+			mov al, SDL_SCANCODE_L
+			xlatb
+			test al, al
+			je .keyTestNext2
+			bts dword [input + Input.buttons_down], Keys_Fire
+			.keyTestNext2:
+			
+			mov al, SDL_SCANCODE_S
+			xlatb
+			test al, al
+			je .keyTestNext3
+			bts dword [input + Input.buttons_down], Keys_Teleport
+			.keyTestNext3:
+			
+			mov al, SDL_SCANCODE_W
+			xlatb
+			test al, al
+			je .keyTestNext4
+			bts dword [input + Input.buttons_down], Keys_Boost
+			.keyTestNext4:
+			
+			mov al, SDL_SCANCODE_ESCAPE
+			xlatb
+			test al, al
+			je .keyTestNext5
+			bts dword [input + Input.buttons_down], Keys_Pause
+			.keyTestNext5:
+			
+			mov al, SDL_SCANCODE_SPACE
+			xlatb
+			test al, al
+			je .keyTestNext6
+			bts dword [input + Input.buttons_down], Keys_Fire
+			.keyTestNext6:
+			
+			mov al, SDL_SCANCODE_UP
+			xlatb
+			test al, al
+			je .keyTestNext7
+			bts dword [input + Input.buttons_down], Keys_Boost
+			.keyTestNext7:
+			
+			mov al, SDL_SCANCODE_DOWN
+			xlatb
+			test al, al
+			je .keyTestNext8
+			bts dword [input + Input.buttons_down], Keys_Teleport
+			.keyTestNext8:
+			
+			mov al, SDL_SCANCODE_LEFT
+			xlatb
+			test al, al
+			je .keyTestNext9
+			bts dword [input + Input.buttons_down], Keys_Left
+			.keyTestNext9:
+			
+			mov al, SDL_SCANCODE_RIGHT
+			xlatb
+			test al, al
+			je .keyTestNext10
+			bts dword [input + Input.buttons_down], Keys_Right
+			.keyTestNext10:
+			
+			jmp .inputEnd
+		.getGamepadInput:
+
+			; BTN_DPAD_UP    textequ <Boost>
+			; BTN_DPAD_DOWN  textequ <Teleport>
+			; BTN_DPAD_LEFT  textequ <Left>
+			; BTN_DPAD_RIGHT textequ <Right>
+			; BTN_SOUTH      textequ <Fire>
+			; BTN_EAST       textequ <Fire>
+			; BTN_WEST       textequ <Teleport>
+			; BTN_NORTH      textequ <Teleport>
+			; BTN_START      textequ <Pause>
+			; for btn, <DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT, SOUTH, EAST, WEST, NORTH, START>
+			; 	local next
+
+			; 	mov [input + Input.boost_val], 7fffh
+			; 	mov rcx, [gamepad]
+			; 	mov edx, @CatStr(SDL_GAMEPAD_BUTTON_, btn)
+			; 	call SDL_GetGamepadButton
+			; 	test al, al
+			; 	je next
+			; 	bts [input + Input.buttons_down], @CatStr(Keys_, %@CatStr(BTN_, btn))
+			
+			; 	next:
+			; endm
+
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_BUTTON_DPAD_UP
+			call SDL_GetGamepadButton
+			test al, al
+			je .gamepadTestNext0
+			bts [input + Input.buttons_down], Keys_Boost
+			.gamepadTestNext0:
+			
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_BUTTON_DPAD_DOWN
+			call SDL_GetGamepadButton
+			test al, al
+			je .gamepadTestNext1
+			bts [input + Input.buttons_down], Keys_Teleport
+			.gamepadTestNext1:
+			
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_BUTTON_DPAD_LEFT
+			call SDL_GetGamepadButton
+			test al, al
+			je .gamepadTestNext2
+			bts [input + Input.buttons_down], Keys_Left
+			.gamepadTestNext2:
+			
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_BUTTON_DPAD_RIGHT
+			call SDL_GetGamepadButton
+			test al, al
+			je .gamepadTestNext3
+			bts [input + Input.buttons_down], Keys_Right
+			.gamepadTestNext3:
+			
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_BUTTON_SOUTH
+			call SDL_GetGamepadButton
+			test al, al
+			je .gamepadTestNext4
+			bts [input + Input.buttons_down], Keys_Fire
+			.gamepadTestNext4:
+			
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_BUTTON_EAST
+			call SDL_GetGamepadButton
+			test al, al
+			je .gamepadTestNext5
+			bts [input + Input.buttons_down], Keys_Fire
+			.gamepadTestNext5:
+			
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_BUTTON_WEST
+			call SDL_GetGamepadButton
+			test al, al
+			je .gamepadTestNext6
+			bts [input + Input.buttons_down], Keys_Teleport
+			.gamepadTestNext6:
+			
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_BUTTON_NORTH
+			call SDL_GetGamepadButton
+			test al, al
+			je .gamepadTestNext7
+			bts [input + Input.buttons_down], Keys_Teleport
+			.gamepadTestNext7:
+			
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_BUTTON_START
+			call SDL_GetGamepadButton
+			test al, al
+			je .gamepadTestNext8
+			bts [input + Input.buttons_down], Keys_Pause
+			.gamepadTestNext8:
+			
+			
+			; axis
+			AXIS_TURN_DEADZONE  equ 4000h
+			AXIS_BOOST_DEADZONE equ 500h
+
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_AXIS_LEFTX
+			call SDL_GetGamepadAxis
+			cmp ax, AXIS_TURN_DEADZONE
+			jle ._8
+				bts dword [input + Input.buttons_down], Keys_Right
+				jmp .leftXCheckEnd
+			._8:
+			cmp ax, (-AXIS_TURN_DEADZONE) & 0ffffh
+			jge ._9
+				bts dword [input + Input.buttons_down], Keys_Left
+			._9:
+			.leftXCheckEnd:
+
+			mov rcx, [gamepad]
+			mov edx, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
+			call SDL_GetGamepadAxis
+			cmp ax, AXIS_BOOST_DEADZONE
+			jle ._10
+			mov [input + Input.boost_val], ax
+			bts dword [input + Input.buttons_down], Keys_Boost
+			._10:
+		.inputEnd:
 
 		; set pressed & released keys
 		; pressed = (down ^ prev) & down
@@ -355,15 +383,11 @@ main:
 		mov [keys_prev], eax
 
 		bt dword [input + Input.buttons_pressed], Keys_Pause
-		jnc ._3
+		jnc ._11
 			xor dword [is_paused], 1
-		._3:
+		._11:
 
 		mov dword [event_bus], 0
-
-		call screen_clearPixelBuffer
-
-		call star_drawAll
 
 		lea rdi, input
 		cmp dword [mode], Mode_Game
@@ -378,17 +402,17 @@ main:
 		bt dword [event_bus], Event_Fire
 		jnc ._4
 			mov rcx, [gamepad]
-			mov dx, 0afffh
-			mov r8w, 00000h
+			mov dx, 8000h
+			mov r8w, 0
 			mov r9d, 50
 			call SDL_RumbleGamepad
 		._4:
 		bt dword [event_bus], Event_ShipDestroy
 		jnc ._5
 			mov rcx, [gamepad]
-			mov dx, 03fffh
+			mov dx, 3fffh
 			mov r8w, 0afffh
-			mov r9d, 1000
+			mov r9d, 700
 			call SDL_RumbleGamepad
 		._5:
 
@@ -429,7 +453,6 @@ main:
 	xor eax, eax
 	ret
 
-
 render:
 	push rbp
 	mov rbp, rsp
@@ -443,10 +466,23 @@ render:
 
 	; memcpy all the pixels over to surface->pixels
 	mov rbx, [surface]
-	mov rdi, [rbx + SDL_Surface.pixels]
-	lea rsi, pixels
-	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 32
-	call memcpyAligned32
+	mov rax, [rbx + SDL_Surface.pixels]
+	screen_setPixelPtr
+	; mov rsi, [pixels]
+	; mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 8
+	; memcpyAligned32
+
+	call screen_clearPixelBuffer
+
+	call star_drawAll
+
+	cmp [mode], Mode_Game
+	je doGameDraw
+		call title_draw
+		jmp drawsEnd
+	doGameDraw:
+		call game_draw
+	drawsEnd:
 
 	mov rcx, [renderer]
 	call SDL_UnlockSurface
@@ -475,7 +511,6 @@ render:
 	mov rsp, rbp
 	pop rbp
 	ret
-
 
 
 end

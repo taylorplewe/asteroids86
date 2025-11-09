@@ -266,7 +266,7 @@ wrapPointAroundScreen:
 	jb ._2
 	sub dword [rsi + Point.x], SCREEN_WIDTH << 16
 	._2:
-	cmp [rsi + Point.y], 0
+	cmp dword [rsi + Point.y], 0
 	jg ._3
 	add dword [rsi + Point.y], SCREEN_HEIGHT << 16
 	._3:

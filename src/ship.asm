@@ -176,14 +176,38 @@ ship_update:
 	; boost
 	mov byte [ship + Ship.is_boosting], 0
 	bt dword [rdi + Input.buttons_down], Keys_Boost
-	jnc ._7
+	jnc .boostEnd
 		inc byte [ship + Ship.is_boosting]
+
+		; velocity bounds check
+		xor ebx, ebx
+		mov bx, [rdi + Input.boost_val]
+		imul rbx, SHIP_VELOCITY_MAX
+		shr rbx, 15  ; ebx = +max
+		mov ecx, ebx
+		neg ecx      ; ecx = -max
+		mov eax, [ship + Ship.velocity + Point.x]
+		cmp eax, ebx
+		jg .boostEnd
+		cmp eax, ecx
+		jle .boostEnd
+		.yVeloCheck:
+		mov eax, [ship + Ship.velocity + Point.y]
+		cmp eax, ebx
+		jg .boostEnd
+		cmp eax, ecx
+		jle .boostEnd
+
+		xor ebx, ebx
+		mov bx, [rdi + Input.boost_val]
+		imul rbx, SHIP_VELOCITY_ACCEL
+		shr rbx, 15
 	
 		xor rax, rax
 		mov al, [ship + Ship.rot]
 		call sin
 		cdqe
-		imul rax, SHIP_VELOCITY_ACCEL
+		imul rax, rbx
 		sar rax, 31
 		add [ship + Ship.velocity + Point.x], eax
 
@@ -191,53 +215,28 @@ ship_update:
 		mov al, [ship + Ship.rot]
 		call cos
 		cdqe
-		imul rax, SHIP_VELOCITY_ACCEL
+		imul rax, rbx
 		sar rax, 31
 		sub [ship + Ship.velocity + Point.y], eax
-	._7:
+	.boostEnd:
 
 	; drag
 	mov eax, [ship + Ship.velocity + Point.x]
 	test eax, eax
-	je ._8
+	je ._12
 		cdqe
 		imul rax, SHIP_VELOCITY_DRAG
 		sar rax, 16
 		mov [ship + Ship.velocity + Point.x], eax
-	._8:
+	._12:
 	mov eax, [ship + Ship.velocity + Point.y]
 	test eax, eax
-	je ._9
+	je ._13
 		cdqe
 		imul rax, SHIP_VELOCITY_DRAG
 		sar rax, 16
 		mov [ship + Ship.velocity + Point.y], eax
-	._9:
-
-	; velocity bounds check
-	mov eax, [ship + Ship.velocity + Point.x]
-	cmp eax, SHIP_VELOCITY_MAX
-	jg .xVelocitySetMax
-	cmp eax, -SHIP_VELOCITY_MAX
-	jg .yVeloCheck
-	;xVelocitySetMin:
-		mov dword [ship + Ship.velocity + Point.x], -SHIP_VELOCITY_MAX
-		jmp .yVeloCheck
-	.xVelocitySetMax:
-		mov dword [ship + Ship.velocity + Point.x], SHIP_VELOCITY_MAX
-	.yVeloCheck:
-
-	mov eax, [ship + Ship.velocity + Point.y]
-	cmp eax, SHIP_VELOCITY_MAX
-	jg .yVelocitySetMax
-	cmp eax, -SHIP_VELOCITY_MAX
-	jg .yVeloCheckEnd
-	;yVelocitySetMin:
-		mov dword [ship + Ship.velocity + Point.y], -SHIP_VELOCITY_MAX
-		jmp .yVeloCheckEnd
-	.yVelocitySetMax:
-		mov dword [ship + Ship.velocity + Point.y], SHIP_VELOCITY_MAX
-	.yVeloCheckEnd:
+	._13:
 
 	; add velocity to position
 	mov eax, [ship + Ship.velocity + Point.x]
@@ -362,17 +361,17 @@ ship_destroy:
 	add r8b, 256/5
 	call shipShard_create
 
-	bts [event_bus], Event_ShipDestroy ; for rumble
+	bts dword [event_bus], Event_ShipDestroy ; for rumble
 
 	dec dword [lives]
 	cmp dword [lives], 0
 	je .gameover
-		mov [ship + Ship.respawn_counter], SHIP_RESPAWN_COUNTER
+		mov dword [ship + Ship.respawn_counter], SHIP_RESPAWN_COUNTER
 		jmp .end
 	.gameover:
 		mov eax, GAMEOVER_TIMER_AMT
 		mov [gameover_timer], eax
-		inc [is_in_gameover]
+		inc dword [is_in_gameover]
 	.end:
 	pop r8
 	pop rdx

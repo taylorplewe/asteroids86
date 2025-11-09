@@ -20,7 +20,7 @@ array_push:
 	cmp eax, [rsi + Array.cap]
 	jge .atCapacity
 
-	inc [rsi + Array.data + FatPtr.len]
+	inc dword [rsi + Array.data + FatPtr.len]
     imul rax, [rsi + Array.el_size]
     mov rsi, [rsi + Array.data + FatPtr.pntr]
 	add rax, rsi
@@ -94,7 +94,7 @@ array_forEach:
 	push rcx
 	push rdi
 
-	cmp [rsi + Array.data + FatPtr.len], 0
+	cmp dword [rsi + Array.data + FatPtr.len], 0
 	je .end
 	mov rdi, [rsi + Array.data + FatPtr.pntr]
 	xor ecx, ecx
@@ -121,7 +121,7 @@ array_forEach:
 ; in:
 	; rsi - pointer to Array
 array_clear:
-	mov [rsi + Array.data + FatPtr.len], 0
+	mov dword [rsi + Array.data + FatPtr.len], 0
 	; mov ecx, [rsi + Array.cap]
 	; imul rcx, [rsi + Array.el_size]
 	; mov rsi, [rsi + Array.data.pntr]
