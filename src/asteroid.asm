@@ -239,8 +239,8 @@ asteroid_setVelocity:
 	lea rax, asteroid_speed_shifts
 	add rax, rcx
 	mov cl, byte [rax]
-	shl [rsi + Asteroid.velocity + Point.x], cl
-	shl [rsi + Asteroid.velocity + Point.y], cl
+	shl dword [rsi + Asteroid.velocity + Point.x], cl
+	shl dword [rsi + Asteroid.velocity + Point.y], cl
 
 	pop rcx
 	ret
