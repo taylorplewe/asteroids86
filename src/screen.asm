@@ -208,7 +208,7 @@ screen_draw1bppSprite:
 	add rsi, Dim_size
 
 	; NOTE: will need to add Y pos logic here if ever have a spritesheet with multiple rows of sprites
-	mov eax, dword [r9 + Rect.pos + Point.x]
+	mov eax, [r9 + Rect.pos + Point.x]
 	shr eax, 3 ; /8
 	add rsi, rax
 
@@ -216,7 +216,7 @@ screen_draw1bppSprite:
 	xor eax, eax
 	mov ax, word [rdx + Point.x + 2]
 	cwde
-	mov ebx, dword [r9 + Rect.dim + Dim.w]
+	mov ebx, [r9 + Rect.dim + Dim.w]
 	sar ebx, 1
 	sub eax, ebx
 	mov ebx, eax
@@ -224,13 +224,13 @@ screen_draw1bppSprite:
 	xor eax, eax
 	mov ax, word [rdx + Point.y + 2]
 	cwde
-	mov ecx, dword [r9 + Rect.dim + Dim.h]
+	mov ecx, [r9 + Rect.dim + Dim.h]
 	sar ecx, 1
 	sub eax, ecx
 	mov ecx, eax
 	; w and h counters
-	mov r10d, dword [r9 + Rect.dim + Dim.w]
-	mov r11d, dword [r9 + Rect.dim + Dim.h]
+	mov r10d, [r9 + Rect.dim + Dim.w]
+	mov r11d, [r9 + Rect.dim + Dim.h]
 
 	xor r12d, r12d ; bit position index
 
