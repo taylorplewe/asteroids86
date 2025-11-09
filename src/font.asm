@@ -4,6 +4,7 @@
 %include "src/global.asm"
 
 
+
 FONT_SM_CHAR_WIDTH    equ 16
 FONT_SM_CHAR_HEIGHT   equ 25
 FONT_LG_CHAR_WIDTH    equ 40
@@ -72,33 +73,26 @@ font_comma_rect:
 		iend
 	iend
 
+font_digits_spr_data:    incbin "resources/font-digits.bin"
+font_yr_digits_spr_data: incbin "resources/font-year-digits.bin"
+font_large_spr_data:     incbin "resources/font-big.bin"
+font_small_spr_data:     incbin "resources/font-small.bin"
+font_small_w_spr_data:   incbin "resources/font-small-w.bin"
+font_comma_spr_data:     incbin "resources/comma.bin"
+font_copyright_spr_data: incbin "resources/copyright.bin"
+
 
 section .bss
 
-font_digits_spr_data    resq    1
-font_yr_digits_spr_data resq    1
-font_large_spr_data     resq    1
-font_small_spr_data     resq    1
-font_small_w_spr_data   resq    1
-font_comma_spr_data     resq    1
-font_copyright_spr_data resq    1
+; font_digits_spr_data    resq    1
+; font_yr_digits_spr_data resq    1
+; font_large_spr_data     resq    1
+; font_small_spr_data     resq    1
+; font_small_w_spr_data   resq    1
+; font_comma_spr_data     resq    1
+; font_copyright_spr_data resq    1
 font_current_char_pos   resb Point_size
 font_current_char_rect  resb Rect_size
-
-
-section .text
-
-font_initSprData:
-	font_loadSprData font_digits_resource_name, font_digits_spr_data
-	font_loadSprData font_yr_digits_resource_name, font_yr_digits_spr_data
-	font_loadSprData font_large_resource_name, font_large_spr_data
-	font_loadSprData font_small_resource_name, font_small_spr_data
-	font_loadSprData font_small_w_resource_name, font_small_w_spr_data
-	font_loadSprData font_comma_resource_name, font_comma_spr_data
-	font_loadSprData font_copyright_resource_name, font_copyright_spr_data
-
-	ret
-
 
 
 %endif

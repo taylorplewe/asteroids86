@@ -33,7 +33,7 @@ asteroids_arr:
 			at .pntr, dq asteroids
 			at .len, dd 0
 		iend
-		at .cap, dd MAX_NUM_SHIP_ASTEROIDS
+		at .cap, dd MAX_NUM_ASTEROIDS
 		at .el_size, dd Asteroid_size
 	iend
 
@@ -239,8 +239,8 @@ asteroid_setVelocity:
 	lea rax, asteroid_speed_shifts
 	add rax, rcx
 	mov cl, byte [rax]
-	shl [rsi + Asteroid.velocity.x], cl
-	shl [rsi + Asteroid.velocity.y], cl
+	shl [rsi + Asteroid.velocity + Point.x], cl
+	shl [rsi + Asteroid.velocity + Point.y], cl
 
 	pop rcx
 	ret
@@ -398,7 +398,7 @@ asteroid_checkBullets:
 	push r8
 	push r9
 
-	mov eax, [bullets_arr + Array.data.len]
+	mov eax, [bullets_arr + Array.data + FatPtr.len]
 	test eax, eax
 	je .noHit
 	xor ecx, ecx
@@ -407,13 +407,13 @@ asteroid_checkBullets:
 		; check if bullet is inside this asteroid's circular hitbox, dictacted by it's 'mass'
 		; hit if (dx^2 + dy^2) <= r^2
 		xor eax, eax ; clear upper bits
-		mov ax, word [rsi + Bullet.pos.x + 2]
-		sub ax, word [rdi + Asteroid.pos.x + 2]
+		mov ax, word [rsi + Bullet.pos + Point.x + 2]
+		sub ax, word [rdi + Asteroid.pos + Point.x + 2]
 		cwde
 		imul eax, eax
 		mov r8d, eax
-		mov ax, word [rsi + Bullet.pos.y + 2]
-		sub ax, word [rdi + Asteroid.pos.y + 2]
+		mov ax, word [rsi + Bullet.pos + Point.y + 2]
+		sub ax, word [rdi + Asteroid.pos + Point.y + 2]
 		cwde
 		imul eax, eax
 		mov r9d, eax
@@ -442,7 +442,7 @@ asteroid_checkBullets:
 		.next:
 		add rsi, Bullet_size
 		inc ecx
-		cmp ecx, [bullets_arr + Array.data.len]
+		cmp ecx, [bullets_arr + Array.data + FatPtr.len]
 		jb .mainLoop
 
 	.noHit:
@@ -467,7 +467,7 @@ asteroid_checkUfos:
 	push r8
 	push r9
 
-	mov eax, [ufos_arr + Array.data.len]
+	mov eax, [ufos_arr + Array.data + FatPtr.len]
 	test eax, eax
 	je .noHit
 	xor ecx, ecx
@@ -476,13 +476,13 @@ asteroid_checkUfos:
 		; check if bullet is inside this asteroid's circular hitbox, dictacted by it's 'mass'
 		; hit if (dx^2 + dy^2) <= r^2
 		xor eax, eax ; clear upper bits
-		mov ax, word [rsi + Ufo.pos.x + 2]
-		sub ax, word [rdi + Asteroid.pos.x + 2]
+		mov ax, word [rsi + Ufo.pos + Point.x + 2]
+		sub ax, word [rdi + Asteroid.pos + Point.x + 2]
 		cwde
 		imul eax, eax
 		mov r8d, eax
-		mov ax, word [rsi + Ufo.pos.y + 2]
-		sub ax, word [rdi + Asteroid.pos.y + 2]
+		mov ax, word [rsi + Ufo.pos + Point.y + 2]
+		sub ax, word [rdi + Asteroid.pos + Point.y + 2]
 		cwde
 		imul eax, eax
 		mov r9d, eax
@@ -506,7 +506,7 @@ asteroid_checkUfos:
 		.next:
 		add rsi, Ufo_size
 		inc ecx
-		cmp ecx, [ufos_arr + Array.data.len]
+		cmp ecx, [ufos_arr + Array.data + FatPtr.len]
 		jb .mainLoop
 
 	.noHit:
@@ -533,12 +533,12 @@ asteroid_checkShip:
 	; hit if (dx^2 + dy^2) <= r^2
 	xor eax, eax ; clear upper bits
 	mov ax, word [ship + Point.x + 2]
-	sub ax, word [rdi + Asteroid.pos.x + 2]
+	sub ax, word [rdi + Asteroid.pos + Point.x + 2]
 	cwde
 	imul eax, eax
 	mov r8d, eax
 	mov ax, word [ship + Point.y + 2]
-	sub ax, word [rdi + Asteroid.pos.y + 2]
+	sub ax, word [rdi + Asteroid.pos + Point.y + 2]
 	cwde
 	imul eax, eax
 	mov r9d, eax
@@ -609,10 +609,10 @@ asteroid_update:
 	add [rdi + Asteroid.rot], al
 
 	; move asteroid
-	mov eax, [rdi + Asteroid.velocity.x]
-	add [rdi + Asteroid.pos.x], eax
-	mov eax, [rdi + Asteroid.velocity.y]
-	add [rdi + Asteroid.pos.y], eax
+	mov eax, [rdi + Asteroid.velocity + Point.x]
+	add [rdi + Asteroid.pos + Point.x], eax
+	mov eax, [rdi + Asteroid.velocity + Point.y]
+	add [rdi + Asteroid.pos + Point.y], eax
 
 	; wrap position
 	lea rsi, [rdi + Asteroid.pos]

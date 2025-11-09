@@ -175,7 +175,7 @@ screen_draw1bppSprite:
 	add rsi, Dim_size
 
 	; NOTE: will need to add Y pos logic here if ever have a spritesheet with multiple rows of sprites
-	mov eax, dword [r9 + Rect.pos.x]
+	mov eax, dword [r9 + Rect.pos + Point.x]
 	shr eax, 3 ; /8
 	add rsi, rax
 
@@ -183,7 +183,7 @@ screen_draw1bppSprite:
 	xor eax, eax
 	mov ax, word [rdx + Point.x + 2]
 	cwde
-	mov ebx, dword [r9 + Rect.dim.w]
+	mov ebx, dword [r9 + Rect.dim + Dim.w]
 	sar ebx, 1
 	sub eax, ebx
 	mov ebx, eax
@@ -191,13 +191,13 @@ screen_draw1bppSprite:
 	xor eax, eax
 	mov ax, word [rdx + Point.y + 2]
 	cwde
-	mov ecx, dword [r9 + Rect.dim.h]
+	mov ecx, dword [r9 + Rect.dim + Dim.h]
 	sar ecx, 1
 	sub eax, ecx
 	mov ecx, eax
 	; w and h counters
-	mov r10d, dword [r9 + Rect.dim.w]
-	mov r11d, dword [r9 + Rect.dim.h]
+	mov r10d, dword [r9 + Rect.dim + Dim.w]
+	mov r11d, dword [r9 + Rect.dim + Dim.h]
 
 	xor r12d, r12d ; bit position index
 
@@ -222,12 +222,12 @@ screen_draw1bppSprite:
 		; wrap around to next line of pixels in this particular rect
 		mov eax, [r13 + Dim.w]
 		add rsi, rax
-		mov eax, [r9 + Rect.dim.w]
+		mov eax, [r9 + Rect.dim + Dim.w]
 		shr eax, 3 ; /8
 		sub rsi, rax
 
-		sub ebx, [r9 + Rect.dim.w]
-		mov r10d, [r9 + Rect.dim.w]
+		sub ebx, [r9 + Rect.dim + Dim.w]
+		mov r10d, [r9 + Rect.dim + Dim.w]
 		inc ecx
 		dec r11d
 		jne .rowLoop
@@ -536,7 +536,7 @@ PRESS_ANY_KEY_FIRST_X    equ (((SCREEN_WIDTH / 2) - (PRESS_ANY_KEY_FULL_WIDTH / 
 ; in:
 	; set [font_current_char_pos].y
 screen_drawPressAnyKey:
-	cmp [screen_show_press_any_key], 0
+	cmp dword [screen_show_press_any_key], 0
 	je ._ret
 
 	push rbx
@@ -554,10 +554,10 @@ screen_drawPressAnyKey:
 	lea r14, screen_setPixelOnscreenVerified
 
 	mov dword [font_current_char_pos + Point.x], PRESS_ANY_KEY_FIRST_X
-	mov dword [font_current_char_rect + Rect.pos.x], 0
-	mov dword [font_current_char_rect + Rect.pos.y], 0
-	mov dword [font_current_char_rect + Rect.dim.w], FONT_SM_CHAR_WIDTH
-	mov dword [font_current_char_rect + Rect.dim.h], FONT_SM_CHAR_HEIGHT
+	mov dword [font_current_char_rect + Rect.pos + Point.x], 0
+	mov dword [font_current_char_rect + Rect.pos + Point.y], 0
+	mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_SM_CHAR_WIDTH
+	mov dword [font_current_char_rect + Rect.dim + Dim.h], FONT_SM_CHAR_HEIGHT
 
 	lea rbx, press_any_key_text
 	xor ecx, ecx
@@ -569,12 +569,12 @@ screen_drawPressAnyKey:
 		je .drawCharEnd
 		sub al, 'A'
 		imul eax, FONT_SM_CHAR_WIDTH
-		mov [font_current_char_rect + Rect.pos.x], eax
+		mov [font_current_char_rect + Rect.pos + Point.x], eax
 
 		call screen_draw1bppSprite
 
 		.drawCharEnd:
-		add [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
+		add dword [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
 
 		inc ecx
 		cmp ecx, press_any_key_text_len
@@ -594,9 +594,9 @@ screen_drawPressAnyKey:
 screen_clearPixelBuffer:
 	mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 32
 	lea rdi, [pixels]
-	vmovdqu ymm0, ymmword [zero64]
+	vmovdqu ymm0, yword [zero64]
 	.loop:
-		vmovdqu ymmword [rdi], ymm0
+		vmovdqu yword [rdi], ymm0
 		add rdi, 32
 		loop .loop
 	ret

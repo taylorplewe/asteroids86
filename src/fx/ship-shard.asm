@@ -37,7 +37,7 @@ ship_shards_arr:
 
 section .bss
 
-ship_shards: db ShipShard_size * MAX_NUM_SHIP_SHARDS
+ship_shards: resb ShipShard_size * MAX_NUM_SHIP_SHARDS
 
 
 section .text
@@ -58,8 +58,8 @@ shipShard_create:
 	mov rsi, rax
 	mov qword [rsi + ShipShard.pos], rbx
 	mov qword [rsi + ShipShard.velocity], rcx
-	sar [rsi + ShipShard.velocity.x], 2
-	sar [rsi + ShipShard.velocity.y], 2
+	sar [rsi + ShipShard.velocity + Point.x], 2
+	sar [rsi + ShipShard.velocity + Point.y], 2
 	mov [rsi + ShipShard.len], edx
 
 	; randomize values
@@ -83,7 +83,7 @@ shipShard_create:
 	cdqe
 	imul rax, SHIP_SHARD_VELOCITY_DIFF
 	sar rax, 32
-	add [rsi + ShipShard.velocity.x], eax
+	add [rsi + ShipShard.velocity + Point.x], eax
 	; y
 	xor eax, eax
 	mov al, r8b
@@ -91,7 +91,7 @@ shipShard_create:
 	cdqe
 	imul rax, SHIP_SHARD_VELOCITY_DIFF
 	sar rax, 32
-	sub [rsi + ShipShard.velocity.y], eax
+	sub [rsi + ShipShard.velocity + Point.y], eax
 	
 	.end:
 	pop rsi
@@ -127,10 +127,10 @@ shipShard_update:
 
 	; move shard
 	; TODO: might be able to do this with 64-bit SIMD vectors?
-	mov eax, [rdi + ShipShard.velocity.x]
-	add [rdi + ShipShard.pos.x], eax
-	mov eax, [rdi + ShipShard.velocity.y]
-	add [rdi + ShipShard.pos.y], eax
+	mov eax, [rdi + ShipShard.velocity + Point.x]
+	add [rdi + ShipShard.pos + Point.x], eax
+	mov eax, [rdi + ShipShard.velocity + Point.y]
+	add [rdi + ShipShard.pos + Point.y], eax
 
 	lea rsi, [rdi + ShipShard.pos]
 	call wrapPointAroundScreen
@@ -171,13 +171,13 @@ shipShard_draw:
 	sar rax, 32
 	; p1
 	xor ebx, ebx
-	mov bx, word [rdi + ShipShard.pos.x + 2]
+	mov bx, word [rdi + ShipShard.pos + Point.x + 2]
 	add ebx, eax
 	mov [screen_point1 + Point.x], ebx
 	test ebx, ebx
 	; p2
 	xor ebx, ebx
-	mov bx, word [rdi + ShipShard.pos.x + 2]
+	mov bx, word [rdi + ShipShard.pos + Point.x + 2]
 	sub ebx, eax
 	mov [screen_point2 + Point.x], ebx
 	test ebx, ebx
@@ -191,12 +191,12 @@ shipShard_draw:
 	sar rax, 32
 	; p1
 	xor ebx, ebx
-	mov bx, word [rdi + ShipShard.pos.y + 2]
+	mov bx, word [rdi + ShipShard.pos + Point.y + 2]
 	add ebx, eax
 	mov [screen_point1 + Point.y], ebx
 	; p2
 	xor ebx, ebx
-	mov bx, word [rdi + ShipShard.pos.y + 2]
+	mov bx, word [rdi + ShipShard.pos + Point.y + 2]
 	sub ebx, eax
 	mov [screen_point2 + Point.y], ebx
 

@@ -85,7 +85,8 @@ waves:
 		at .num_medium_asteroids, dd 5
 		at .num_small_asteroids, dd 12
 		at .num_ufos, dd 3
-	iendwaves_end equ $
+	iend
+waves_end equ $
 
 game_score_pos:
 	istruc Point
@@ -373,9 +374,9 @@ game_tick:
 	.gameoverCounterEnd:
 
 	; "press any key" counter
-	cmp [game_show_press_any_key_counter], 0
+	cmp dword [game_show_press_any_key_counter], 0
 	je .pressAnyKeyEnd
-		dec [game_show_press_any_key_counter]
+		dec dword [game_show_press_any_key_counter]
 		sete byte [screen_show_press_any_key]
 	.pressAnyKeyEnd:
 
@@ -387,8 +388,8 @@ game_tick:
 		mov [game_lives_prev], eax
 		test eax, eax
 		jne .livesCheckEnd
-			mov [game_show_gameover_counter], GAME_GAMEOVER_COUNTER_AMT
-			mov [game_show_press_any_key_counter], GAME_PRESS_ANY_KEY_COUNTER_AMT
+			mov dword [game_show_gameover_counter], GAME_GAMEOVER_COUNTER_AMT
+			mov dword [game_show_press_any_key_counter], GAME_PRESS_ANY_KEY_COUNTER_AMT
 	.livesCheckEnd:
 
 	; lives flicker
@@ -407,16 +408,16 @@ game_tick:
 		mov al, byte [game_lives_flicker_ind + 1]
 		cmp eax, flicker_alphas_len
 		jl ._2
-		mov [game_lives_flicker_ind], 0
+		mov dword [game_lives_flicker_ind], 0
 	._2:
 
 	; score bounce update
-	cmp [game_score_shake_ind], 0
+	cmp dword [game_score_shake_ind], 0
 	je ._3
-		inc [game_score_shake_ind]
-		cmp [game_score_shake_ind], bounce_offset_len
+		inc dword [game_score_shake_ind]
+		cmp dword [game_score_shake_ind], bounce_offset_len
 		jl ._3
-		mov [game_score_shake_ind], 0
+		mov dword [game_score_shake_ind], 0
 	._3:
 
 	; score bounce
@@ -424,25 +425,25 @@ game_tick:
 	cmp [game_score_prev], eax
 	je .scoreCheckEnd
 		; jg ._ ; I don't know why it would go down but def don't want to bounce it in that case
-			mov [game_score_shake_ind], 1
+			mov dword [game_score_shake_ind], 1
 		; ._:
 		mov [game_score_prev], eax
 	.scoreCheckEnd:
 
 	; gameover counter
-	cmp [gameover_timer], 0
+	cmp dword [gameover_timer], 0
 	je ._4
-		dec [gameover_timer]
+		dec dword [gameover_timer]
 	._4:
 
 	; flash asteroids
-	cmp [num_flashes_left], 0
+	cmp dword [num_flashes_left], 0
 	je .flashEnd
-	dec [flash_counter]
+	dec dword [flash_counter]
 	jne .flashEnd
-		mov [flash_counter], FLASH_COUNTER_AMT
+		mov dword [flash_counter], FLASH_COUNTER_AMT
 		dec [num_flashes_left]
-		bt [num_flashes_left], 0
+		bt dword [num_flashes_left], 0
 		jc ._5
 			mov eax, [fg_color]
 			jmp .flashColStore
@@ -453,7 +454,7 @@ game_tick:
 	.flashEnd:
 
 	; generate UFOs
-	dec [ufo_gen_counter]
+	dec dword [ufo_gen_counter]
 	jne .ufoGenEnd
 		call game_setUfoGenCounter
 
@@ -483,26 +484,26 @@ game_tick:
 	.ufoGenEnd:
 
 	; wave complete?
-	cmp [next_wave_counter], 0
+	cmp dword [next_wave_counter], 0
 	je .decWaveCounterEnd
-		dec [next_wave_counter]
+		dec dword [next_wave_counter]
 		jne .nextWaveLogicEnd
-		add [current_wave], WaveData_size
+		add qword [current_wave], WaveData_size
 		lea rax, waves_end
 		cmp [current_wave], rax
 		jl ._6
-			sub [current_wave], WaveData_size
+			sub qword [current_wave], WaveData_size
 		._6:
 		call game_initWave
 		jmp .nextWaveLogicEnd
 	.decWaveCounterEnd:
-	cmp [asteroids_arr + Array.data.len], 0
+	cmp dword [asteroids_arr + Array.data + FatPtr.len], 0
 	jne .nextWaveLogicEnd
-		mov [next_wave_counter], GAME_NEXT_WAVE_COUNTER_AMT
+		mov dword [next_wave_counter], GAME_NEXT_WAVE_COUNTER_AMT
 	.nextWaveLogicEnd:
 
 	.draw:
-	cmp [is_in_gameover], 0
+	cmp dword [is_in_gameover], 0
 	jne ._7
 	call ship_draw
 	._7:
@@ -515,7 +516,7 @@ game_tick:
 	call game_drawScore
 	call game_drawLives
 	call game_drawGameOver
-	mov [font_current_char_pos + Point.y], GAME_PRESS_ANY_KEY_Y
+	mov dword [font_current_char_pos + Point.y], GAME_PRESS_ANY_KEY_Y
 	call screen_drawPressAnyKey
 
 	ret
@@ -539,10 +540,10 @@ game_drawScore:
 	mov rax, [game_score_pos]
 	mov [font_current_char_pos], rax
 
-	mov [font_current_char_rect + Rect.pos.x], 0
-	mov [font_current_char_rect + Rect.pos.y], 0
-	mov [font_current_char_rect + Rect.dim.w], FONT_DIGIT_WIDTH
-	mov [font_current_char_rect + Rect.dim.h], FONT_DIGIT_HEIGHT
+	mov dword [font_current_char_rect + Rect.pos + Point.x], 0
+	mov dword [font_current_char_rect + Rect.pos + Point.y], 0
+	mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_DIGIT_WIDTH
+	mov dword [font_current_char_rect + Rect.dim + Dim.h], FONT_DIGIT_HEIGHT
 
 	xor r10, r10
 	mov r11d, 1000000
@@ -585,13 +586,13 @@ game_drawScore:
 		shl ebx, 16
 		sub [font_current_char_pos + Point.y], ebx
 
-		mov ebx, [font_current_char_rect + Rect.dim.w]
+		mov ebx, [font_current_char_rect + Rect.dim + Dim.w]
 		imul edx, ebx
-		mov [font_current_char_rect + Rect.pos.x], edx
+		mov [font_current_char_rect + Rect.pos + Point.x], edx
 		lea rdx, font_current_char_pos
 		call screen_draw1bppSprite
 
-		add [font_current_char_pos + Point.x], FONT_DIGIT_KERNING << 16
+		add dword [font_current_char_pos + Point.x], FONT_DIGIT_KERNING << 16
 		saturatingSub32 r12d, 4
 
 		; if numDigitsDrawn == 4 then draw comma
@@ -604,12 +605,12 @@ game_drawScore:
 
 			lea r9, font_comma_rect
 			mov rsi, [font_comma_spr_data]
-			add [font_current_char_pos + Point.y], (FONT_DIGIT_HEIGHT - 24) << 16
-			sub [font_current_char_pos + Point.x], 12 << 16
+			add dword [font_current_char_pos + Point.y], (FONT_DIGIT_HEIGHT - 24) << 16
+			sub dword [font_current_char_pos + Point.x], 12 << 16
 			; lea rdx, font_current_char_pos
 			call screen_draw1bppSprite
-			sub [font_current_char_pos + Point.y], (FONT_DIGIT_HEIGHT - 24) << 16
-			add [font_current_char_pos + Point.x], 26 << 16
+			sub dword [font_current_char_pos + Point.y], (FONT_DIGIT_HEIGHT - 24) << 16
+			add dword [font_current_char_pos + Point.x], 26 << 16
 
 			pop r9
 			pop rsi
@@ -672,7 +673,7 @@ gameoverUs:
 	dw FONT_LG_X_R
 
 game_drawGameOver:
-	cmp [game_show_gameover], 0
+	cmp dword [game_show_gameover], 0
 	je ._ret
 
 	push rbx
@@ -689,11 +690,11 @@ game_drawGameOver:
 	lea r9, font_current_char_rect
 	lea r14, screen_setPixelOnscreenVerified
 
-	mov [font_current_char_rect + Rect.pos.y], 0
-	mov [font_current_char_rect + Rect.dim.w], FONT_LG_CHAR_WIDTH
-	mov [font_current_char_rect + Rect.dim.h], FONT_LG_CHAR_HEIGHT
-	mov [font_current_char_pos + Point.y], ((SCREEN_HEIGHT / 2) - (FONT_LG_CHAR_HEIGHT / 2)) << 16
-	mov [font_current_char_pos + Point.x], GAMEOVER_FIRST_X
+	mov dword [font_current_char_rect + Rect.pos + Point.y], 0
+	mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_LG_CHAR_WIDTH
+	mov dword [font_current_char_rect + Rect.dim + Dim.h], FONT_LG_CHAR_HEIGHT
+	mov dword [font_current_char_pos + Point.y], ((SCREEN_HEIGHT / 2) - (FONT_LG_CHAR_HEIGHT / 2)) << 16
+	mov dword [font_current_char_pos + Point.x], GAMEOVER_FIRST_X
 
 	xor ecx, ecx
 	.charLoop:
@@ -703,7 +704,7 @@ game_drawGameOver:
 		mov ax, cx
 		shl ax, 1
 		mov ax, [rdi + rax]
-		mov [font_current_char_rect + Rect.pos.x], eax
+		mov [font_current_char_rect + Rect.pos + Point.x], eax
 
 		; set alpha of char
 		lea rdi, game_gameover_flicker_inds
@@ -728,10 +729,10 @@ game_drawGameOver:
 		; r14 - pointer to pixel plotting routine to call
 		call screen_draw1bppSprite
 
-		add [font_current_char_pos + Point.x], GAMEOVER_CHAR_WIDTH << 16
+		add dword [font_current_char_pos + Point.x], GAMEOVER_CHAR_WIDTH << 16
 		cmp ecx, 3
 		jne ._
-			add [font_current_char_pos + Point.x], GAMEOVER_CHAR_KERNING << 16 ; add the space
+			add dword [font_current_char_pos + Point.x], GAMEOVER_CHAR_KERNING << 16 ; add the space
 		._:
 
 		inc ecx

@@ -35,14 +35,14 @@ title_show_press_any_key_counter resd 1
 section .text
 
 title_init:
-	mov [title_appear_delay_counter], TITLE_APPEAR_DELAY_COUNTER_AMT
-	mov [title_num_lines_to_draw], 0
-	mov [title_anim_frame], 0
-	mov [title_anim_counter], 0
-	mov [title_86_flicker_delay_counter], 0
-	mov [title_86_flicker_inds], 0
-	mov [title_show_press_any_key_counter], 0
-	mov [screen_show_press_any_key], 0
+	mov dword [title_appear_delay_counter], TITLE_APPEAR_DELAY_COUNTER_AMT
+	mov dword [title_num_lines_to_draw], 0
+	mov dword [title_anim_frame], 0
+	mov dword [title_anim_counter], 0
+	mov dword [title_86_flicker_delay_counter], 0
+	mov dword [title_86_flicker_inds], 0
+	mov dword [title_show_press_any_key_counter], 0
+	mov dword [screen_show_press_any_key], 0
 
 	ret
 
@@ -50,9 +50,9 @@ title_init:
 ; in:
 	; rdi - pointer to Input struct
 title_tick:
-	cmp [rdi + Input.buttons_pressed], 0
+	cmp dword [rdi + Input.buttons_pressed], 0
 	je .anyKeyPressEnd
-		cmp [screen_show_press_any_key], 0
+		cmp dword [screen_show_press_any_key], 0
 		je ._
 			call game_init
 			mov [mode], Mode_Game
@@ -66,17 +66,17 @@ title_tick:
 	call title_drawCredit
 
 	; "Press any key to continue"
-	cmp [screen_show_press_any_key], 0
+	cmp dword [screen_show_press_any_key], 0
 	je ._1
-		mov [font_current_char_pos + Point.y], TITLE_PRESS_ANY_KEY_Y
+		mov dword [font_current_char_pos + Point.y], TITLE_PRESS_ANY_KEY_Y
 		call screen_drawPressAnyKey
 	._1:
 
 	cmp [title_show_press_any_key_counter], 0
 	je ._2
-		dec [title_show_press_any_key_counter]
+		dec dword [title_show_press_any_key_counter]
 		jne ._2
-		inc [screen_show_press_any_key]
+		inc dword [screen_show_press_any_key]
 	._2:
 
 	; sweep left to right drawing lines
@@ -89,46 +89,46 @@ title_tick:
 		mov [title_num_lines_to_draw], eax
 		cmp eax, TITLE_MAX_NUM_LINES_TO_DRAW
 		jl ._3
-		mov [title_86_flicker_delay_counter], TITLE_86_FLICKER_DELAY_COUNTER_AMT
-		mov [title_show_press_any_key_counter], TITLE_PRESS_ANY_KEY_COUNTER_AMT
+		mov dword [title_86_flicker_delay_counter], TITLE_86_FLICKER_DELAY_COUNTER_AMT
+		mov dword [title_show_press_any_key_counter], TITLE_PRESS_ANY_KEY_COUNTER_AMT
 	._3:
 
 	; appear delay counter
-	cmp [title_appear_delay_counter], 0
+	cmp dword [title_appear_delay_counter], 0
 	je ._4
-		dec [title_appear_delay_counter]
+		dec dword [title_appear_delay_counter]
 		jne ._4
-		inc [title_num_lines_to_draw]
+		inc dword [title_num_lines_to_draw]
 	._4:
 
 	; advance ASTEROIDS animation
 	inc [title_anim_counter]
-	cmp [title_anim_counter], TITLE_FRAME_TIME
+	cmp dword [title_anim_counter], TITLE_FRAME_TIME
 	jl ._5
 	jne ._5
-		mov [title_anim_counter], 0
+		mov dword [title_anim_counter], 0
 		inc [title_anim_frame]
-		cmp [title_anim_frame], 3
+		cmp dword [title_anim_frame], 3
 		jl ._5
-		mov [title_anim_frame], 0
+		mov dword [title_anim_frame], 0
 	._5:
 
 	; advance 86 flicker
-	cmp [title_86_flicker_inds], 0
+	cmp dword [title_86_flicker_inds], 0
 	je ._6
 
-		cmp [title_86_flicker_inds], flicker_alphas_len
+		cmp dword [title_86_flicker_inds], flicker_alphas_len
 		jge ._6_1
 		inc [title_86_flicker_inds]
 		._6_1:
-		cmp [title_86_flicker_inds + 4], flicker_alphas_len
+		cmp dword [title_86_flicker_inds + 4], flicker_alphas_len
 		jge ._6_2
 		inc [title_86_flicker_inds + 4]
 		._6_2:
 	._6:
 
 	; count down 86 appear delay
-	cmp [title_86_flicker_delay_counter], 0
+	cmp dword [title_86_flicker_delay_counter], 0
 	je ._86FlickerDelayEnd
 		dec [title_86_flicker_delay_counter]
 		jne ._86FlickerDelayEnd
@@ -136,25 +136,25 @@ title_tick:
 		rand eax
 		and eax, 11111b
 		inc eax
-		mov [title_86_flicker_inds], eax
+		mov dword [title_86_flicker_inds], eax
 		rand eax
 		and eax, 11111b
 		inc eax
-		mov [title_86_flicker_inds + 4], eax
+		mov dword [title_86_flicker_inds + 4], eax
 	._86FlickerDelayEnd:
 
 	ret
 
 
 title_skipAnim:
-	mov [title_appear_delay_counter], 0
-	mov [title_86_flicker_delay_counter], 0
-	mov [title_show_press_any_key_counter], 0
+	mov dword [title_appear_delay_counter], 0
+	mov dword [title_86_flicker_delay_counter], 0
+	mov dword [title_show_press_any_key_counter], 0
 
-	mov [title_num_lines_to_draw], TITLE_MAX_NUM_LINES_TO_DRAW
-	mov [title_86_flicker_inds], flicker_alphas_len - 1
-	mov [title_86_flicker_inds + 4], flicker_alphas_len - 1
-	mov [screen_show_press_any_key], 1
+	mov dword [title_num_lines_to_draw], TITLE_MAX_NUM_LINES_TO_DRAW
+	mov dword [title_86_flicker_inds], flicker_alphas_len - 1
+	mov dword [title_86_flicker_inds + 4], flicker_alphas_len - 1
+	mov dword [screen_show_press_any_key], 1
 	ret
 
 
@@ -177,7 +177,7 @@ title_drawLine:
 
 
 title_drawAsteroids:
-	cmp [title_appear_delay_counter], 0
+	cmp dword [title_appear_delay_counter], 0
 	jne ._ret
 
 	push rcx
@@ -191,13 +191,146 @@ title_drawAsteroids:
 	mov r8d, [fg_color]
 
 	mov ecx, [title_num_lines_to_draw]
-	for ind, <4, 8, 8, 4, 4, 4, 4, 8, 8, 8, 4, 4, 8, 8, 4, 4, 4, 8, 8, 4, 4, 4, 8, 8, 4, 4, 4, 8, 4, 4, 4, 4, 0>
-		call title_drawLine
-		add rsi, ind
-		dec ecx
-		je .end
-	endm
+	; for ind, <4, 8, 8, 4, 4, 4, 4, 8, 8, 8, 4, 4, 8, 8, 4, 4, 4, 8, 8, 4, 4, 4, 8, 8, 4, 4, 4, 8, 4, 4, 4, 4, 0>
+	; 	call title_drawLine
+	; 	add rsi, ind
+	; 	dec ecx
+	; 	je .end
+	; endm
 
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 8
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 4
+	dec ecx
+	je .end
+	call title_drawLine
+	add rsi, 0
+	dec ecx
+	je .end
+	
  	; close the D
 	xor eax, eax
 	mov ax, [rsi + 148]
@@ -219,7 +352,7 @@ title_drawAsteroids:
 
 
 title_draw86:
-	cmp [title_86_flicker_inds], 0
+	cmp dword [title_86_flicker_inds], 0
 	je ._ret
 
 	push rdx
@@ -235,12 +368,12 @@ title_draw86:
 	lea r9, font_current_char_rect
 	lea r14, screen_setPixelOnscreenVerified
 
-	mov [font_current_char_pos + Point.x], 1010 << 16
-	mov [font_current_char_pos + Point.y], 428 << 16
-	mov [font_current_char_rect + Rect.pos.x], 8 * FONT_DIGIT_WIDTH
-	mov [font_current_char_rect + Rect.pos.y], 0
-	mov [font_current_char_rect + Rect.dim.w], FONT_DIGIT_WIDTH
-	mov [font_current_char_rect + Rect.dim.h], FONT_DIGIT_HEIGHT
+	mov dword [font_current_char_pos + Point.x], 1010 << 16
+	mov dword [font_current_char_pos + Point.y], 428 << 16
+	mov dword [font_current_char_rect + Rect.pos + Point.x], 8 * FONT_DIGIT_WIDTH
+	mov dword [font_current_char_rect + Rect.pos + Point.y], 0
+	mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_DIGIT_WIDTH
+	mov dword [font_current_char_rect + Rect.dim + Dim.h], FONT_DIGIT_HEIGHT
 
 	; flicker alpha
 	and r8d, 00ffffffh
@@ -254,8 +387,8 @@ title_draw86:
 
 	call screen_draw1bppSprite
 
-	add [font_current_char_pos + Point.x], (FONT_DIGIT_WIDTH + 5) << 16
-	mov [font_current_char_rect + Rect.pos.x], 6 * FONT_DIGIT_WIDTH
+	add dword [font_current_char_pos + Point.x], (FONT_DIGIT_WIDTH + 5) << 16
+	mov dword [font_current_char_rect + Rect.pos + Point.x], 6 * FONT_DIGIT_WIDTH
 
 	; flicker alpha
 	and r8d, 00ffffffh
@@ -284,7 +417,7 @@ TITLE_CREDIT_Y equ (SCREEN_HEIGHT - 32) << 16
 my_name db "TAYLOR PLEWE"
 my_name_len equ $ - my_name
 title_drawCredit:
-	cmp [screen_show_press_any_key], 0
+	cmp dword [screen_show_press_any_key], 0
 	je ._ret
 
 	push rbx
@@ -300,21 +433,21 @@ title_drawCredit:
 	lea r9, font_current_char_rect
 	mov r8d, [gray_color]
 	lea r14, screen_setPixelOnscreenVerified
-	mov [font_current_char_pos + Point.x], TITLE_CREDIT_X
-	mov [font_current_char_pos + Point.y], TITLE_CREDIT_Y
+	mov dword [font_current_char_pos + Point.x], TITLE_CREDIT_X
+	mov dword [font_current_char_pos + Point.y], TITLE_CREDIT_Y
 
 	; copyright symbol
 	mov rsi, [font_copyright_spr_data]
-	mov [font_current_char_rect + Rect.pos.x], 0
-	mov [font_current_char_rect + Rect.pos.y], 0
-	mov [font_current_char_rect + Rect.dim.w], FONT_COPYRIGHT_WIDTH
-	mov [font_current_char_rect + Rect.dim.h], FONT_COPYRIGHT_HEIGHT
+	mov dword [font_current_char_rect + Rect.pos + Point.x], 0
+	mov dword [font_current_char_rect + Rect.pos + Point.y], 0
+	mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_COPYRIGHT_WIDTH
+	mov dword [font_current_char_rect + Rect.dim + Dim.h], FONT_COPYRIGHT_HEIGHT
 	call screen_draw1bppSprite
 
-	add [font_current_char_pos + Point.x], (PRESS_ANY_KEY_CHAR_WIDTH + 8) << 16
+	add dword [font_current_char_pos + Point.x], (PRESS_ANY_KEY_CHAR_WIDTH + 8) << 16
 
 	; my name
-	mov [font_current_char_rect + Rect.dim.h], FONT_SM_CHAR_HEIGHT
+	mov dword [font_current_char_rect + Rect.dim + Dim.h], FONT_SM_CHAR_HEIGHT
 	lea rbx, my_name
 	xor ecx, ecx
 	xor r10, r10
@@ -329,48 +462,48 @@ title_drawCredit:
 		je .nameLoopW
 			sub al, 'A'
 			mov rsi, [font_small_spr_data]
-			mov [font_current_char_rect + Rect.dim.w], FONT_SM_CHAR_WIDTH
+			mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_SM_CHAR_WIDTH
 			imul eax, FONT_SM_CHAR_WIDTH
 			jmp .nameLoopCharRectSetEnd
 		.nameLoopW:
-			add [font_current_char_pos + Point.x], (FONT_SM_CHAR_WIDTH / 2) << 16
+			add dword [font_current_char_pos + Point.x], (FONT_SM_CHAR_WIDTH / 2) << 16
 			mov rsi, [font_small_w_spr_data]
-			mov [font_current_char_rect + Rect.dim.w], FONT_SM_W_WIDTH
+			mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_SM_W_WIDTH
 			mov eax, 0
 		.nameLoopCharRectSetEnd:
-		mov [font_current_char_rect + Rect.pos.x], eax
+		mov [font_current_char_rect + Rect.pos + Point.x], eax
 
 		call screen_draw1bppSprite
 
 		.nameLoopDrawCharEnd:
-		add [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
+		add dword [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
 		test r10, r10
 		je ._
-			add [font_current_char_pos + Point.x], (FONT_SM_CHAR_WIDTH / 2) << 16
+			add dword [font_current_char_pos + Point.x], (FONT_SM_CHAR_WIDTH / 2) << 16
 		._:
 
 		inc ecx
 		cmp ecx, my_name_len
 		jl .nameLoop
 
-	add [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
+	add dword [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
 
 	; creation year
 	mov rsi, [font_yr_digits_spr_data]
-	mov [font_current_char_rect + Rect.dim.w], FONT_SM_CHAR_WIDTH
-	mov [font_current_char_rect + Rect.pos.x], 0
+	mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_SM_CHAR_WIDTH
+	mov dword [font_current_char_rect + Rect.pos + Point.x], 0
 	call screen_draw1bppSprite
 
-	add [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
-	mov [font_current_char_rect + Rect.pos.x], FONT_SM_CHAR_WIDTH
+	add dword [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
+	mov dword [font_current_char_rect + Rect.pos + Point.x], FONT_SM_CHAR_WIDTH
 	call screen_draw1bppSprite
 
-	add [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
-	mov [font_current_char_rect + Rect.pos.x], 0
+	add dword [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
+	mov dword [font_current_char_rect + Rect.pos + Point.x], 0
 	call screen_draw1bppSprite
 
-	add [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
-	mov [font_current_char_rect + Rect.pos.x], FONT_SM_CHAR_WIDTH * 2
+	add dword [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
+	mov dword [font_current_char_rect + Rect.pos + Point.x], FONT_SM_CHAR_WIDTH * 2
 	call screen_draw1bppSprite
 
 	pop r14

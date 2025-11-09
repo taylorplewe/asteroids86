@@ -116,14 +116,14 @@ fire_create:
 		mov ebx, FIRE_MAX_NUM_FRAMES
 		cdq
 		idiv ebx
-		mov [rsi + Fire.shrink_vec.x], eax
+		mov [rsi + Fire.shrink_vec + Point.x], eax
 	; y
 		mov eax, r13d
 		sub eax, r9d
 		mov ebx, FIRE_MAX_NUM_FRAMES
 		cdq
 		idiv ebx
-		mov [rsi + Fire.shrink_vec.y], eax
+		mov [rsi + Fire.shrink_vec + Point.y], eax
 
 	.end:
 	pop r13
@@ -166,8 +166,8 @@ fire_update:
 	cdqe
 	imul rax, FIRE_VELOCITY
 	sar rax, 15
-	add [rdi + Fire.p1.x], eax
-	add [rdi + Fire.p2.x], eax
+	add [rdi + Fire.p1 + Point.x], eax
+	add [rdi + Fire.p2 + Point.x], eax
 	; y
 	xor rax, rax
 	mov al, [rdi + Fire.rot]
@@ -176,16 +176,16 @@ fire_update:
 	imul rax, FIRE_VELOCITY
 	sar rax, 15
 	neg eax
-	add [rdi + Fire.p1.y], eax
-	add [rdi + Fire.p2.y], eax
+	add [rdi + Fire.p1 + Point.y], eax
+	add [rdi + Fire.p2 + Point.y], eax
 
 	; shrink fire
-	mov eax, [rdi + Fire.shrink_vec.x]
-	add [rdi + Fire.p1.x], eax
-	sub [rdi + Fire.p2.x], eax
-	mov eax, [rdi + Fire.shrink_vec.y]
-	add [rdi + Fire.p1.y], eax
-	sub [rdi + Fire.p2.y], eax
+	mov eax, [rdi + Fire.shrink_vec + Point.x]
+	add [rdi + Fire.p1 + Point.x], eax
+	sub [rdi + Fire.p2 + Point.x], eax
+	mov eax, [rdi + Fire.shrink_vec + Point.y]
+	add [rdi + Fire.p1 + Point.y], eax
+	sub [rdi + Fire.p2 + Point.y], eax
 
 	mov eax, 0
 
@@ -251,16 +251,16 @@ fire_draw:
 	._1:
 
 	xor eax, eax ; clear upper bits
-	mov ax, word [rdi + Fire.p1.x + 2]
+	mov ax, word [rdi + Fire.p1 + Point.x + 2]
 	cwde
 	mov [screen_point1 + Point.x], eax
-	mov ax, word [rdi + Fire.p1.y + 2]
-	cwde + Point
+	mov ax, word [rdi + Fire.p1 + Point.y + 2]
+	cwde
 	mov [screen_point1 + Point.y], eax
-	mov ax, word [rdi + Fire.p2.x + 2]
+	mov ax, word [rdi + Fire.p2 + Point.x + 2]
 	cwde
 	mov [screen_point2 + Point.x], eax
-	mov ax, word [rdi + Fire.p2.y + 2]
+	mov ax, word [rdi + Fire.p2 + Point.y + 2]
 	cwde
 	mov [screen_point2 + Point.y], eax
 

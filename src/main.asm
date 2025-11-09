@@ -31,7 +31,7 @@ event    resb 2048
 
 ticks     resq    1
 input     resb Input_size
-keys_prev resb Keys
+keys_prev resd 1 ;Keys
 is_paused resd    1
 
 joystick_ids resq 1
@@ -52,6 +52,7 @@ section .text
 	call SDL_SetWindowIcon
 %endmacro
 
+global main
 main:
 	push rbp
 	mov rbp, rsp
@@ -59,8 +60,6 @@ main:
 
 	call star_generateAll
 
-	call font_initSprData
-	call ufo_initSprData
 	call game_setShipLivesPoints
 	call title_init
 	mov [mode], Mode_Title
@@ -132,11 +131,11 @@ main:
 			; cmp eax, SDL_EVENT_GAMEPAD_AXIS_MOTION
 			; je .handleGamepadAxisMotion
 
-			cmp [event + SDL_Event.event_type], SDL_EVENT_QUIT
+			cmp dword [event + SDL_Event.event_type], SDL_EVENT_QUIT
 			je .quit
 
 
-			cmp [event + SDL_Event.event_type], SDL_EVENT_KEY_DOWN
+			cmp dword [event + SDL_Event.event_type], SDL_EVENT_KEY_DOWN
 			jne .keyDownCheckEnd
 			; which key was pressed?
 			mov eax, [event + SDL_KeyboardEvent.key]
@@ -167,7 +166,7 @@ main:
 			jmp .OtherPressed
 			.keyDownCheckEnd:
 
-			cmp [event + SDL_Event.event_type], SDL_EVENT_KEY_UP
+			cmp dword [event + SDL_Event.event_type], SDL_EVENT_KEY_UP
 			jne .keyUpCheckEnd
 			mov eax, [event + SDL_KeyboardEvent.key]
 			cmp eax, SDLK_W
@@ -195,7 +194,7 @@ main:
 			jmp .OtherReleased
 			.keyUpCheckEnd:
 
-			cmp [event + SDL_Event.event_type], SDL_EVENT_GAMEPAD_BUTTON_DOWN
+			cmp dword [event + SDL_Event.event_type], SDL_EVENT_GAMEPAD_BUTTON_DOWN
 			jne .gamepadButtonDownCheckEnd
 			xor eax, eax
 			mov al, [event + SDL_GamepadButtonEvent.button]
@@ -220,7 +219,7 @@ main:
 			jmp .OtherPressed
 			.gamepadButtonDownCheckEnd:
 
-			cmp [event + SDL_Event.event_type], SDL_EVENT_GAMEPAD_BUTTON_UP
+			cmp dword [event + SDL_Event.event_type], SDL_EVENT_GAMEPAD_BUTTON_UP
 			jne .gamepadButtonUpCheckEnd
 			xor eax, eax
 			mov al, [event + SDL_GamepadButtonEvent.button]
@@ -248,7 +247,7 @@ main:
 			AXIS_TURN_DEADZONE equ 4000h
 			AXIS_BOOST_DEADZONE equ 4000h
 			AXIS_FIRE_DEADZONE equ 3000h
-			cmp [event + SDL_Event.event_type], SDL_EVENT_GAMEPAD_AXIS_MOTION
+			cmp dword [event + SDL_Event.event_type], SDL_EVENT_GAMEPAD_AXIS_MOTION
 			jne .gamepadAxisCheckEnd
 			xor eax, eax
 			mov al, [event + SDL_GamepadAxisEvent.axis]
@@ -296,48 +295,48 @@ main:
 			; 		jmp .pollLoopNext
 			; endm
 
-			Boost_Pressed:
-				bts [input + Input.buttons_down], Keys_Boost
+			.BoostPressed:
+				bts dword [input + Input.buttons_down], Keys_Boost
 				jmp .pollLoopNext
-			Teleport_Pressed:
-				bts [input + Input.buttons_down], Keys_Teleport
+			.TeleportPressed:
+				bts dword [input + Input.buttons_down], Keys_Teleport
 				jmp .pollLoopNext
-			Left_Pressed:
-				bts [input + Input.buttons_down], Keys_Left
+			.LeftPressed:
+				bts dword [input + Input.buttons_down], Keys_Left
 				jmp .pollLoopNext
-			Right_Pressed:
-				bts [input + Input.buttons_down], Keys_Right
+			.RightPressed:
+				bts dword [input + Input.buttons_down], Keys_Right
 				jmp .pollLoopNext
-			Fire_Pressed:
-				bts [input + Input.buttons_down], Keys_Fire
+			.FirePressed:
+				bts dword [input + Input.buttons_down], Keys_Fire
 				jmp .pollLoopNext
-			Pause_Pressed:
-				bts [input + Input.buttons_down], Keys_Pause
+			.PausePressed:
+				bts dword [input + Input.buttons_down], Keys_Pause
 				jmp .pollLoopNext
-			Other_Pressed:
-				bts [input + Input.buttons_down], Keys_Other
+			.OtherPressed:
+				bts dword [input + Input.buttons_down], Keys_Other
 				jmp .pollLoopNext
 
-			Boost_Released:
-				btr [input + Input.buttons_down], Keys_Boost
+			.BoostReleased:
+				btr dword [input + Input.buttons_down], Keys_Boost
 				jmp .pollLoopNext
-			Teleport_Released:
-				btr [input + Input.buttons_down], Keys_Teleport
+			.TeleportReleased:
+				btr dword [input + Input.buttons_down], Keys_Teleport
 				jmp .pollLoopNext
-			Left_Released:
-				btr [input + Input.buttons_down], Keys_Left
+			.LeftReleased:
+				btr dword [input + Input.buttons_down], Keys_Left
 				jmp .pollLoopNext
-			Right_Released:
-				btr [input + Input.buttons_down], Keys_Right
+			.RightReleased:
+				btr dword [input + Input.buttons_down], Keys_Right
 				jmp .pollLoopNext
-			Fire_Released:
-				btr [input + Input.buttons_down], Keys_Fire
+			.FireReleased:
+				btr dword [input + Input.buttons_down], Keys_Fire
 				jmp .pollLoopNext
-			Pause_Released:
-				btr [input + Input.buttons_down], Keys_Pause
+			.PauseReleased:
+				btr dword [input + Input.buttons_down], Keys_Pause
 				jmp .pollLoopNext
-			Other_Released:
-				btr [input + Input.buttons_down], Keys_Other
+			.OtherReleased:
+				btr dword [input + Input.buttons_down], Keys_Other
 				jmp .pollLoopNext
 
 		.pollLoopEnd:
@@ -355,19 +354,19 @@ main:
 		mov [input + Input.buttons_pressed], ebx
 		mov [keys_prev], eax
 
-		bt [input + Input.buttons_pressed], Keys_Pause
+		bt dword [input + Input.buttons_pressed], Keys_Pause
 		jnc ._3
-			xor [is_paused], 1
+			xor dword [is_paused], 1
 		._3:
 
-		mov [event_bus], 0
+		mov dword [event_bus], 0
 
 		call screen_clearPixelBuffer
 
 		call star_updateAndDrawAll
 
 		lea rdi, input
-		cmp [mode], Mode_Game
+		cmp dword [mode], Mode_Game
 		je .doGameTick
 			call title_tick
 			jmp .ticksEnd
@@ -376,7 +375,7 @@ main:
 		.ticksEnd:
 
 		; rumble gamepad for events that happened this frame
-		bt [event_bus], Event_Fire
+		bt dword [event_bus], Event_Fire
 		jnc ._4
 			mov rcx, [gamepad]
 			mov dx, 0afffh
@@ -384,7 +383,7 @@ main:
 			mov r9d, 50
 			call SDL_RumbleGamepad
 		._4:
-		bt [event_bus], Event_ShipDestroy
+		bt dword [event_bus], Event_ShipDestroy
 		jnc ._5
 			mov rcx, [gamepad]
 			mov dx, 03fffh
@@ -428,7 +427,6 @@ main:
 	mov rsp, rbp
 	pop rbp
 	xor eax, eax
-	call ExitProcess
 	ret
 
 

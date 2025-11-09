@@ -10,6 +10,8 @@
 %include "src/bullet.asm"
 %include "src/ship.asm"
 
+ufo_spr_data: incbin "resources/ufo.bin"
+
 
 struc Ufo
 	.pos:         resb Point_size
@@ -65,31 +67,10 @@ ufo_rect:
 section .bss
 
 ufos         resb Ufo_size * MAX_NUM_UFOS
-ufo_spr_data resq  1
+; ufo_spr_data resq  1
 
 
 section .text
-
-ufo_initSprData:
-	push rbp
-	mov rbp, rsp
-	sub rsp, 200h
-
-	xor rcx, rcx
-	lea rdx, ufo_spr_resource_name
-	lea r8, bin_resource_type
-	call FindResourceA
-	xor rcx, rcx
-	mov rdx, rax
-	call LoadResource
-	mov rcx, rax
-	call LockResource
-	mov [ufo_spr_data], rax
-
- 	mov rsp, rbp
-	pop rbp
-	ret
-
 
 ; in:
 	; rbx - pos
@@ -107,7 +88,7 @@ ufo_create:
 	mov [rsi + Ufo.turn_timer], UFO_TURN_TIMER_MIN_AMT
 
 	; determine which way to fly based on which side of the screen we're on
-	cmp [rsi + Ufo.pos.x], 0
+	cmp [rsi + Ufo.pos + Point.x], 0
 	jg ._
 		mov al, 64
 		jmp .rotSet
@@ -156,7 +137,7 @@ ufo_update:
 	dec [rdi + Ufo.turn_timer]
 	jne .turnEnd
 		mov [rdi + Ufo.turn_timer], UFO_TURN_TIMER_MIN_AMT
-		cmp [rdi + Ufo.velocity.y], 0
+		cmp [rdi + Ufo.velocity + Point.y], 0
 		jne .turnStraight
 			mov r10b, [rdi + Ufo.rot]
 			rand eax
@@ -167,7 +148,7 @@ ufo_update:
 			add r10b, al
 			jmp .doTurn
 		.turnStraight:
-		cmp [rdi + Ufo.velocity.x], 0
+		cmp [rdi + Ufo.velocity + Point.x], 0
 		jge .turnRight
 		; turnLeft:
 			mov r10b, 192
@@ -189,13 +170,13 @@ ufo_update:
 
 	; out of bounds?
 	xor eax, eax
-	mov ax, word [rdi + Ufo.pos.x + 2]
+	mov ax, word [rdi + Ufo.pos + Point.x + 2]
 	cwde
 	cmp eax, SCREEN_WIDTH + UFO_BBOX_WIDTH / 2
 	jge .deleteUfo
 	cmp eax, -UFO_BBOX_WIDTH / 2
 	jl .deleteUfo
-	mov ax, word [rdi + Ufo.pos.y + 2]
+	mov ax, word [rdi + Ufo.pos + Point.y + 2]
 	cwde
 	cmp eax, SCREEN_HEIGHT + UFO_BBOX_HEIGHT / 2
 	jge .deleteUfo
@@ -218,17 +199,17 @@ ufo_update:
 		; r10b - rotation in 256-based radians
 
 		mov ebx, [ship + Ship.y]
-		sub ebx, [rdi + Ufo.pos.y]
+		sub ebx, [rdi + Ufo.pos + Point.y]
 		sar ebx, 16
 		mov ecx, [ship + Ship.x]
-		sub ecx, [rdi + Ufo.pos.x]
+		sub ecx, [rdi + Ufo.pos + Point.x]
 		sar ecx, 16
 		call atan2
 		xor r10, r10
 		mov r10b, al
 		
-		mov r8d, [rdi + Ufo.pos.x]
-		mov r9d, [rdi + Ufo.pos.y]
+		mov r8d, [rdi + Ufo.pos + Point.x]
+		mov r9d, [rdi + Ufo.pos + Point.y]
 		mov r11d, 1
 
 		call bullet_create
@@ -257,7 +238,7 @@ ufo_checkBullets:
 	push rcx
 	push rsi
 
-	mov eax, [bullets_arr + Array.data.len]
+	mov eax, [bullets_arr + Array.data + FatPtr.len]
 	test eax, eax
 	je .noHit
 	xor ecx, ecx
@@ -270,23 +251,23 @@ ufo_checkBullets:
 		; check if bullet is inside UFO's rectangular hitbox
 		; < x
 		xor eax, eax
-		mov ax, word [rdi + Ufo.pos.x + 2]
+		mov ax, word [rdi + Ufo.pos + Point.x + 2]
 		sub eax, UFO_BBOX_WIDTH / 2
-		cmp ax, word [rsi + Bullet.pos.x + 2]
+		cmp ax, word [rsi + Bullet.pos + Point.x + 2]
 		jg .next
 		; > x
 		add eax, UFO_BBOX_WIDTH
-		cmp ax, word [rsi + Bullet.pos.x + 2]
+		cmp ax, word [rsi + Bullet.pos + Point.x + 2]
 		jl .next
 		; < y
 		xor eax, eax
-		mov ax, word [rdi + Ufo.pos.y + 2]
+		mov ax, word [rdi + Ufo.pos + Point.y + 2]
 		sub eax, UFO_BBOX_HEIGHT / 2
-		cmp ax, word [rsi + Bullet.pos.y + 2]
+		cmp ax, word [rsi + Bullet.pos + Point.y + 2]
 		jg .next
 		; > y
 		add eax, UFO_BBOX_HEIGHT
-		cmp ax, word [rsi + Bullet.pos.y + 2]
+		cmp ax, word [rsi + Bullet.pos + Point.y + 2]
 		jl .next
 
 		; hit!
@@ -305,7 +286,7 @@ ufo_checkBullets:
 		.next:
 		add rsi, Bullet_size
 		inc ecx
-		cmp ecx, [bullets_arr + Array.data.len]
+		cmp ecx, [bullets_arr + Array.data + FatPtr.len]
 		jb .mainLoop
 
 	.noHit:
@@ -324,7 +305,7 @@ ufo_checkShip:
 	; check if bullet is inside UFO's rectangular hitbox
 	; < x
 	xor eax, eax
-	mov ax, word [rdi + Ufo.pos.x + 2]
+	mov ax, word [rdi + Ufo.pos + Point.x + 2]
 	sub eax, UFO_BBOX_WIDTH / 2
 	cmp ax, word [ship + Ship.x + 2]
 	jg .noHit
@@ -334,7 +315,7 @@ ufo_checkShip:
 	jl .noHit
 	; < y
 	xor eax, eax
-	mov ax, word [rdi + Ufo.pos.y + 2]
+	mov ax, word [rdi + Ufo.pos + Point.y + 2]
 	sub eax, UFO_BBOX_HEIGHT / 2
 	cmp ax, word [ship + Ship.y + 2]
 	jg .noHit
@@ -471,8 +452,8 @@ ufo_draw:
 
 	; set (U, V) (V is always zero)
 	mov eax, [rdi + Ufo.frame_ind]
-	imul eax, [ufo_rect + Rect.dim.w]
-	mov [ufo_rect + Rect.pos.x], eax
+	imul eax, [ufo_rect + Rect.dim + Dim.w]
+	mov [ufo_rect + Rect.pos + Point.x], eax
 
 	call screen_draw1bppSprite
 

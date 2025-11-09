@@ -71,12 +71,12 @@ ship_teleport_is_growing      resd 1
 section .text
 
 ship_respawn:
-	mov [ship + Ship.x], SCREEN_WIDTH/2 << 16
-	mov [ship + Ship.y], SCREEN_HEIGHT/2 << 16
+	mov dword [ship + Ship.x], SCREEN_WIDTH/2 << 16
+	mov dword [ship + Ship.y], SCREEN_HEIGHT/2 << 16
 	xor eax, eax
-	mov [ship + Ship.rot], al
-	mov [ship + Ship.velocity + Vector.x], eax
-	mov [ship + Ship.velocity + Vector.y], eax
+	mov byte [ship + Ship.rot], al
+	mov dword [ship + Ship.velocity + Point.x], eax
+	mov dword [ship + Ship.velocity + Point.y], eax
 	mov dword [ship + Ship.respawn_counter], 0
 	mov byte [ship + Ship.is_boosting], 0
 	mov dword [ship_num_flashes_left], SHIP_NUM_FLASHES
@@ -90,9 +90,9 @@ ship_respawn:
 ; in:
 	; rdi - pointer to Input struct
 ship_update:
-	cmp [ship + Ship.respawn_counter], 0
+	cmp dword [ship + Ship.respawn_counter], 0
 	je .normalUpdate
-		dec [ship + Ship.respawn_counter]
+		dec dword [ship + Ship.respawn_counter]
 		jne ._
 		call ship_respawn
 		lea r8, ship_base_points
@@ -101,18 +101,18 @@ ship_update:
 		._:
 		ret
 	.normalUpdate:
-	bt [rdi + Input.buttons_down], Keys_Left
+	bt dword [rdi + Input.buttons_down], Keys_Left
 	jnc ._1
-		sub [ship + Ship.rot], 3
+		sub byte [ship + Ship.rot], 3
 		jmp .turnCheckEnd
 	._1:
-	bt [rdi + Input.buttons_down], Keys_Right
+	bt dword [rdi + Input.buttons_down], Keys_Right
 	jnc ._2
-		add [ship + Ship.rot], 3
+		add byte [ship + Ship.rot], 3
 	._2:
 	.turnCheckEnd:
 
-	bt [rdi + Input.buttons_pressed], Keys_Fire
+	bt dword [rdi + Input.buttons_pressed], Keys_Fire
 	jnc ._3
 		mov r8d, [ship_points + Point.x]
 		shl r8d, 16
@@ -136,14 +136,14 @@ ship_update:
 		cdqe
 		imul rax, SHIP_VELOCITY_KICK
 		sar rax, 31
-		add [ship + Ship.velocity + Vector.x], eax
+		add [ship + Ship.velocity + Point.x], eax
 		xor rax, rax
 		mov al, bl
 		call cos
 		cdqe
 		imul rax, SHIP_VELOCITY_KICK
 		sar rax, 31
-		sub [ship + Ship.velocity + Vector.y], eax
+		sub [ship + Ship.velocity + Point.y], eax
 	._3:
 
 	; teleport animation
@@ -152,32 +152,32 @@ ship_update:
 	je .teleportAnimEnd
 		cmp [ship_teleport_is_growing], 0
 		je ._4
-			dec [ship_teleport_shrink_vals_ind]
+			dec dword [ship_teleport_shrink_vals_ind]
 			setne byte [ship_teleport_is_growing]
 			jmp .teleportAnimEnd
 		._4:
 			inc eax
 			cmp eax, shrink_vals_len
 			jl ._5
-				inc [ship_teleport_is_growing]
+				inc dword [ship_teleport_is_growing]
 				call ship_teleport
 				jmp .teleportAnimEnd
 			._5:
 				mov [ship_teleport_shrink_vals_ind], eax
 	.teleportAnimEnd:
 
-	bt [rdi + Input.buttons_pressed], Keys_Teleport
+	bt dword [rdi + Input.buttons_pressed], Keys_Teleport
 	jnc ._6
-	cmp [ship_teleport_shrink_vals_ind], 0
+	cmp dword [ship_teleport_shrink_vals_ind], 0
 	jne ._6
-		inc [ship_teleport_shrink_vals_ind]
+		inc dword [ship_teleport_shrink_vals_ind]
 	._6:
 
 	; boost
-	mov [ship + Ship.is_boosting], 0
-	bt [rdi + Input.buttons_down], Keys_Boost
+	mov byte [ship + Ship.is_boosting], 0
+	bt dword [rdi + Input.buttons_down], Keys_Boost
 	jnc ._7
-		inc [ship + Ship.is_boosting]
+		inc byte [ship + Ship.is_boosting]
 	
 		xor rax, rax
 		mov al, [ship + Ship.rot]
@@ -185,7 +185,7 @@ ship_update:
 		cdqe
 		imul rax, SHIP_VELOCITY_ACCEL
 		sar rax, 31
-		add [ship + Ship.velocity + Vector.x], eax
+		add [ship + Ship.velocity + Point.x], eax
 
 		xor rax, rax
 		mov al, [ship + Ship.rot]
@@ -193,56 +193,56 @@ ship_update:
 		cdqe
 		imul rax, SHIP_VELOCITY_ACCEL
 		sar rax, 31
-		sub [ship + Ship.velocity + Vector.y], eax
+		sub [ship + Ship.velocity + Point.y], eax
 	._7:
 
 	; drag
-	mov eax, [ship + Ship.velocity + Vector.x]
+	mov eax, [ship + Ship.velocity + Point.x]
 	test eax, eax
 	je ._8
 		cdqe
 		imul rax, SHIP_VELOCITY_DRAG
 		sar rax, 16
-		mov [ship + Ship.velocity + Vector.x], eax
+		mov [ship + Ship.velocity + Point.x], eax
 	._8:
-	mov eax, [ship + Ship.velocity + Vector.y]
+	mov eax, [ship + Ship.velocity + Point.y]
 	test eax, eax
 	je ._9
 		cdqe
 		imul rax, SHIP_VELOCITY_DRAG
 		sar rax, 16
-		mov [ship + Ship.velocity + Vector.y], eax
+		mov [ship + Ship.velocity + Point.y], eax
 	._9:
 
 	; velocity bounds check
-	mov eax, [ship + Ship.velocity + Vector.x]
+	mov eax, [ship + Ship.velocity + Point.x]
 	cmp eax, SHIP_VELOCITY_MAX
 	jg .xVelocitySetMax
 	cmp eax, -SHIP_VELOCITY_MAX
 	jg .yVeloCheck
 	;xVelocitySetMin:
-		mov [ship + Ship.velocity + Vector.x], -SHIP_VELOCITY_X
+		mov dword [ship + Ship.velocity + Point.x], -SHIP_VELOCITY_MAX
 		jmp .yVeloCheck
 	.xVelocitySetMax:
-		mov [ship + Ship.velocity + Vector.x], SHIP_VELOCITY_MAX
+		mov dword [ship + Ship.velocity + Point.x], SHIP_VELOCITY_MAX
 	.yVeloCheck:
 
-	mov eax, [ship + Ship.velocity + Vector.y]
+	mov eax, [ship + Ship.velocity + Point.y]
 	cmp eax, SHIP_VELOCITY_MAX
 	jg .yVelocitySetMax
 	cmp eax, -SHIP_VELOCITY_MAX
 	jg .yVeloCheckEnd
 	;yVelocitySetMin:
-		mov [ship + Ship.velocity + Vector.y], -SHIP_VELOCITY_MAX
+		mov dword [ship + Ship.velocity + Point.y], -SHIP_VELOCITY_MAX
 		jmp .yVeloCheckEnd
 	.yVelocitySetMax:
-		mov [ship + Ship.velocity + Vector.y], SHIP_VELOCITY_MAX
+		mov dword [ship + Ship.velocity + Point.y], SHIP_VELOCITY_MAX
 	.yVeloCheckEnd:
 
 	; add velocity to position
-	mov eax, [ship + Ship.velocity + Vector.x]
+	mov eax, [ship + Ship.velocity + Point.x]
 	add [ship + Ship.x], eax
-	mov eax, [ship + Ship.velocity + Vector.y]
+	mov eax, [ship + Ship.velocity + Point.y]
 	add [ship + Ship.y], eax
 
 	; wrap position
@@ -254,7 +254,7 @@ ship_update:
 	call ship_setAllPoints
 
 	; draw fire lines
-	cmp [ship + Ship.is_boosting], 0
+	cmp byte [ship + Ship.is_boosting], 0
 	je ._10
 	mov rax, [frame_counter]
 	and rax, 1b
@@ -391,7 +391,7 @@ ship_checkBullets:
 	cmp dword [ship_num_flashes_left], 0
 	jne .noHit
 
-	mov eax, [bullets_arr + Array.data.len]
+	mov eax, [bullets_arr + Array.data + FatPtr.len]
 	test eax, eax
 	je .end
 	xor ecx, ecx
@@ -403,12 +403,12 @@ ship_checkBullets:
 		; check if bullet is inside this ship's circular hitbox, dictacted by it's 'mass'
 		; hit if (dx^2 + dy^2) <= r^2
 		xor eax, eax ; clear upper bits
-		mov ax, word [rsi + Bullet.pos.x + 2]
+		mov ax, word [rsi + Bullet.pos + Point.x + 2]
 		sub ax, word [ship + Ship.x + 2]
 		cwde
 		imul eax, eax
 		mov r8d, eax
-		mov ax, word [rsi + Bullet.pos.y + 2]
+		mov ax, word [rsi + Bullet.pos + Point.y + 2]
 		sub ax, word [ship + Ship.y + 2]
 		cwde
 		imul eax, eax
@@ -431,7 +431,7 @@ ship_checkBullets:
 		.next:
 		add rsi, Bullet_size
 		inc ecx
-		cmp ecx, [bullets_arr + Array.data.len]
+		cmp ecx, [bullets_arr + Array.data + FatPtr.len]
 		jb .mainLoop
 
 	.noHit:
@@ -465,7 +465,7 @@ ship_teleport:
 		call array_forEach
 		; eax = 0 if free, -1 else
 		test eax, eax
-		loopne checkLoop
+		loopne .checkLoop
 
 		; check for ufos
 		lea rsi, ufos_arr
@@ -473,7 +473,7 @@ ship_teleport:
 		call array_forEach
 		; eax = 0 if free, -1 else
 		test eax, eax
-		loopne checkLoop
+		loopne .checkLoop
 	.checkLoopEnd:
 
 	pop r8

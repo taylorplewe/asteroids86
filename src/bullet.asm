@@ -58,8 +58,8 @@ bullet_create:
 
 	mov rsi, rax
 	mov [rsi + Bullet.ticks_to_live], BULLET_TICKS_TO_LIVE
-	mov [rsi + Bullet.pos.x], r8d
-	mov [rsi + Bullet.pos.y], r9d
+	mov [rsi + Bullet.pos + Point.x], r8d
+	mov [rsi + Bullet.pos + Point.y], r9d
 	mov [rsi + Bullet.is_evil], r11d
 
 	mov ecx, BULLET_SPEED
@@ -86,10 +86,10 @@ bullet_updateAll:
 bullet_update:
 	push rsi
 
-	mov eax, [rdi + Bullet.velocity.x]
-	add [rdi + Bullet.pos.x], eax
-	mov eax, [rdi + Bullet.velocity.y]
-	sub [rdi + Bullet.pos.y], eax
+	mov eax, [rdi + Bullet.velocity + Point.x]
+	add [rdi + Bullet.pos + Point.x], eax
+	mov eax, [rdi + Bullet.velocity + Point.y]
+	sub [rdi + Bullet.pos + Point.y], eax
 
 	; wrap around screen
 	lea rsi, [rdi + Bullet.pos]
@@ -134,8 +134,8 @@ bullet_draw:
 
 	xor ebx, ebx ; clear upper bits
 	xor ecx, ecx ; clear upper bits
-	mov bx, word [rdi + Bullet.pos.x + 2]
-	mov cx, word [rdi + Bullet.pos.y + 2]
+	mov bx, word [rdi + Bullet.pos + Point.x + 2]
+	mov cx, word [rdi + Bullet.pos + Point.y + 2]
 
 	cmp [rdi + Bullet.is_evil], 0
 	je ._

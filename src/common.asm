@@ -13,8 +13,8 @@ section .text
 	; ecx = count of qwords
 memcpyAligned32:
 	.mainLoop:
-		vmovdqu ymm0, ymmword [rsi]
-		vmovdqu ymmword [rdi], ymm0
+		vmovdqu ymm0, yword [rsi]
+		vmovdqu yword [rdi], ymm0
 		add rsi, 32
 		add rdi, 32
 		loop .mainLoop
@@ -35,7 +35,7 @@ sin:
 	jb .sinCos
 
 	and al, 7fh
-	call sinCos
+	call .sinCos
 
 	neg eax
 	ret

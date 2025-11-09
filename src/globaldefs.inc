@@ -18,8 +18,8 @@ DIM_ALPHA equ 20h
 
 
 %define Mode dd
-Title equ 0
-Game  equ 1
+Mode_Title equ 0
+Mode_Game  equ 1
 
 struc FatPtr
 	.pntr: resq 1
@@ -42,6 +42,7 @@ struc Point16
 	.y: resw 1
 endstruc
 %define Vector Point
+%define Vector_size Point_size
 struc Dim
 	.w: resd 1
 	.h: resd 1
@@ -68,9 +69,9 @@ Keys_Pause    equ 6
 Keys_Other    equ 7 ; for detecting if any key was pressed
 
 struc Input
-	.buttons_down:     Keys 1
-	.buttons_pressed:  Keys 1
-	.buttons_released: Keys 1
+	.buttons_down:     resd 1
+	.buttons_pressed:  resd 1
+	.buttons_released: resd 1
 endstruc
 
 %define Event dd

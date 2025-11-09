@@ -46,9 +46,9 @@ section .text
 shard_createBurst:
 	push r8
 
-	movd xmm0, rcx
+	movd xmm0, ecx
 	psrad xmm0, 2
-	movd rcx, xmm0
+	movd ecx, xmm0
 
 	SHARD_CREATE_BURST_REPS equ 14
 
@@ -92,7 +92,7 @@ shard_create:
 	cdqe
 	imul rax, rbx
 	sar rax, 32
-	add [rsi + Shard.velocity.x], eax
+	add [rsi + Shard.velocity + Point.x], eax
 	; y
 	xor eax, eax
 	mov al, r8b
@@ -100,7 +100,7 @@ shard_create:
 	cdqe
 	imul rax, rbx
 	sar rax, 32
-	sub [rsi + Shard.velocity.y], eax
+	sub [rsi + Shard.velocity + Point.y], eax
 
 	rand eax
 	and eax, 11b
@@ -142,10 +142,10 @@ shard_update:
 
 	; move shard
 	; TODO: might be able to do this with 64-bit SIMD vectors?
-	mov eax, [rdi + ShipShard.velocity.x]
-	add [rdi + ShipShard.pos.x], eax
-	mov eax, [rdi + ShipShard.velocity.y]
-	add [rdi + ShipShard.pos.y], eax
+	mov eax, [rdi + ShipShard.velocity + Point.x]
+	add [rdi + ShipShard.pos + Point.x], eax
+	mov eax, [rdi + ShipShard.velocity + Point.y]
+	add [rdi + ShipShard.pos + Point.y], eax
 
 	lea rsi, [rdi + ShipShard.pos]
 	call wrapPointAroundScreen
@@ -188,8 +188,8 @@ shard_draw:
 
 	xor ebx, ebx
 	xor ecx, ecx
-	mov bx, word [rdi + Shard.pos.x + 2]
-	mov cx, word [rdi + Shard.pos.y + 2]
+	mov bx, word [rdi + Shard.pos + Point.x + 2]
+	mov cx, word [rdi + Shard.pos + Point.y + 2]
 
 	mov edx, [rdi + Shard.radius] ; circle radius
 

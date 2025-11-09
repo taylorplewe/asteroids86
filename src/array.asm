@@ -16,13 +16,13 @@ section .text
 ; out:
     ; rax - pointer to new element if successful, 0 otherwise
 array_push:
-	mov eax, [rsi + Array.data.len]
+	mov eax, [rsi + Array.data + FatPtr.len]
 	cmp eax, [rsi + Array.cap]
 	jge .atCapacity
 
-	inc [rsi + Array.data.len]
+	inc [rsi + Array.data + FatPtr.len]
     imul rax, [rsi + Array.el_size]
-    mov rsi, [rsi + Array.data.pntr]
+    mov rsi, [rsi + Array.data + FatPtr.pntr]
 	add rax, rsi
 
 	ret
@@ -41,7 +41,7 @@ array_removeAt:
 
 	mov rcx, [rsi + Array.el_size]
 	imul eax, ecx
-	mov rdi, [rsi + Array.data.pntr]
+	mov rdi, [rsi + Array.data + FatPtr.pntr]
 	add rdi, rax
 
 	call array_removeEl
@@ -60,13 +60,13 @@ array_removeEl:
 	push rsi
 	push rdi
 
-	dec [rsi + Array.data.len]
+	dec [rsi + Array.data + FatPtr.len]
 	je .end
 
 	mov rcx, [rsi + Array.el_size]
-	mov eax, [rsi + Array.data.len]
+	mov eax, [rsi + Array.data + FatPtr.len]
 	imul eax, ecx
-	mov rsi, [rsi + Array.data.pntr]
+	mov rsi, [rsi + Array.data + FatPtr.pntr]
 	add rsi, rax
 
 	xor eax, eax
@@ -75,7 +75,7 @@ array_removeEl:
 		mov [rdi], al
 		inc rsi
 		inc rdi
-		loop copyLoop
+		loop .copyLoop
 
 	.end:
 	pop rdi
@@ -94,9 +94,9 @@ array_forEach:
 	push rcx
 	push rdi
 
-	cmp [rsi + Array.data.len], 0
+	cmp [rsi + Array.data + FatPtr.len], 0
 	je .end
-	mov rdi, [rsi + Array.data.pntr]
+	mov rdi, [rsi + Array.data + FatPtr.pntr]
 	xor ecx, ecx
 	.loop:
 		call r8
@@ -109,7 +109,7 @@ array_forEach:
 		add rdi, [rsi + Array.el_size]
 		inc ecx
 		.nextCmp:
-		cmp ecx, [rsi + Array.data.len]
+		cmp ecx, [rsi + Array.data + FatPtr.len]
 		jl .loop
 
 	.end:
@@ -121,7 +121,7 @@ array_forEach:
 ; in:
 	; rsi - pointer to Array
 array_clear:
-	mov [rsi + Array.data.len], 0
+	mov [rsi + Array.data + FatPtr.len], 0
 	; mov ecx, [rsi + Array.cap]
 	; imul rcx, [rsi + Array.el_size]
 	; mov rsi, [rsi + Array.data.pntr]
