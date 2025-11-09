@@ -77,11 +77,11 @@ star_drawAll:
 	cmp dword [is_paused], 0
 	jne .noMoveLoop
 
-	; mov rax, [frame_counter]
-	; and rax, 1111b
-	; je .moveRightAndDownLoop
-	; and rax, 111b
-	; je .moveRightLoop
+	mov rax, [frame_counter]
+	and rax, 1111b
+	je .moveRightAndDownLoop
+	and rax, 111b
+	je .moveRightLoop
 
 	.noMoveLoop:
 		call star_draw16
@@ -129,6 +129,7 @@ star_drawAll:
 	; r14 - pointer to Y word values
 	; r15 - pointer to alpha byte values
 star_draw16:
+	lea rdi, pixels
 	; 8 LOWER words, followed by 8 UPPER words
 	%rep 2
 		; convert words to dwords
