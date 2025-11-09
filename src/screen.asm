@@ -18,6 +18,9 @@ cosmic_color:
 press_any_key_text db "PRESS ANY KEY TO CONTINUE"
 press_any_key_text_len equ $ - press_any_key_text
 
+screen_width_d_256 dd (256 / 4) dup (SCREEN_WIDTH)
+screen_height_d_256 dd (256 / 4) dup (SCREEN_HEIGHT)
+
 
 section .bss
 
@@ -101,6 +104,36 @@ screen_setPixelOnscreenVerified:
 
 	ret
 
+; Draws 8 pixels to the screen
+; in:
+	; ymm2[dwords] - x
+	; ymm3[dwords] - y
+	; ymm4[dwords] - color
+	; rdi          - point to pixels
+screen_setPixelOnscreenVerifiedSimd:
+	push rbx
+	push rbp
+	mov rbp, rsp
+	sub rsp, 64
+
+	vpmulld ymm3, ymm3, yword [screen_width_d_256] ; foreach y: y *= SCREEN_WIDTH
+	vpaddd ymm3, ymm3, ymm2                              ; foreach x,y: ind = y + x
+	vpslld ymm3, ymm3, 2                                 ; foreach ind: ind *= sizeof Pixel (which is 4) (<< 2)
+	vmovdqu yword [rsp], ymm3
+	vmovdqu yword [rsp + 32], ymm4 ; store all the colors
+
+	%assign i 0
+	%rep 8
+		mov eax, [rsp + i]
+		mov ebx, [rsp + 32 + i]
+		mov [rdi + rax], ebx
+		%assign i i + 4
+	%endrep
+
+	mov rsp, rbp
+	pop rbp
+	pop rbx
+	ret
 
 ; in:
 	; ebx  - x
@@ -548,7 +581,7 @@ screen_drawPressAnyKey:
 	push r14
 
 	lea rdx, font_current_char_pos
-	mov rsi, [font_small_spr_data]
+	lea rsi, font_small_spr_data
 	mov r8d, [gray_color]
 	lea r9, font_current_char_rect
 	lea r14, screen_setPixelOnscreenVerified

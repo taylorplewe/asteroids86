@@ -466,7 +466,7 @@ game_tick:
 			mov ebx, (SCREEN_WIDTH + UFO_BBOX_WIDTH / 2) - 1
 			jmp .ufoGenRest
 		.ufoGenLeftSide:
-			mov ebx, -UFO_BBOX_WIDTH / 2
+			mov ebx, (-UFO_BBOX_WIDTH / 2) & 0ffffffffh
 		.ufoGenRest:
 
 		; y
@@ -532,7 +532,7 @@ game_drawScore:
 	push r11 ; t (100,000 -> 1)
 	push r12 ; char index (for bouncing)
 
-	mov rsi, [font_digits_spr_data]
+	lea rsi, font_digits_spr_data
 	mov r8d, [fg_color]
 	lea r9, font_current_char_rect
 	lea r14, screen_draw3difiedPixelOnscreenVerified
@@ -604,7 +604,7 @@ game_drawScore:
 			push r9
 
 			lea r9, font_comma_rect
-			mov rsi, [font_comma_spr_data]
+			lea rsi, font_comma_spr_data
 			add dword [font_current_char_pos + Point.y], (FONT_DIGIT_HEIGHT - 24) << 16
 			sub dword [font_current_char_pos + Point.x], 12 << 16
 			; lea rdx, font_current_char_pos
@@ -685,7 +685,7 @@ game_drawGameOver:
 	; je .end
 
 	lea rdx, font_current_char_pos
-	mov rsi, [font_large_spr_data]
+	lea rsi, font_large_spr_data
 	mov r8d, [fg_color]
 	lea r9, font_current_char_rect
 	lea r14, screen_setPixelOnscreenVerified

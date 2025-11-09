@@ -363,7 +363,8 @@ title_draw86:
 	push r14
 
 	lea rdx, font_current_char_pos
-	mov rsi, [font_digits_spr_data]
+	; mov rsi, [font_digits_spr_data]
+	lea rsi, font_digits_spr_data
 	mov r8d, [fg_color]
 	lea r9, font_current_char_rect
 	lea r14, screen_setPixelOnscreenVerified
@@ -437,7 +438,7 @@ title_drawCredit:
 	mov dword [font_current_char_pos + Point.y], TITLE_CREDIT_Y
 
 	; copyright symbol
-	mov rsi, [font_copyright_spr_data]
+	lea rsi, font_copyright_spr_data
 	mov dword [font_current_char_rect + Rect.pos + Point.x], 0
 	mov dword [font_current_char_rect + Rect.pos + Point.y], 0
 	mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_COPYRIGHT_WIDTH
@@ -461,13 +462,13 @@ title_drawCredit:
 		sete r10b
 		je .nameLoopW
 			sub al, 'A'
-			mov rsi, [font_small_spr_data]
+			lea rsi, font_small_spr_data
 			mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_SM_CHAR_WIDTH
 			imul eax, FONT_SM_CHAR_WIDTH
 			jmp .nameLoopCharRectSetEnd
 		.nameLoopW:
 			add dword [font_current_char_pos + Point.x], (FONT_SM_CHAR_WIDTH / 2) << 16
-			mov rsi, [font_small_w_spr_data]
+			lea rsi, font_small_w_spr_data
 			mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_SM_W_WIDTH
 			mov eax, 0
 		.nameLoopCharRectSetEnd:
@@ -489,7 +490,7 @@ title_drawCredit:
 	add dword [font_current_char_pos + Point.x], PRESS_ANY_KEY_CHAR_WIDTH << 16
 
 	; creation year
-	mov rsi, [font_yr_digits_spr_data]
+	lea rsi, font_yr_digits_spr_data
 	mov dword [font_current_char_rect + Rect.dim + Dim.w], FONT_SM_CHAR_WIDTH
 	mov dword [font_current_char_rect + Rect.pos + Point.x], 0
 	call screen_draw1bppSprite

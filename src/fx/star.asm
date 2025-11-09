@@ -4,27 +4,36 @@
 %include "src/global.asm"
 
 
-struc Star
-	.pos:       resb Point16_size
-	.luminence: resb      1
-	            resb      1
-			    resb      1
-			    resb      1
+NUM_STARS equ 1024
+; struct of arrays
+struc Stars
+	.x         resw NUM_STARS
+	.y         resw NUM_STARS
+	.luminence resb NUM_STARS
 endstruc
 
-NUM_STARS equ 1000
+
+section .data
+
+; could also just use one word for each and broadcast them into a ymm register
+one_w_256                   dw (256 / 2) dup (1)
+screen_width_mi1_w_256      dw (256 / 2) dup (SCREEN_WIDTH - 1) ; minus one makes the comparison much easier since it can only do > and not >=
+screen_height_mi1_w_256     dw (256 / 2) dup (SCREEN_HEIGHT - 1)
+opaque_pixel_no_alpha_d_256 dd (256 / 4) dup (00ffffffh)
 
 
 section .bss
 
-stars: resb Star_size * NUM_STARS
+stars resb Stars_size
 
 
 section .text
 
 ; top-level
 star_generateAll:
-	lea rdi, stars
+	lea r13, stars + Stars.x
+	lea r14, stars + Stars.y
+	lea r15, stars + Stars.luminence
 	mov ecx, NUM_STARS
 	.loop:
 		; x
@@ -33,7 +42,7 @@ star_generateAll:
 		and ax, 7fffh
 		cwd
 		div r8w
-		mov [rdi + Star.pos + Point.x], dx
+		mov word [r13], dx
 
 		; y
 		mov r8w, SCREEN_HEIGHT
@@ -41,90 +50,105 @@ star_generateAll:
 		and ax, 7fffh
 		cwd
 		div r8w
-		mov [rdi + Star.pos + Point.y], dx
+		mov word [r14], dx
 
 		; luminence
 		rand ax
-		and al, 7fh
-		mov [rdi + Star.luminence], al
+		mov byte [r15], al
 
-		add rdi, Star_size
+		add r13, 2
+		add r14, 2
+		inc r15
 		loop .loop
 	ret
 
+star_drawAll:
+	lea r13, stars + Stars.x
+	lea r14, stars + Stars.y
+	lea r15, stars + Stars.luminence
 
-star_updateAndDrawAll:
-	lea rdi, pixels
-	lea rsi, stars
+	; lea rdi, pixels
+	mov rdi, [pixels]
 	mov r8d, [fg_color]
 	xor ebx, ebx
 	xor ecx, ecx
-	mov edx, NUM_STARS
+	mov edx, NUM_STARS / 16
 
-	%macro star_updateAndDrawAll_drawStar 0
-		mov bx, [rsi + Star.pos + Point.x]
-		mov cx, [rsi + Star.pos + Point.y]
-		and r8d, 00ffffffh
-		or r8d, dword [rsi + 3 + Star.luminence] ; this puts the luminence byte in the upper 8 bits of eax
-
-		; in:
-			; ebx  - x
-			; ecx  - y
-			; r8d  - color
-			; rdi  - point to pixels
-		call screen_setPixelOnscreenVerified
-	%endmacro
-
-	%macro star_updateAndDrawAll_loopCmp 1 ;jmpLabel:req
-		add rsi, Star_size
-		dec edx
-		jne %1
-	%endmacro
-
-	cmp [is_paused], 0
+	cmp dword [is_paused], 0
 	jne .noMoveLoop
 
-	mov rax, [frame_counter]
-	and rax, 1111b
-	je .moveRightAndDownLoop
-	and rax, 111b
-	je .moveRightLoop
+	; mov rax, [frame_counter]
+	; and rax, 1111b
+	; je .moveRightAndDownLoop
+	; and rax, 111b
+	; je .moveRightLoop
 
 	.noMoveLoop:
-		star_updateAndDrawAll_drawStar
-		star_updateAndDrawAll_loopCmp .noMoveLoop
+		call star_draw16
+		dec edx
+		jne .noMoveLoop
 	ret
 
 	.moveRightLoop:
-		star_updateAndDrawAll_drawStar
+		; UPDATE (16 at a time)
+		vmovdqu ymm0, yword [r13]               ; load 16 X word values
+		vpaddw ymm0, ymm0, [one_w_256]                ; inc X
+		vpcmpgtw ymm2, ymm0, [screen_width_mi1_w_256] ; cmp > screen boundaries
+		vpandn ymm0, ymm2, ymm0                       ; zero the ones that were out of bounds
+		vmovdqu yword [r13], ymm0               ; store new X word values back into memory
 
-		inc dword [rsi + Star.pos + Point.x]
-		cmp dword [rsi + Star.pos + Point.x], SCREEN_WIDTH
-		jl ._
-			mov dword [rsi + Star.pos + Point.x], 0
-		._:
+		; DRAW (8 at a time) (2 iterations)
+		call star_draw16
 
-		star_updateAndDrawAll_loopCmp .moveRightLoop
+		dec edx
+		jne .moveRightLoop
 	ret
 
 	.moveRightAndDownLoop:
-		star_updateAndDrawAll_drawStar
+		; UPDATE (16 at a time)
+		vmovdqu ymm0, yword [r13]                ; load 16 X and Y word values
+		vmovdqu ymm1, yword [r14]
+		vpaddw ymm0, ymm0, [one_w_256]                 ; inc both X and Y
+		vpaddw ymm1, ymm1, [one_w_256]
+		vpcmpgtw ymm2, ymm0, [screen_width_mi1_w_256]  ; cmp > screen boundaries
+		vpcmpgtw ymm3, ymm1, [screen_height_mi1_w_256]
+		vpandn ymm0, ymm2, ymm0                        ; zero the ones that were out of bounds
+		vpandn ymm1, ymm3, ymm1
+		vmovdqu yword [r13], ymm0                ; store new X and Y word values back into memory
+		vmovdqu yword [r14], ymm1
 
-		inc dword [rsi + Star.pos + Point.x]
-		cmp dword [rsi + Star.pos + Point.x], SCREEN_WIDTH
-		jl ._1
-			mov dword [rsi + Star.pos + Point.x], 0
-		._1:
-
-		inc dword [rsi + Star.pos + Point.y]
-		cmp dword [rsi + Star.pos + Point.y], SCREEN_HEIGHT
-		jl ._2
-			mov dword [rsi + Star.pos + Point.y], 0
-		._2:
-
-		star_updateAndDrawAll_loopCmp .moveRightAndDownLoop
+		; DRAW (8 at a time) (2 iterations)
+		call star_draw16
+		
+		dec edx
+		jne .moveRightAndDownLoop
 	ret
 
+; in:
+	; r13 - pointer to X word values
+	; r14 - pointer to Y word values
+	; r15 - pointer to alpha byte values
+star_draw16:
+	; 8 LOWER words, followed by 8 UPPER words
+	%rep 2
+		; convert words to dwords
+		vmovdqu xmm0, oword [r13]
+		vmovdqu xmm1, oword [r14]
+		vpmovzxwd ymm2, xmm0
+		vpmovzxwd ymm3, xmm1
+		; get color alphas for 8 stars
+		vmovq xmm4, qword [r15]
+		vpmovzxbd ymm4, xmm4
+		vpslld ymm4, ymm4, 24
+		vpor ymm4, ymm4, yword [opaque_pixel_no_alpha_d_256]
+
+		call screen_setPixelOnscreenVerifiedSimd
+
+		add r13, 16
+		add r14, 16
+		add r15, 8
+	%endrep
+	ret
 
 
 %endif

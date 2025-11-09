@@ -10,7 +10,6 @@
 %include "src/bullet.asm"
 %include "src/ship.asm"
 
-ufo_spr_data: incbin "resources/ufo.bin"
 
 
 struc Ufo
@@ -62,12 +61,12 @@ ufo_rect:
 			at .h, dd 0
 		iend
 	iend
+ufo_spr_data: incbin "resources/ufo.bin"
 
 
 section .bss
 
 ufos         resb Ufo_size * MAX_NUM_UFOS
-; ufo_spr_data resq  1
 
 
 section .text
@@ -174,13 +173,13 @@ ufo_update:
 	cwde
 	cmp eax, SCREEN_WIDTH + UFO_BBOX_WIDTH / 2
 	jge .deleteUfo
-	cmp eax, -UFO_BBOX_WIDTH / 2
+	cmp eax, (-UFO_BBOX_WIDTH / 2) & 0ffffffffh
 	jl .deleteUfo
 	mov ax, word [rdi + Ufo.pos + Point.y + 2]
 	cwde
 	cmp eax, SCREEN_HEIGHT + UFO_BBOX_HEIGHT / 2
 	jge .deleteUfo
-	cmp eax, -UFO_BBOX_HEIGHT / 2
+	cmp eax, (-UFO_BBOX_HEIGHT / 2) & 0ffffffffh
 	jge .boundsCheckEnd
 	.deleteUfo:
 	lea rsi, ufos_arr
@@ -445,7 +444,7 @@ ufo_draw:
 	push r9
 
 	lea rdx, [rdi + Ufo.pos]
-	mov rsi, [ufo_spr_data]
+	lea rsi, ufo_spr_data
 	mov r8d, [fg_color]
 	lea r9, ufo_rect
 	lea r14, screen_setPixelClipped

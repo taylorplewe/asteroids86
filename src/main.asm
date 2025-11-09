@@ -363,7 +363,7 @@ main:
 
 		call screen_clearPixelBuffer
 
-		call star_updateAndDrawAll
+		call star_drawAll
 
 		lea rdi, input
 		cmp dword [mode], Mode_Game
