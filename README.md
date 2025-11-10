@@ -1,6 +1,6 @@
 ![Title image](art/title.gif)
 
-My implementation of the classic Asteroids arcade game, written in pure x86 assembly (the x stands for asteroids)
+My implementation of the classic Asteroids arcade game, written in pure x86_64 assembly.
 
 The whole game compiles to an executable binary just under __40KB__ in size.
 
