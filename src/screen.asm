@@ -80,6 +80,7 @@ section .text
 	; ecx  - y
 	; r8d  - color
 	; rdi  - point to pixels
+global screen_setPixelClipped
 screen_setPixelClipped:
 	test ebx, ebx
 	js .end
@@ -221,7 +222,7 @@ screen_draw1bppSprite:
 
 	; set x
 	xor eax, eax
-	mov ax, word [rdx + Point.x + 2]
+	mov ax, [rdx + Point.x + 2]
 	cwde
 	mov ebx, [r9 + Rect.dim + Dim.w]
 	sar ebx, 1
@@ -229,7 +230,7 @@ screen_draw1bppSprite:
 	mov ebx, eax
 	; set y
 	xor eax, eax
-	mov ax, word [rdx + Point.y + 2]
+	mov ax, [rdx + Point.y + 2]
 	cwde
 	mov ecx, [r9 + Rect.dim + Dim.h]
 	sar ecx, 1

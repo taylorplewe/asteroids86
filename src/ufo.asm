@@ -55,8 +55,8 @@ ufo_rect:
 			at .y, dd 0
 		iend
 		istruc Dim
-			at .w, dd 0
-			at .h, dd 0
+			at .w, dd UFO_SPR_WIDTH
+			at .h, dd UFO_SPR_HEIGHT
 		iend
 	iend
 ufo_spr_data: incbin "resources/ufo.bin"
@@ -160,10 +160,10 @@ ufo_update:
 	.turnEnd:
 
 	; move
-	movd xmm0, [rdi + Ufo.pos]
-	movd xmm1, [rdi + Ufo.velocity]
-	paddd xmm0, xmm1
-	movd [rdi + Ufo.pos], xmm0
+	mov eax, [rdi + Ufo.velocity + Point.x]
+	add [rdi + Ufo.pos + Point.x], eax
+	mov eax, [rdi + Ufo.velocity + Point.y]
+	add [rdi + Ufo.pos + Point.y], eax
 
 	; out of bounds?
 	xor eax, eax
