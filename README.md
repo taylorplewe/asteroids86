@@ -2,7 +2,7 @@
 
 My implementation of the classic Asteroids arcade game, written in pure x86_64 assembly.
 
-The whole game compiles to an executable binary just under __40KB__ in size (on Windows).
+The whole game compiles to an executable binary just under __40KB__ in size.
 
 If you want to try it out, grab the .exe from the [Releases](https://github.com/taylorplewe/asteroids86/releases) page, or see the [Building](#building) section to build from source!
 
@@ -29,11 +29,9 @@ Controllers & rumble are supported!
 > Currently, it depends on and dynamically links to SDL3. While I do plan on removing the SDL3 dependency for the *Windows* branch and only call native Windows functions, I do not plan on removing it for this branch. Using SDL is just easy to get working on other operating systems.
 
 ### Requirements
-- [SDL3](https://github.com/libsdl-org/SDL/releases).
-- [nasm](https://www.nasm.us) v3.01
+- [SDL3](https://github.com/libsdl-org/SDL/releases). (You may have to build from source.) Make sure `libSDL3.so` is in one of the directories that `ld` looks for libraries; `/lib`, `/usr/lib`, `/usr/local/lib`, etc. I recommend creating a symlink in `/usr/local/lib` that points to your SDL `build` directory. Alternatively, you can just pass the directory `libSDL3.so` is found in with the `-L` flag to `ld`. (e.g. `ld ... -L ~/SDL3/build/`)
+- [nasm](https://www.nasm.us) v3.01. You *may* have to build from source if your distro isn't supported or is outdated. I did. 🤷‍♂️
 - GNU `ld` linker
-
-Make sure `libSDL3.so` is in one of the directories that `ld` looks for libraries; `/lib`, `/usr/lib`, `/usr/local/lib`, etc. I recommend creating a symlink in `/usr/local/lib` that points to your SDL `build` directory. Alternatively, you can just pass the directory `libSDL3.so` is found in with the `-L` flag to `ld`. (e.g. `ld ... -L ~/SDL3/build/`)
 
 Once the above requirements are met, run the following command in the root directory:
 ```bash
