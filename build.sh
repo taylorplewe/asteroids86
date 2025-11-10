@@ -3,49 +3,15 @@ GAMENAME="asteroids86"
 asmArgs=(
   src/main.asm
   -f elf64
-  -o bin/asteroids86.o
+  -o "bin/$GAMENAME.o"
 )
 
-# linkerArgs=(
-#   bin/asteroids86.o
-#   SDL3.lib
-# )
-
-# echo ${asmArgs[*]}
+linkerArgs=(
+  "bin/$GAMENAME.o"
+  -l SDL3
+  -e main
+  -o "bin/$GAMENAME"
+)
 
 nasm ${asmArgs[*]}
-
-# $gameName = "asteroids86"
-
-# $asmArgs = @(
-#     "src/main.asm",
-#     "-f win64",
-#     "-o bin/asteroids86.obj"
-# )
-# $linkerArgs = @(
-#     "bin\asteroids86.obj",
-#     "SDL3.lib",
-#     "/out:bin\asteroids86.exe",
-#     "/entry:main"
-# )
-# if (!$args.Contains("release")) {
-#     $asmArgs += @("-g")
-#     $linkerArgs += @("/debug:full")
-# }
-# if ($args.Contains("w")) {
-#     $asmArgs += @("-werror")
-# }
-
-# nasm $asmArgs
-
-# if ($LASTEXITCODE -ne 0) { return }
-
-# link $linkerArgs
-
-# if (Test-Path 'mllink$.lnk') {
-#     Remove-Item 'mllink$.lnk'
-# }
-
-# if ($args.Contains("run")) {
-#     & ".\bin\$gameName.exe"
-# }
+ld ${linkerArgs[*]}
