@@ -11,11 +11,13 @@ The whole game compiles to an executable binary just under __40KB__ in size.
 Controllers & rumble are supported!
 | Action | Keyboard | Controller (Xbox/PlayStation) |
 | - | - | - |
-| Fire | `l`, Spacebar | A/Cross, B/Circle |
-| Hyperspace | `s`, Down arrow | X/Square, Y/Triangle |
 | Boost | `w`, Up arrow | RT/R2, D-pad up |
+| Fire | `l`, Spacebar | A/Cross, B/Circle |
+| Hyperspace | `s`, Down arrow | X/Square, Y/Triangle, D-pad down |
 | Turn | `a`/`d`, Left/Right arrow | Left thumbstick, D-pad left, D-pad right |
 | Pause | `Esc` | Start |
+
+![Gameplay](art/gameplay.gif)
 
 ## Building
 > [!IMPORTANT]
