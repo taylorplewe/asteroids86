@@ -48,7 +48,7 @@ Once the above requirements are met, run any one of the following commands in th
 
 ### Axed because I had to scale it back
 - Invincibility power-up
-- Render bullets as a steak instead of a dot
+- Render bullets as a streak instead of a dot
 - Make lines glow
 - Anti-aliasing
 - Sound
