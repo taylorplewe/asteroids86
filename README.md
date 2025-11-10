@@ -23,10 +23,10 @@ Controllers & rumble are supported!
 
 ## Building
 > [!IMPORTANT]
-> Currently, it depends on and dynamically links to SDL3. I plan on removing this dependency in the future, only calling Win32 functions for creating a window and displaying my pixel buffer, etc.
+> Currently, it depends on and dynamically links to SDL3. While I do plan on removing the SDL3 dependency for the *Windows* branch and only call native Windows functions, I do not plan on removing it for this branch. Using SDL is just easy to get working on other operating systems.
 
 ### Requirements
-- [SDL3](https://github.com/libsdl-org/SDL/releases). Make sure `SDL3.lib` can be accessed from your `LIB` environment variable.
+- [SDL3](https://github.com/libsdl-org/SDL/releases).
 - [nasm](https://www.nasm.us) v3.01
 - GNU `ld` linker
 
