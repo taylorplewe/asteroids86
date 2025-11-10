@@ -48,7 +48,6 @@ ufos_arr:
 		at .cap, dd MAX_NUM_UFOS
 		at .el_size, dd Ufo_size
 	iend
-ufo_spr_resource_name: db  "UFOBIN", 0
 ufo_rect:
 	istruc Rect
 		istruc Point
