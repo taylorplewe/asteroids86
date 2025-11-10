@@ -32,11 +32,11 @@ Controllers & rumble are supported!
 
 Make sure `libSDL3.so` is in one of the directories that `ld` looks for libraries; `/lib`, `/usr/lib`, `/usr/local/lib`, etc. I recommend creating a symlink in `/usr/local/lib` that points to your SDL `build` directory. Alternatively, you can just pass the directory `libSDL3.so` is found in with the `-L` flag to `ld`. (e.g. `ld ... -L ~/SDL3/build/`)
 
-Once the above requirements are met, run any one of the following commands in the root directory:
+Once the above requirements are met, run the following command in the root directory:
 ```bash
 ./build
 ```
-And then run the executable with
+And then run the executable with:
 ```bash
 ./bin/asteroids86
 ```
