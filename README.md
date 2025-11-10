@@ -7,7 +7,7 @@ The whole game compiles to an executable binary just under __40KB__ in size (on 
 If you want to try it out, grab the .exe from the [Releases](https://github.com/taylorplewe/asteroids86/releases) page, or see the [Building](#building) section to build from source!
 
 > [!NOTE]
-> This is the `nasm-sdl` branch targeting **multiple operating systems like Linux and macOS.** For the original **Windows** version see the [`main`](https://github.com/taylorplewe/asteroids86/tree/main) branch.
+> This is the `nasm-sdl` branch targeting **multiple operating systems like Linux and macOS**, written in NASM syntax. For the original **Windows** version written in MASM syntax, see the [`main`](https://github.com/taylorplewe/asteroids86/tree/main) branch.
 
 ## Controls
 Controllers & rumble are supported!
