@@ -25,10 +25,10 @@ Controllers & rumble are supported!
 
 ### Requirements
 - [SDL3](https://github.com/libsdl-org/SDL/releases). Make sure `SDL3.lib` can be accessed from your `LIB` environment variable.
-- MSVC toolchain. The required binaries are:
-  - `ml64.exe`. The actual assembler, which itself invokes the linker afterwards.
+- MSVC toolchain. See the [docs](https://learn.microsoft.com/en-us/cpp/build/building-on-the-command-line) for how to acquire them. The required binaries are:
+  - `ml64.exe`. The 64-bit MASM assembler, which itself invokes the linker afterwards.
   - `link.exe`, the linker.
-  - (optional) `rc.exe`, for compiling binary resources in the `resources\` directory.
+  - (optional) `rc.exe`, for compiling binary resources in the `resources\` directory. I don't love this method of including binaries and referencing those binaries in the code, but MASM has no `incbin` directive like most assemblers, and this appears to be the recommended method.
 - There is only a Powershell build script. If you're not running PowerShell, just look at the build script and run whatever command you need manually.
 
 Once the above requirements are met, run any one of the following commands in the root directory:
