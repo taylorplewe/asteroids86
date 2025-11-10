@@ -11,6 +11,7 @@ linkerArgs=(
   -l SDL3
   -e main
   -o "bin/$GAMENAME"
+  -s
 )
 
 nasm ${asmArgs[*]}
