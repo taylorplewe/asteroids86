@@ -2,7 +2,7 @@
 
 My implementation of the classic Asteroids arcade game, written in pure x86 assembly (the x stands for asteroids)
 
-The whole game compiles to an executable binary just under _40KB_ in size.
+The whole game compiles to an executable binary just under __40KB__ in size.
 
 ![asteroids86-title](https://github.com/user-attachments/assets/f0a38147-d8a0-4584-8845-d3942374e168)
 
