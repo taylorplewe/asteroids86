@@ -1,4 +1,4 @@
-![Title image](asteroids86-title.gif)
+![Title image](art/asteroids86-title.gif)
 
 My implementation of the classic Asteroids arcade game, written in pure x86 assembly (the x stands for asteroids)
 
