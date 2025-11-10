@@ -34,11 +34,11 @@ Make sure `libSDL3.so` is in one of the directories that `ld` looks for librarie
 
 Once the above requirements are met, run any one of the following commands in the root directory:
 ```bash
-.\build             # build a debug executable
-.\build run         # build and run a debug executable
-.\build release     # build an executable with no debug information
-.\build release run
-.\build res         # compile the resources in the resources directory and build an executable
+./build
+```
+And then run the executable with
+```bash
+./bin/asteroids86
 ```
 
 ---
