@@ -1,4 +1,4 @@
-# asteroids~86~
+# asteroids86
 
 My implementation of the classic Asteroids arcade game, written in pure x86 assembly (the x stands for asteroids)
 
@@ -11,28 +11,13 @@ The whole game compiles to an executable binary just under __40KB__ in size.
 
 ## Controls
 Controllers & rumble are supported!
-### Keyboard
-| Key | Action |
-| - | - |
-| `w` or up arrow | Boost |
-| `s` or down arrow | Hyperspace |
-| `a`/`d` or left/right arrow | Turn |
-| `l` or spacebar | Fire |
-| `Esc` | Pause |
-
-### Controller
-| Xbox/PlayStation | Action |
-| - | - |
-| __A__/✕ | Fire |
-| __B__/○ | Fire |
-| __X__/□ | Hyperspace |
-| __Y__/△ | Hyperspace |
-| D-pad up | Boost |
-| D-pad down | Hyperspace |
-| D-pad left/right | Turn |
-| RT/R2 | Boost |
-| LT/L2 | Hyperspace |
-| Start | Pause |
+| Action | Keyboard | Controller (Xbox/PlayStation) |
+| - | - | - |
+| Fire | `l`, Spacebar | A/Cross, B/Circle |
+| Hyperspace | `s`, Down arrow | X/Square, Y/Triangle |
+| Boost | `w`, Up arrow | RT/R2, D-pad up |
+| Turn | `a`/`d`, Left/Right arrow | Left thumbstick, D-pad left, D-pad right |
+| Pause | `Esc` | Start |
 
 ## Building
 > [!IMPORTANT]
