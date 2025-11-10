@@ -9,6 +9,9 @@ If you want to try it out, grab the .exe from the [Releases](https://github.com/
 > [!NOTE]
 > This is the `nasm-sdl` branch targeting **multiple operating systems like Linux and macOS**, written in NASM syntax. For the original **Windows** version written in MASM syntax, see the [`main`](https://github.com/taylorplewe/asteroids86/tree/main) branch.
 
+> [!NOTE]
+> If you're on a Mac with an Apple Silicon (ARM) processor, it may be possible to get asteroids86 working via Rosetta 2, though this has not been tested.
+
 ## Controls
 Controllers & rumble are supported!
 | Action | Keyboard | Controller (Xbox/PlayStation) |
