@@ -39,3 +39,14 @@ Once the above requirements are met, run any one of the following commands in th
 .\build release run
 .\build res         # compile the resources in the resources directory and build an executable
 ```
+
+## To do
+- Remove SDL dependency
+- Port to DOS
+
+## Axed because I had to scale it back
+- Invincibility power-up
+- Render bullets as a steak instead of a dot
+- Make lines glow
+- Anti-aliasing
+- Sound
