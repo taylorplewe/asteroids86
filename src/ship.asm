@@ -475,6 +475,13 @@ ship_teleport:
 		loopne .checkLoop
 	.checkLoopEnd:
 
+	; possibly self-destruct
+	rand eax
+	and eax, 111b
+	jne ._
+		call ship_destroy
+	._:
+
 	pop r8
 	pop rsi
 	pop rcx

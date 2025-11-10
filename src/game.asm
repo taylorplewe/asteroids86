@@ -125,7 +125,7 @@ section .text
 
 game_init:
 	call ship_respawn
-	lea rax, waves + WaveData_size
+	lea rax, waves
 	mov [current_wave], rax
 	mov eax, [fg_color]
 	mov [flash_color], eax
