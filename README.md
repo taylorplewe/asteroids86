@@ -4,6 +4,8 @@ My implementation of the classic Asteroids arcade game, written in pure x86_64 a
 
 The whole game compiles to an executable binary just under __40KB__ in size.
 
+If you want to try it out, grab the .exe from the [Releases](https://github.com/taylorplewe/asteroids86/releases) page, or see the [Building](#building) section to build from source!
+
 > [!NOTE]
 > This is the main branch targeting **Windows.** For other operating systems running on x86 like **Mac** or **Linux**, see the [`nasm-sdl`](https://github.com/taylorplewe/asteroids86/tree/nasm-sdl) branch.
 
