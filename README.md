@@ -19,6 +19,8 @@ Controllers & rumble are supported!
 | Turn | `a`/`d`, Left/Right arrow | Left thumbstick, D-pad left, D-pad right |
 | Pause | `Esc` | Start |
 
+### See more gameplay 👉 [https://youtu.be/xbh1nvG8m4U](https://youtu.be/xbh1nvG8m4U)
+
 ![Gameplay](art/gameplay.gif)
 
 ## Building
