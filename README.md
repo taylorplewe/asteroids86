@@ -44,6 +44,9 @@ And then run the executable with:
 ./bin/asteroids86
 ```
 
+> [!NOTE]
+> I have only tested this on Windows Subsystem for Linux (WSL). If you have an x86-based Mac or Linux machine, *please let me know if you're able to build with these instructions, or if I'm missing anything!*
+
 ---
 
 ### To do
