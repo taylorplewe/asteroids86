@@ -6,6 +6,8 @@ bin/asteroids86.exe: bin/asteroids86.obj resources/resources.res
 bin/asteroids86.obj: $(SRC)
 	ml64 /c /Cp /Fo bin\asteroids86.obj src\main.s
 
+bin:
+    if not exist bin mkdir bin
 resources/resources.res:
 	rc resources\resources.rc
 
