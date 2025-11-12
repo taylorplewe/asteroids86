@@ -139,9 +139,7 @@ main proc
 		pollLoopEnd:
 
 		; get input
-		cmp [gamepad], 0
-		jne getGamepadInput
-		;getKeyboardInput:
+		; keyboard first:
 			call SDL_GetKeyboardState
 			mov rbx, rax
 			BTN_W      textequ <Boost>
@@ -167,8 +165,9 @@ main proc
 			endm
 
 			mov [input].boost_val, 7fffh
-			jmp inputEnd
 		getGamepadInput:
+			cmp [gamepad], 0
+			je inputEnd
 
 			BTN_DPAD_UP    textequ <Boost>
 			BTN_DPAD_DOWN  textequ <Teleport>

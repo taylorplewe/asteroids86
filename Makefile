@@ -16,4 +16,7 @@ clean:
 	del /Q bin\*
 	del resources\resources.res
 
-.PHONY: clean
+run: bin/asteroids86.exe
+	.\bin\asteroids86.exe
+
+.PHONY: clean run
