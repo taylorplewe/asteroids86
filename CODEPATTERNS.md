@@ -2,7 +2,7 @@
 
 Following is a list of various code patterns this codebase employs for consistency, safety, reduced headaches and cleanliness.
 
-- *Every* procedure, which is *not* a top-level procedure called from `main`, and which clobbers ANY registers other than `rax`, MUST be bookended with pushing and popping *every one of those registers.*
+- *Every* procedure, which is not a top-level procedure called from `main`, and which clobbers *any* registers other than `rax`, MUST be bookended with pushing and popping every one of those registers.
 
   If you don't like the number of registers a procedure is pushing and popping, use a stack frame for local vars instead. But always know that using registers (even after pushing and popping them like this) is more performant.
 
