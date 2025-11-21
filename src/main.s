@@ -139,6 +139,7 @@ main proc
 		pollLoopEnd:
 
 		; get input
+		mov [input].boost_val, 7fffh
 		; keyboard first:
 			call SDL_GetKeyboardState
 			mov rbx, rax
@@ -163,8 +164,6 @@ main proc
 				bts [input].buttons_down, @CatStr(Keys_, %@CatStr(BTN_, key))
 				next:
 			endm
-
-			mov [input].boost_val, 7fffh
 		getGamepadInput:
 			cmp [gamepad], 0
 			je inputEnd

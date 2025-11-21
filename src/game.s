@@ -100,7 +100,7 @@ game_init proc
 	mov [gameover_timer], 0
 	mov [gameover_visibility], 0
 
-	for arr, <asteroids_arr, bullets_arr, ufos_arr, fires_arr, shards_arr, ship_shards_arr, shards_arr, ship_shards_arr>
+	for arr, <asteroids_arr, bullets_arr, ufos_arr, fires_arr, shards_arr, ship_shards_arr>
 		lea rsi, arr
 		call array_clear
 	endm
