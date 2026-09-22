@@ -56,6 +56,7 @@ sin proc
 	ret
 sin endp
 
+; NOTE(9/22/26): I just learned about the `fpatan` instruction: https://www.felixcloutier.com/x86/fpatan - this may be able to be used instead of this procedure
 ; This is a translation of a "FastAtan2" method from a disassembly of Legacy of Kain: Soul Reaver (https://github.com/FedericoMilesi/soul-re/blob/8d859e8a3885e8c57f51e42bdb299fa2180258cc/src/Game/MATH3D.c#L132)
 ; in:
 	; ebx - y
@@ -87,7 +88,7 @@ atan2 proc
 		mov eax, ecx
 		jmp _end
 	@@:
-	
+
     ; ax = abs(x);
     ; ay = abs(y);
 	mov eax, ecx
@@ -313,7 +314,7 @@ getRandomOnscreenFixedPointPos proc
 	push rbx
 	push rdx
 	push r8
-	
+
 	; random on-screen pos
 	; x
 	mov r8w, SCREEN_WIDTH
