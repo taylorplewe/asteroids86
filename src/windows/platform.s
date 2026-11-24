@@ -43,6 +43,8 @@ windows_wnd_proc proc
     je close
     cmp edx, WM_KEYUP
     je keyup
+    cmp edx, WM_PAINT
+    je wm_paint
 
     callms DefWindowProcA
     ret
@@ -60,6 +62,37 @@ windows_wnd_proc proc
     close:
     mov [is_running], 0
     ret
+
+    wm_paint:
+    mov rcx, [hwnd]
+    lea rdx, paint
+    call BeginPaint
+
+    mov rcx, rax
+    call windows_stretch_di_bits
+
+    mov rcx, [hwnd]
+    lea rdx, paint
+    call EndPaint
+    ; PAINTSTRUCT paint;
+    ; HDC hdc = BeginPaint(h_wnd, &paint);
+    ; int x = paint.rcPaint.left;
+    ; int y = paint.rcPaint.top;
+    ; int w = paint.rcPaint.right - paint.rcPaint.left;
+    ; int h = paint.rcPaint.bottom - paint.rcPaint.top;
+    ; win32::WindowDimensions win_dim = win32::get_window_dimension(h_wnd);
+    ; display_buffer_in_window(
+    ;     hdc,
+    ;     win_dim.width,
+    ;     win_dim.height,
+    ;     &global_buf,
+    ;     x,
+    ;     y,
+    ;     w,
+    ;     h
+    ; );
+    ; EndPaint(h_wnd, &paint);
+
 windows_wnd_proc endp
 
 ; creates the window
@@ -67,6 +100,24 @@ windows_init proc
     push rbp
     mov rbp, rsp
     sub rsp, 200h ; random number that should be plenty
+
+        ; buf->bitmap_info = {
+        ;     .bmiHeader = {
+        ;         .biSize = sizeof(buf->bitmap_info.bmiHeader),
+        ;         .biWidth = width,
+        ;         .biHeight = -height,
+        ;         .biPlanes = 1,
+        ;         .biBitCount = 32,
+        ;         .biCompression = BI_RGB,
+        ;     },
+        ; };
+
+    mov [bitmap_info].bmi_header.bi_size, sizeof BITMAPINFOHEADER
+    mov [bitmap_info].bmi_header.bi_width, SCREEN_WIDTH
+    mov [bitmap_info].bmi_header.bi_height, -SCREEN_HEIGHT ; TODO: flip this and see if it un-breaks stuff
+    mov [bitmap_info].bmi_header.bi_planes, 1
+    mov [bitmap_info].bmi_header.bi_bit_count, 32
+    mov [bitmap_info].bmi_header.bi_compression, BI_RGB
 
     xor rcx, rcx
     call GetModuleHandleA
@@ -211,20 +262,32 @@ windows_update endp
 ; draw pixels to screen
 windows_draw proc
     mov rcx, [hwnd]
-    call GetDC
-    push rax
-
-    ; GetClientRect()
-    mov rcx, [hwnd]
     lea rdx, window_rect
     call GetClientRect
 
+    mov rcx, [hwnd]
+    call GetDC
+    push rax
+
+    mov rcx, rax
+    call windows_stretch_di_bits
+
+    mov rcx, [hwnd]
+    pop rdx
+    call ReleaseDC
+
+    ret
+windows_draw endp
+
+; in:
+    ; rcx - HDC
+windows_stretch_di_bits proc
     ; StretchDIBits()
     push rbp
     mov rbp, rsp
     sub rsp, 100h
 
-    mov rcx, rax
+    ; rcx (HDC) = param
     xor edx, edx
     xor r8d, r8d
     mov r9d, [window_rect].right
@@ -247,12 +310,8 @@ windows_draw proc
     add rsp, 100h
     pop rbp
 
-    mov rcx, [hwnd]
-    pop rdx
-    call ReleaseDC
-
     ret
-windows_draw endp
+windows_stretch_di_bits endp
 
 windows_deinit proc
     ret

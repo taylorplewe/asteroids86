@@ -241,6 +241,7 @@ WS_VSCROLL	        = 00200000h
 WM_CLOSE = 0010h
 WM_QUIT  = 0012h
 WM_KEYUP = 0101h
+WM_PAINT = 000fh
 
 VK_ESCAPE = 1bh
 
@@ -262,6 +263,8 @@ SWP_NOOWNERZORDER = 0200h ; Don't do owner Z ordering
 DIB_RGB_COLORS = 0 ; color table in RGBs
 
 SRCCOPY = 00cc0020h ; dest = source
+
+BI_RGB = 0
 
 
 ; structs
