@@ -68,8 +68,8 @@ star_drawAll proc
 	lea r14, stars + Stars.y
 	lea r15, stars + Stars.luminence
 
-	; lea rdi, pixels
-	mov rdi, [pixels]
+	lea rdi, pixels
+	; mov rdi, [pixels]
 	mov r8d, [fg_color]
 	xor ebx, ebx
 	xor ecx, ecx
@@ -120,7 +120,7 @@ star_drawAll proc
 
 		; DRAW (8 at a time) (2 iterations)
 		call star_draw16
-		
+
 		dec edx
 		jne moveRightAndDownLoop
 	ret

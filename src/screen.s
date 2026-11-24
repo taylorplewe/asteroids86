@@ -18,8 +18,8 @@ screen_height_d_256 dd (256 / 4) dup (SCREEN_HEIGHT)
 
 .data?
 
-; pixels                    Pixel SCREEN_WIDTH * SCREEN_HEIGHT dup (<?>)
-pixels                    dq    ?
+pixels                    Pixel SCREEN_WIDTH * SCREEN_HEIGHT dup (<?>)
+; pixels                    dq    ?
 screen_point1             Point <?>
 screen_point2             Point <?>
 x_diff                    dd    ?
@@ -205,8 +205,8 @@ screen_draw1bppSprite proc
 	push r12
 	push r13
 
-	; lea rdi, pixels
-	mov rdi, [pixels]
+	lea rdi, pixels
+	; mov rdi, [pixels]
 
 	mov r13, rsi
 	add rsi, sizeof Dim
@@ -244,7 +244,7 @@ screen_draw1bppSprite proc
 			bt word ptr [rsi], r12w
 			jnc colNext
 			call r14
-			
+
 			colNext:
 			inc r12w
 			and r12w, 7
@@ -255,7 +255,7 @@ screen_draw1bppSprite proc
 			inc ebx
 			dec r10d
 			jne colLoop
-		rowNext:	
+		rowNext:
 		; wrap around to next line of pixels in this particular rect
 		mov eax, [r13].Dim.w
 		add rsi, rax
@@ -294,8 +294,8 @@ screen_drawCircle proc
 	mov rbp, rsp
 	sub rsp, 24
 
-	; lea rdi, pixels
-	mov rdi, [pixels]
+	lea rdi, pixels
+	; mov rdi, [pixels]
 
 	mov dword ptr [rsp + 8], ebx
 	mov dword ptr [rsp + 12], ecx
@@ -375,8 +375,8 @@ screen_drawLine proc
 	mov [is_ydiff_neg], 0
 
 	; rdi = pointer into pixels
-	; lea rdi, pixels
-	mov rdi, [pixels]
+	lea rdi, pixels
+	; mov rdi, [pixels]
 	mov r14d, SCREEN_WIDTH
 	mov r15d, SCREEN_HEIGHT
 
@@ -388,7 +388,7 @@ screen_drawLine proc
 	rcl [is_xdiff_neg], 1
 	abseax
 	mov [x_diff], eax
-	
+
 	; y_diff = |p2.y - p1.y|
 	mov eax, [screen_point2].y
 	sub eax, [screen_point1].y
@@ -486,7 +486,7 @@ screen_drawLine proc
 				dec r11d
 				jne yIncXIncLoop
 			ret
-	xDiffGreater:	
+	xDiffGreater:
 		; x_add = x_diff / y_diff
 		mov eax, [y_diff]
 		shl eax, 16
@@ -632,8 +632,8 @@ screen_drawPressAnyKey endp
 
 screen_clearPixelBuffer proc
 	mov ecx, (SCREEN_WIDTH*SCREEN_HEIGHT*4) / 32
-	; lea rdi, pixels
-	mov rdi, [pixels]
+	lea rdi, pixels
+	; mov rdi, [pixels]
 	vmovdqu ymm0, ymmword ptr [zero64]
 	_loop:
 		vmovdqu ymmword ptr [rdi], ymm0

@@ -1,0 +1,3 @@
+.{
+    .root_source_file = "src/main.s",
+}

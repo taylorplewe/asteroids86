@@ -1,14 +1,15 @@
-include <windows\defs.inc>
-include <globaldefs.inc>
-include <sdl\defs.inc>
+include globaldefs.inc
+include global.s
+include windows\platform.s
+; include sdl\defs.inc
 
-include <data\flicker-alphas.inc>
-include <common.s>
-include <screen.s>
-include <font.s>
+include data\flicker-alphas.inc
+include common.s
+include screen.s
+include font.s
 
-include <game.s>
-include <title.s>
+include game.s
+include title.s
 
 
 .data
@@ -28,8 +29,6 @@ icon     dq ?
 event    db 2048 dup (?)
 
 ticks     dq    ?
-input     Input <>
-keys_prev Keys  ?
 is_paused dd    ?
 
 ; input
@@ -41,15 +40,15 @@ gamepad      dq ?
 
 setWindowIcon macro
 	lea rcx, icon_path
-	call SDL_LoadBMP
+	; call SDL_LoadBMP
 	; rax = *SDL_Surface
 
 	mov [icon], rax
 
 	mov rdx, rax
 	mov rcx, [window]
-	call SDL_SetWindowIcon
-	
+	; call SDL_SetWindowIcon
+
 endm
 
 main proc
@@ -65,17 +64,19 @@ main proc
 	call title_init
 	mov [mode], Mode_Title
 
-	mov ecx, SDL_INIT_VIDEO or SDL_INIT_GAMEPAD
-	call SDL_Init
+	call windows_init
+
+	; mov ecx, SDL_INIT_VIDEO or SDL_INIT_GAMEPAD
+	; call SDL_Init
 
 	; SDL_GetGamepads
 	xor ecx, ecx
-	call SDL_GetGamepads
+	; call SDL_GetGamepads
 	cmp dword ptr [rax], 0
 	je gamepadInitEnd
 		mov [joystick_ids], rax
 		mov ecx, [rax]
-		call SDL_OpenGamepad
+		; call SDL_OpenGamepad
 		mov [gamepad], rax
 	gamepadInitEnd:
 
@@ -85,13 +86,13 @@ main proc
 	mov r8d, SCREEN_HEIGHT
 	; xor r9d, r9d
 	mov r9d, 1 ; fullscreen
-	call SDL_CreateWindow
+	; call SDL_CreateWindow
 	mov qword ptr [window], rax
 
 	; SDL_CreateRenderer
 	mov rcx, rax ; still has &window
 	xor rdx, rdx
-	call SDL_CreateRenderer
+	; call SDL_CreateRenderer
 	mov qword ptr [renderer], rax
 
 	setWindowIcon
@@ -99,37 +100,37 @@ main proc
 	; SDL_CreateSurface
 	mov rcx, SCREEN_WIDTH
 	mov rdx, SCREEN_HEIGHT
-	mov r8d, SDL_PIXELFORMAT_RGBA32
-	call SDL_CreateSurface
+	; mov r8d, SDL_PIXELFORMAT_RGBA32
+	; call SDL_CreateSurface
 	mov qword ptr [surface], rax
 
 	xor rax, rax
 	mov [frame_counter], rax
 
 	mainLoop:
-		call SDL_GetTicks
+		; call SDL_GetTicks
 		mov qword ptr [ticks], rax
 
 		mov [input].buttons_down, 0
 		xor eax, eax
 		pollLoop:
 			lea rcx, event
-			call SDL_PollEvent
+			; call SDL_PollEvent
 			test al, al
 			je pollLoopEnd
 
-			cmp [event].SDL_Event.event_type, SDL_EVENT_QUIT
+			; cmp [event].SDL_Event.event_type, SDL_EVENT_QUIT
 			je quit
 
-			cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_DOWN
+			; cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_DOWN
 			jne @f
 			bts [input].buttons_down, Keys_Other
-			cmp [event].SDL_KeyboardEvent.key, SDLK_Q
+			; cmp [event].SDL_KeyboardEvent.key, SDLK_Q
 			je quit
 			jmp pollLoopNext
 			@@:
 
-			cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_BUTTON_DOWN
+			; cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_BUTTON_DOWN
 			jne gamepadButtonDownCheckEnd
 			bts [input].buttons_down, Keys_Other
 			gamepadButtonDownCheckEnd:
@@ -141,7 +142,7 @@ main proc
 		; get input
 		mov [input].boost_val, 7fffh
 		; keyboard first:
-			call SDL_GetKeyboardState
+			; call SDL_GetKeyboardState
 			mov rbx, rax
 			BTN_W      textequ <Boost>
 			BTN_A      textequ <Left>
@@ -157,7 +158,7 @@ main proc
 			for key, <A, D, L, S, W, ESCAPE, SPACE, UP, DOWN, LEFT, RIGHT>
 				local press
 				local next
-				mov al, @CatStr(SDL_SCANCODE_, key)
+				; mov al, @CatStr(SDL_SCANCODE_, key)
 				xlatb
 				test al, al
 				je next
@@ -182,12 +183,12 @@ main proc
 
 				mov [input].boost_val, 7fffh
 				mov rcx, [gamepad]
-				mov edx, @CatStr(SDL_GAMEPAD_BUTTON_, btn)
-				call SDL_GetGamepadButton
+				; mov edx, @CatStr(SDL_GAMEPAD_BUTTON_, btn)
+				; call SDL_GetGamepadButton
 				test al, al
 				je next
 				bts [input].buttons_down, @CatStr(Keys_, %@CatStr(BTN_, btn))
-			
+
 				next:
 			endm
 
@@ -196,8 +197,8 @@ main proc
 			AXIS_BOOST_DEADZONE = 500h
 
 			mov rcx, [gamepad]
-			mov edx, SDL_GAMEPAD_AXIS_LEFTX
-			call SDL_GetGamepadAxis
+			; mov edx, SDL_GAMEPAD_AXIS_LEFTX
+			; call SDL_GetGamepadAxis
 			cmp ax, AXIS_TURN_DEADZONE
 			jle @f
 				bts [input].buttons_down, Keys_Right
@@ -210,8 +211,8 @@ main proc
 			leftXCheckEnd:
 
 			mov rcx, [gamepad]
-			mov edx, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
-			call SDL_GetGamepadAxis
+			; mov edx, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
+			; call SDL_GetGamepadAxis
 			cmp ax, AXIS_BOOST_DEADZONE
 			jle @f
 			mov [input].boost_val, ax
@@ -255,7 +256,7 @@ main proc
 			mov dx, 8000h
 			mov r8w, 0
 			mov r9d, 50
-			call SDL_RumbleGamepad
+			; call SDL_RumbleGamepad
 		@@:
 		bt [event_bus], Event_ShipDestroy
 		jnc @f
@@ -263,40 +264,40 @@ main proc
 			mov dx, 3fffh
 			mov r8w, 0afffh
 			mov r9d, 700
-			call SDL_RumbleGamepad
+			; call SDL_RumbleGamepad
 		@@:
 
 		call render
 
 		; 60fps
-		call SDL_GetTicks
+		; call SDL_GetTicks
 		sub rax, qword ptr [ticks]
 		mov rcx, 1000 / 60
 		sub rcx, rax
 		js delayEnd ; more than 1/60 of a second has already elapsed, next frame
-		call SDL_Delay
+		; call SDL_Delay
 		delayEnd:
 
 		inc [frame_counter]
 		jmp mainLoop
-	
+
 	quit:
 	cmp [joystick_ids], 0
 	je @f
 		mov rcx, [joystick_ids]
-		call SDL_free
+		; call SDL_free
 		mov rcx, [gamepad]
-		call SDL_CloseGamepad
+		; call SDL_CloseGamepad
 	@@:
 	mov rcx, [surface]
-	call SDL_DestroySurface
+	; call SDL_DestroySurface
 	mov rcx, [renderer]
-	call SDL_DestroyRenderer
+	; call SDL_DestroyRenderer
 	mov rcx, [window]
-	call SDL_DestroyWindow
+	; call SDL_DestroyWindow
 	mov rcx, [icon]
-	call SDL_DestroySurface
-	call SDL_Quit
+	; call SDL_DestroySurface
+	; call SDL_Quit
 
 	mov rsp, rbp
 	pop rbp
@@ -311,15 +312,15 @@ render proc
 	sub rsp, 100h
 
 	mov rcx, [renderer]
-	call SDL_RenderClear
+	; call SDL_RenderClear
 
 	mov rcx, [renderer]
-	call SDL_LockSurface
+	; call SDL_LockSurface
 
 	; memcpy all the pixels over to surface->pixels
 	mov rbx, [surface]
-	mov rax, [rbx].SDL_Surface.pixels
-	screen_setPixelPtr
+	; mov rax, [rbx].SDL_Surface.pixels
+	; screen_setPixelPtr
 	; lea rsi, pixels
 	; mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 8
 	; memcpyAligned32
@@ -337,28 +338,28 @@ render proc
 	drawsEnd:
 
 	mov rcx, [renderer]
-	call SDL_UnlockSurface
+	; call SDL_UnlockSurface
 
 	mov rcx, [renderer]
 	mov rdx, [surface]
-	call SDL_CreateTextureFromSurface
+	; call SDL_CreateTextureFromSurface
 	mov qword ptr [texture], rax
 
 	mov rcx, rax
-	mov edx, SDL_SCALEMODE_NEAREST
-	call SDL_SetTextureScaleMode
+	; mov edx, SDL_SCALEMODE_NEAREST
+	; call SDL_SetTextureScaleMode
 
 	mov rcx, [renderer]
 	mov rdx, [texture]
 	xor r8d, r8d
 	xor r9d, r9d
-	call SDL_RenderTexture
+	; call SDL_RenderTexture
 
 	mov rcx, [renderer]
-	call SDL_RenderPresent
+	; call SDL_RenderPresent
 
 	mov rcx, [texture]
-	call SDL_DestroyTexture
+	; call SDL_DestroyTexture
 
 	mov rsp, rbp
 	pop rbp

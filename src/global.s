@@ -1,6 +1,8 @@
 ifndef global_h
 global_h = 1
 
+include globaldefs.inc
+
 
 GAMEOVER_TIMER_AMT = 60 * 4
 
@@ -27,6 +29,7 @@ lives               dd    ?
 gameover_timer      dd    ?
 gameover_visibility dd    ?
 is_in_gameover      dd    ?
-
+input               Input <>
+keys_prev           Keys  ?
 
 endif
