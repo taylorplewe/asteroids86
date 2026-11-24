@@ -45,8 +45,10 @@ $linkerArgs = @(
     "/out:.\bin\$gameName.exe"
 )
 if (!$args.Contains("release")) {
-    $asmArgs += @("/Zd", "/Zi")
+    $asmArgs += @("/Zd", "/Zi", "/Zf")
     $linkerArgs += "/debug:full"
+} else {
+    $linkerArgs += "/release"
 }
 if ($args.Contains("w")) {
     $asmArgs += @("/w")
