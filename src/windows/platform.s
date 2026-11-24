@@ -64,9 +64,14 @@ windows_wnd_proc proc
     ret
 
     wm_paint:
+    brk
     mov rcx, [hwnd]
     lea rdx, paint
     call BeginPaint
+
+    mov rcx, [hwnd]
+    lea rdx, window_rect
+    call GetClientRect
 
     mov rcx, rax
     call windows_stretch_di_bits
@@ -118,6 +123,11 @@ windows_init proc
     mov [bitmap_info].bmi_header.bi_planes, 1
     mov [bitmap_info].bmi_header.bi_bit_count, 32
     mov [bitmap_info].bmi_header.bi_compression, BI_RGB
+    mov [bitmap_info].bmi_header.bi_size_image, 0
+    mov [bitmap_info].bmi_header.bi_x_pels_per_meter, 0
+    mov [bitmap_info].bmi_header.bi_y_pels_per_meter, 0
+    mov [bitmap_info].bmi_header.bi_clr_used, 0
+    mov [bitmap_info].bmi_header.bi_clr_important, 0
 
     xor rcx, rcx
     call GetModuleHandleA
@@ -208,7 +218,7 @@ windows_init proc
     ret
 
     win_error:
-    brk
+    ; brk
     mov rsp, rbp
     pop rbp
     ret
@@ -294,17 +304,17 @@ windows_stretch_di_bits proc
     sub r9d, [window_rect].left
     mov r10d, [window_rect].bottom
     sub r10d, [window_rect].top
-    mov dword ptr [rsp + 00h], r10d
-    mov dword ptr [rsp + 08h], 0
-    mov dword ptr [rsp + 10h], 0
-    mov dword ptr [rsp + 18h], SCREEN_WIDTH
-    mov dword ptr [rsp + 20h], SCREEN_HEIGHT
+    mov dword ptr [rsp + MSVC_SHADOW_SIZE + 00h], r10d
+    mov dword ptr [rsp + MSVC_SHADOW_SIZE + 08h], 0
+    mov dword ptr [rsp + MSVC_SHADOW_SIZE + 10h], 0
+    mov dword ptr [rsp + MSVC_SHADOW_SIZE + 18h], SCREEN_WIDTH
+    mov dword ptr [rsp + MSVC_SHADOW_SIZE + 20h], SCREEN_HEIGHT
     lea rax, pixels
-    mov qword ptr [rsp + 28h], rax
+    mov qword ptr [rsp + MSVC_SHADOW_SIZE + 28h], rax
     lea rax, bitmap_info
-    mov qword ptr [rsp + 30h], rax
-    mov dword ptr [rsp + 38h], DIB_RGB_COLORS
-    mov dword ptr [rsp + 40h], SRCCOPY
+    mov qword ptr [rsp + MSVC_SHADOW_SIZE + 30h], rax
+    mov dword ptr [rsp + MSVC_SHADOW_SIZE + 38h], DIB_RGB_COLORS
+    mov dword ptr [rsp + MSVC_SHADOW_SIZE + 40h], SRCCOPY
     call StretchDIBits
 
     add rsp, 100h
