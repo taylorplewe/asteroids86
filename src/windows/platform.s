@@ -64,14 +64,14 @@ windows_wnd_proc proc
     ret
 
     wm_paint:
-    brk
-    mov rcx, [hwnd]
-    lea rdx, paint
-    call BeginPaint
-
     mov rcx, [hwnd]
     lea rdx, window_rect
     call GetClientRect
+
+    ; brk
+    mov rcx, [hwnd]
+    lea rdx, paint
+    call BeginPaint
 
     mov rcx, rax
     call windows_stretch_di_bits
@@ -291,7 +291,7 @@ windows_draw endp
 
 ; in:
     ; rcx - HDC
-windows_stretch_di_bits proc
+ windows_stretch_di_bits proc
     ; StretchDIBits()
     push rbp
     mov rbp, rsp
@@ -315,7 +315,9 @@ windows_stretch_di_bits proc
     mov qword ptr [rsp + MSVC_SHADOW_SIZE + 30h], rax
     mov dword ptr [rsp + MSVC_SHADOW_SIZE + 38h], DIB_RGB_COLORS
     mov dword ptr [rsp + MSVC_SHADOW_SIZE + 40h], SRCCOPY
+    brk
     call StretchDIBits
+    nop ; handmade hero disasm has this?
 
     add rsp, 100h
     pop rbp
