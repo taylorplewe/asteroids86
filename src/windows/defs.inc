@@ -160,6 +160,13 @@ extern MonitorFromWindow : proto
 ; );
 extern StretchDIBits     : proto
 
+; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclientrect
+; BOOL GetClientRect(
+;   [in]  HWND   hWnd,
+;   [out] LPRECT lpRect
+; );
+extern GetClientRect     : proto
+
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getdc
 ; HDC GetDC(
 ;   [in] HWND hWnd
@@ -252,6 +259,10 @@ HWND_TOP = 0
 SWP_FRAMECHANGED  = 0020h ; The frame changed: send WM_NCCALCSIZE
 SWP_NOOWNERZORDER = 0200h ; Don't do owner Z ordering
 
+DIB_RGB_COLORS = 0 ; color table in RGBs
+
+SRCCOPY = 00cc0020h ; dest = source
+
 
 ; structs
 
@@ -304,6 +315,7 @@ MONITORINFO struct
     dw_flags   dd   ?
 MONITORINFO ends
 
+; https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-paintstruct
 PAINTSTRUCT struct
     hdc dq ?
     f_erase dd ?
@@ -312,6 +324,35 @@ PAINTSTRUCT struct
     f_inc_update dd ?
     rgb_reserved db 32 dup (?)
 PAINTSTRUCT ends
+
+; https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfoheader
+BITMAPINFOHEADER struct
+    bi_size             dd ?
+    bi_width            dd ?
+    bi_height           dd ?
+    bi_planes           dw ?
+    bi_bit_count        dw ?
+    bi_compression      dd ?
+    bi_size_image       dd ?
+    bi_x_pels_per_meter dd ?
+    bi_y_pels_per_meter dd ?
+    bi_clr_used         dd ?
+    bi_clr_important    dd ?
+BITMAPINFOHEADER ends
+
+; https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-rgbquad
+RGBQUAD struct
+    rgb_blue     db ?
+    rgb_green    db ?
+    rgb_red      db ?
+    rgb_reserved db ?
+RGBQUAD ends
+
+; https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfo
+BITMAPINFO struct
+    bmi_header BITMAPINFOHEADER <?>
+    bmi_colors RGBQUAD          <?>
+BITMAPINFO ends
 
 callms macro funcname:req
     push rbp

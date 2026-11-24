@@ -28,10 +28,18 @@ FatPtr struct
 	len  dd    ?
 FatPtr ends
 
+; SDL version:
+; Pixel struct
+; 	r db ?
+; 	g db ?
+; 	b db ?
+; 	a db ?
+; Pixel ends
+; Windows version:
 Pixel struct
-	r db ?
-	g db ?
 	b db ?
+	g db ?
+	r db ?
 	a db ?
 Pixel ends
 

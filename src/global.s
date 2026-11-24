@@ -13,7 +13,8 @@ zero64            db    64 dup (0)
 fg_color          Pixel <0ffh, 0ffh, 0ffh, 0ffh>
 gray_color        Pixel <050h, 050h, 050h, 0ffh>
 dim_color         Pixel <0ffh, 0ffh, 0ffh, 030h>
-evil_color        Pixel <0ffh, 0a0h, 080h, 0ffh>
+evil_color        Pixel <080h, 0a0h, 0ffh, 0ffh>
+; evil_color        Pixel <0ffh, 0a0h, 080h, 0ffh>
 bin_resource_type db    "BIN", 0
 
 
@@ -31,5 +32,6 @@ gameover_visibility dd    ?
 is_in_gameover      dd    ?
 input               Input <>
 keys_prev           Keys  ?
+is_running          dd    ?
 
 endif

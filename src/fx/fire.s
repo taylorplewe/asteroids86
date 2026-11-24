@@ -21,7 +21,7 @@ Fire struct
 Fire ends
 fires      Fire  MAX_NUM_FIRES dup (<?>)
 fires_arr  Array { { fires, 0 }, MAX_NUM_FIRES, sizeof Fire }
-fire_color Pixel <0ffh, 0, 0, 0ffh>
+fire_color Pixel <0, 0, 0ffh, 0ffh>
 
 
 .code

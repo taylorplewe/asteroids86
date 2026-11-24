@@ -1,6 +1,5 @@
 include globaldefs.inc
 include global.s
-include windows\platform.s
 ; include sdl\defs.inc
 
 include data\flicker-alphas.inc
@@ -10,6 +9,8 @@ include font.s
 
 include game.s
 include title.s
+
+include windows\platform.s
 
 
 .data
@@ -110,6 +111,10 @@ main proc
 	mainLoop:
 		; call SDL_GetTicks
 		mov qword ptr [ticks], rax
+
+		call windows_update
+		cmp [is_running], 0
+		je quit
 
 		mov [input].buttons_down, 0
 		xor eax, eax
@@ -311,20 +316,6 @@ render proc
 	mov rbp, rsp
 	sub rsp, 100h
 
-	mov rcx, [renderer]
-	; call SDL_RenderClear
-
-	mov rcx, [renderer]
-	; call SDL_LockSurface
-
-	; memcpy all the pixels over to surface->pixels
-	mov rbx, [surface]
-	; mov rax, [rbx].SDL_Surface.pixels
-	; screen_setPixelPtr
-	; lea rsi, pixels
-	; mov ecx, (SCREEN_WIDTH * SCREEN_HEIGHT * 4) / 8
-	; memcpyAligned32
-
 	call screen_clearPixelBuffer
 
 	call star_drawAll
@@ -337,29 +328,7 @@ render proc
 		call game_draw
 	drawsEnd:
 
-	mov rcx, [renderer]
-	; call SDL_UnlockSurface
-
-	mov rcx, [renderer]
-	mov rdx, [surface]
-	; call SDL_CreateTextureFromSurface
-	mov qword ptr [texture], rax
-
-	mov rcx, rax
-	; mov edx, SDL_SCALEMODE_NEAREST
-	; call SDL_SetTextureScaleMode
-
-	mov rcx, [renderer]
-	mov rdx, [texture]
-	xor r8d, r8d
-	xor r9d, r9d
-	; call SDL_RenderTexture
-
-	mov rcx, [renderer]
-	; call SDL_RenderPresent
-
-	mov rcx, [texture]
-	; call SDL_DestroyTexture
+	call windows_draw
 
 	mov rsp, rbp
 	pop rbp

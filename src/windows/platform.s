@@ -16,10 +16,11 @@ debug_text  db "Hello this is from asm", 0
 window_class WNDCLASS    <>
 h_instance   dq          ?
 hwnd         dq          ?
-is_running   db          ?
 msg          MSG         <>
 monitor_info MONITORINFO <>
 paint        PAINTSTRUCT <>
+window_rect  RECT        <>
+bitmap_info  BITMAPINFO  <>
 
 
 .code
@@ -161,6 +162,97 @@ windows_init proc
     pop rbp
     ret
 windows_init endp
+
+; execute message loop for window & get input
+windows_update proc
+    ; message loop
+    _loop:
+        lea rcx, msg
+        xor rdx, rdx
+        xor r8, r8
+        xor r9, r9
+        mov dword ptr [rsp + MSVC_SHADOW_SIZE], PM_REMOVE
+        call PeekMessageA
+        test rax, rax ; _Out_ LPMSG lpMsg
+        je loop_end
+
+        cmp [msg].message, WM_QUIT
+        jne @f
+            mov [is_running], 0
+            jmp loop_end
+        @@:
+
+        lea rcx, msg
+        call TranslateMessage
+
+        lea rcx, msg
+        call DispatchMessageA
+
+        jmp _loop
+    loop_end:
+
+    ; while (PeekMessageA(
+    ;     &msg,
+    ;     0,
+    ;     0,
+    ;     0,
+    ;     PM_REMOVE
+    ; )) {
+    ;     if (msg.message == WM_QUIT) is_running = false;
+    ;     TranslateMessage(&msg);
+    ;     DispatchMessageA(&msg);
+    ; }
+
+
+    _end:
+    ret
+windows_update endp
+
+; draw pixels to screen
+windows_draw proc
+    mov rcx, [hwnd]
+    call GetDC
+    push rax
+
+    ; GetClientRect()
+    mov rcx, [hwnd]
+    lea rdx, window_rect
+    call GetClientRect
+
+    ; StretchDIBits()
+    push rbp
+    mov rbp, rsp
+    sub rsp, 100h
+
+    mov rcx, rax
+    xor edx, edx
+    xor r8d, r8d
+    mov r9d, [window_rect].right
+    sub r9d, [window_rect].left
+    mov r10d, [window_rect].bottom
+    sub r10d, [window_rect].top
+    mov dword ptr [rsp + 00h], r10d
+    mov dword ptr [rsp + 08h], 0
+    mov dword ptr [rsp + 10h], 0
+    mov dword ptr [rsp + 18h], SCREEN_WIDTH
+    mov dword ptr [rsp + 20h], SCREEN_HEIGHT
+    lea rax, pixels
+    mov qword ptr [rsp + 28h], rax
+    lea rax, bitmap_info
+    mov qword ptr [rsp + 30h], rax
+    mov dword ptr [rsp + 38h], DIB_RGB_COLORS
+    mov dword ptr [rsp + 40h], SRCCOPY
+    call StretchDIBits
+
+    add rsp, 100h
+    pop rbp
+
+    mov rcx, [hwnd]
+    pop rdx
+    call ReleaseDC
+
+    ret
+windows_draw endp
 
 windows_deinit proc
     ret

@@ -8,7 +8,7 @@ include <font.s>
 
 .data
 
-cosmic_color       Pixel <37h, 94h, 6eh, 0ffh> ; 37946e
+cosmic_color       Pixel <6eh, 94h, 37h, 0ffh> ; 37946e
 press_any_key_text db "PRESS ANY KEY TO CONTINUE"
 press_any_key_text_len = $ - press_any_key_text
 
