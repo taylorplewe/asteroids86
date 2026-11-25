@@ -1,7 +1,7 @@
 ifndef flickerAlphas_h
 flickerAlphas_h = 1
 
-include <globaldefs.inc>
+include globaldefs.inc
 
 
 FLICKER_100 = 0ffh

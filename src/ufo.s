@@ -1,15 +1,15 @@
 ifndef ufo_h
 ufo_h = 1
 
-include <globaldefs.inc>
-include <windows\defs.inc>
+include globaldefs.inc
+include windows\defs.inc
 
-include <global.s>
-include <common.s>
-include <array.s>
-include <screen.s>
-include <bullet.s>
-include <ship.s>
+include global.s
+include common.s
+include array.s
+include screen.s
+include bullet.s
+include ship.s
 
 
 Ufo struct
@@ -104,7 +104,7 @@ ufo_create proc
 	mov ecx, UFO_SPEED
 	call getVelocityFromRotAndSpeed
 	mov qword ptr [rsi].Ufo.velocity, rax
-	
+
 	_end:
 	ret
 ufo_create endp
@@ -209,7 +209,7 @@ ufo_update proc
 		call atan2
 		xor r10, r10
 		mov r10b, al
-		
+
 		mov r8d, [rdi].Ufo.pos.x
 		mov r9d, [rdi].Ufo.pos.y
 		mov r11d, 1
@@ -249,7 +249,7 @@ ufo_checkBullets proc
 		; must not be evil to hit
 		cmp [rsi].Bullet.is_evil, 0
 		jne next
-	
+
 		; check if bullet is inside UFO's rectangular hitbox
 		; < x
 		xor eax, eax

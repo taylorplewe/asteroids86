@@ -1,7 +1,7 @@
 ifndef globaldefs_h
 globaldefs_h = 1
 
-include <enum.inc>
+include enum.inc
 
 
 ; SCREEN_WIDTH  = 1920

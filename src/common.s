@@ -1,8 +1,8 @@
 ifndef common_h
 common_h = 1
 
-include <globaldefs.inc>
-include <data\sintab.inc>
+include globaldefs.inc
+include data\sintab.inc
 
 
 .code

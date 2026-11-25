@@ -1,9 +1,9 @@
 ifndef screen_h
 screen_h = 1
 
-include <globaldefs.inc>
+include globaldefs.inc
 
-include <font.s>
+include font.s
 
 
 .data

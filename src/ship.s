@@ -1,13 +1,13 @@
 ifndef ship_h
 ship_h = 1
 
-include <globaldefs.inc>
+include globaldefs.inc
 
-include <data\shrink-vals.inc>
-include <fx\fire.s>
-include <fx\ship-shard.s>
-include <bullet.s>
-include <screen.s>
+include data\shrink-vals.inc
+include fx\fire.s
+include fx\ship-shard.s
+include bullet.s
+include screen.s
 
 
 Ship struct
@@ -181,7 +181,7 @@ ship_update proc
 		mov bx, [rdi].Input.boost_val
 		imul rbx, SHIP_VELOCITY_ACCEL
 		shr rbx, 15
-	
+
 		xor rax, rax
 		mov al, [ship].rot
 		call sin
@@ -237,7 +237,7 @@ ship_update proc
 	mov rax, [frame_counter]
 	and rax, 1b
 	jne @f
-	mov rax, 0000ffff0000ffffh 
+	mov rax, 0000ffff0000ffffh
 	mov r8, qword ptr [ship_points + 3 * sizeof Point]
 	and r8, rax
 	shl r8, 16

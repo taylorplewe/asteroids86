@@ -1,12 +1,12 @@
 ifndef bullet_h
 bullet_h = 1
 
-include <globaldefs.inc>
+include globaldefs.inc
 
-include <common.s>
-include <global.s>
-include <array.s>
-include <screen.s>
+include common.s
+include global.s
+include array.s
+include screen.s
 
 
 Bullet struct

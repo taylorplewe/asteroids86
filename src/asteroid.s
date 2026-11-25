@@ -1,15 +1,15 @@
 ifndef asteroid_h
 asteroid_h = 1
 
-include <globaldefs.inc>
+include globaldefs.inc
 
-include <common.s>
-include <array.s>
-include <fx\shard.s>
-include <screen.s>
-include <bullet.s>
-include <ufo.s>
-include <ship.s>
+include common.s
+include array.s
+include fx\shard.s
+include screen.s
+include bullet.s
+include ufo.s
+include ship.s
 
 
 Asteroid struct
@@ -121,7 +121,7 @@ asteroid_createRand proc
 
 	call getRandomOnscreenFixedPointPos
 	mov rbx, rax
-	
+
 	; rot_speed
 	rand r9d
 	mov r10b, r9b

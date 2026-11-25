@@ -1,19 +1,19 @@
 ifndef game_h
 game_h = 1
 
-include <data\shake-offsets.inc>
-include <data\flicker-alphas.inc>
+include data\shake-offsets.inc
+include data\flicker-alphas.inc
 
-include <global.s>
-include <font.s>
-include <fx\shard.s>
-include <fx\ship-shard.s>
-include <fx\fire.s>
-include <fx\star.s>
-include <bullet.s>
-include <ship.s>
-include <asteroid.s>
-include <ufo.s>
+include global.s
+include font.s
+include fx\shard.s
+include fx\ship-shard.s
+include fx\fire.s
+include fx\star.s
+include bullet.s
+include ship.s
+include asteroid.s
+include ufo.s
 
 
 WaveData struct
@@ -217,7 +217,7 @@ game_setShipLivesPoints proc
 		add r9, sizeof Point
 		call applyBasePointToPoint
 		endm
-	
+
 		mov eax, 36 shl 16
 		add [game_lives_pos].x, eax
 		i = i + 1
@@ -546,7 +546,7 @@ game_drawScore endp
 game_setLivesAlphas macro
 	i = 0
 	repeat GAME_START_NUM_LIVES
-		
+
 	endm
 endm
 

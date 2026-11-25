@@ -1,9 +1,9 @@
 ifndef font_h
 font_h = 1
 
-include <windows\defs.inc>
+include windows\defs.inc
 
-include <global.s>
+include global.s
 
 
 FONT_SM_CHAR_WIDTH    = 16

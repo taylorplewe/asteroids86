@@ -1,11 +1,11 @@
 ifndef title_h
 title_h = 1
 
-include <globaldefs.inc>
-include <data\title-points.inc>
+include globaldefs.inc
+include data\title-points.inc
 
-include <global.s>
-include <screen.s>
+include global.s
+include screen.s
 
 
 TITLE_APPEAR_DELAY_COUNTER_AMT     = 60 * 2

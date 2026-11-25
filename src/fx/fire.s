@@ -1,8 +1,8 @@
 ifndef fire_h
 fire_h = 1
 
-include <screen.s>
-include <array.s>
+include screen.s
+include array.s
 
 
 FIRE_VELOCITY       = 1

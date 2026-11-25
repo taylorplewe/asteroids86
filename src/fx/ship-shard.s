@@ -1,10 +1,10 @@
 ifndef shipShard_h
 shipShard_h = 1
 
-include <globaldefs.inc>
+include globaldefs.inc
 
-include <common.s>
-include <array.s>
+include common.s
+include array.s
 
 
 ShipShard struct
@@ -83,7 +83,7 @@ shipShard_create proc
 	imul rax, SHIP_SHARD_VELOCITY_DIFF
 	sar rax, 32
 	sub [rsi].ShipShard.velocity.y, eax
-	
+
 	_end:
 	pop rsi
 	ret

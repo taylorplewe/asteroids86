@@ -1,7 +1,7 @@
 ifndef star_h
 star_h = 1
 
-include <global.s>
+include global.s
 
 
 NUM_STARS = 1024

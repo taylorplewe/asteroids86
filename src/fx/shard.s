@@ -1,10 +1,10 @@
 ifndef shard_h
 shard_h = 1
 
-include <globaldefs.inc>
+include globaldefs.inc
 
-include <array.s>
-include <screen.s>
+include array.s
+include screen.s
 
 
 Shard struct

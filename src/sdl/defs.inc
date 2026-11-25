@@ -1,7 +1,7 @@
 ifndef sdl_defs_h
 sdl_defs_h = 1
 
-include <enum.inc>
+include enum.inc
 
 
 extern SDL_Init                     : proto
