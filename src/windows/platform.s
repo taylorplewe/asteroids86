@@ -62,6 +62,7 @@ windows_wnd_proc proc
 
     close:
     mov [is_running], 0
+    xor rax, rax
     ret
 
     wm_paint:
@@ -69,7 +70,6 @@ windows_wnd_proc proc
     lea rdx, window_rect
     callms GetClientRect
 
-    ; brk
     mov rcx, [hwnd]
     lea rdx, paint
     callms BeginPaint
@@ -99,6 +99,7 @@ windows_wnd_proc proc
     ; );
     ; EndPaint(h_wnd, &paint);
 
+    xor rax, rax
     ret
 windows_wnd_proc endp
 
@@ -178,7 +179,7 @@ windows_init proc
 
     mov rcx, [hwnd]
     mov edx, MONITOR_DEFAULTTOPRIMARY
-    call MonitorFromWindow
+    callms MonitorFromWindow
 
     mov rcx, rax
     lea rdx, monitor_info
@@ -190,7 +191,7 @@ windows_init proc
     mov edx, GWL_STYLE
     mov r8d, WS_VISIBLE
     ; xor r8, r8
-    call SetWindowLongA
+    callms SetWindowLongA
 
     mov rcx, [hwnd]
     mov rdx, HWND_TOP
@@ -220,7 +221,6 @@ windows_init proc
     ret
 
     win_error:
-    ; brk
     mov rsp, rbp
     pop rbp
     ret
@@ -228,6 +228,11 @@ windows_init endp
 
 ; execute message loop for window & get input
 windows_update proc
+    push rbp
+    mov rbp, rsp
+    sub rsp, 100h
+    and rsp, not 8h
+
     ; message loop
     _loop:
         lea rcx, msg
@@ -268,6 +273,8 @@ windows_update proc
 
 
     _end:
+    mov rsp, rbp
+    pop rbp
     ret
 windows_update endp
 
@@ -282,7 +289,6 @@ windows_draw proc
     push rax
 
     mov rcx, rax
-    ; brk
     call windows_stretch_di_bits
 
     mov rcx, [hwnd]
