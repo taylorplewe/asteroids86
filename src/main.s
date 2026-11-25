@@ -28,7 +28,6 @@ is_paused dd    ?
 .code
 
 main proc
-    ; brk
 	push rbp
 	mov rbp, rsp
 	sub rsp, 200h
@@ -52,7 +51,6 @@ main proc
 		mov [input].buttons_down, 0
 		xor eax, eax
 
-		; brk
 		call windows_update
 		cmp [is_running], 0
 		je quit
@@ -129,10 +127,6 @@ main proc
 main endp
 
 draw proc
-	push rbp
-	mov rbp, rsp
-	sub rsp, 100h
-
 	call screen_clearPixelBuffer
 
 	call star_drawAll
@@ -147,8 +141,6 @@ draw proc
 
 	call windows_draw
 
-	mov rsp, rbp
-	pop rbp
 	ret
 draw endp
 

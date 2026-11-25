@@ -280,6 +280,11 @@ windows_update endp
 
 ; draw pixels to screen
 windows_draw proc
+    push rbp
+    mov rbp, rsp
+    sub rsp, 80h
+    and rsp, not 8
+
     mov rcx, [hwnd]
     lea rdx, window_rect
     call GetClientRect
@@ -295,6 +300,8 @@ windows_draw proc
     pop rdx
     call ReleaseDC
 
+    mov rsp, rbp
+    pop rbp
     ret
 windows_draw endp
 
