@@ -42,6 +42,8 @@ windows_wnd_proc proc
     je close
     cmp edx, WM_QUIT
     je close
+    cmp edx, WM_KEYDOWN
+    je keydown
     cmp edx, WM_KEYUP
     je keyup
     cmp edx, WM_PAINT
@@ -50,16 +52,24 @@ windows_wnd_proc proc
     call DefWindowProcA
     jmp _end
 
+    keydown:
+    cmp r8, 'W'
+    jne @f
+        bts [input].buttons_down, Keys_Boost
+        jmp keys_end
+    @@:
+    jmp keys_end
+
     keyup:
     cmp r8, 'Q'
     je close
     cmp r8, 'W'
     jne @f
         btc [input].buttons_down, Keys_Boost
-        jmp keyup_end
+        jmp keys_end
     @@:
 
-    keyup_end:
+    keys_end:
     xor rax, rax
     jmp _end
 

@@ -48,8 +48,7 @@ main proc
 	mainLoop:
 	    ; get ticks possibly
 
-		mov [input].buttons_down, 0
-		xor eax, eax
+		; mov [input].buttons_down, 0
 
 		call windows_update
 		cmp [is_running], 0
