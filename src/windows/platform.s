@@ -67,19 +67,19 @@ windows_wnd_proc proc
     wm_paint:
     mov rcx, [hwnd]
     lea rdx, window_rect
-    call GetClientRect
+    callms GetClientRect
 
     ; brk
     mov rcx, [hwnd]
     lea rdx, paint
-    call BeginPaint
+    callms BeginPaint
 
     mov rcx, rax
     call windows_stretch_di_bits
 
     mov rcx, [hwnd]
     lea rdx, paint
-    call EndPaint
+    callms EndPaint
     ; PAINTSTRUCT paint;
     ; HDC hdc = BeginPaint(h_wnd, &paint);
     ; int x = paint.rcPaint.left;
@@ -99,6 +99,7 @@ windows_wnd_proc proc
     ; );
     ; EndPaint(h_wnd, &paint);
 
+    ret
 windows_wnd_proc endp
 
 ; creates the window
@@ -281,6 +282,7 @@ windows_draw proc
     push rax
 
     mov rcx, rax
+    ; brk
     call windows_stretch_di_bits
 
     mov rcx, [hwnd]
@@ -293,10 +295,10 @@ windows_draw endp
 ; in:
     ; rcx - HDC
 windows_stretch_di_bits proc
-    ; StretchDIBits()
     push rbp
     mov rbp, rsp
     sub rsp, 98h
+    and rsp, not 8h ; align stack (StretchDIBits does a "movaps xmmword ptr" off of a stack offset so it must be aligned)
 
     ; rcx (HDC) = param
     xor edx, edx
@@ -316,11 +318,9 @@ windows_stretch_di_bits proc
     mov qword ptr [rsp + MSVC_SHADOW_SIZE + 30h], rax
     mov dword ptr [rsp + MSVC_SHADOW_SIZE + 38h], DIB_RGB_COLORS
     mov dword ptr [rsp + MSVC_SHADOW_SIZE + 40h], SRCCOPY
-    brk
     call StretchDIBits
-    ; nop ; handmade hero disasm has this?
 
-    add rsp, 98h
+    mov rsp, rbp
     pop rbp
 
     ret
