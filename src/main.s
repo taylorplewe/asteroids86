@@ -28,7 +28,7 @@ is_paused dd    ?
 .code
 
 main proc
-    brk
+    ; brk
 	push rbp
 	mov rbp, rsp
 	sub rsp, 200h
@@ -44,6 +44,7 @@ main proc
 	call windows_init
 
 	mov [frame_counter], 0
+	mov [is_running], 1
 
 	mainLoop:
 	    ; get ticks possibly
@@ -51,7 +52,7 @@ main proc
 		mov [input].buttons_down, 0
 		xor eax, eax
 
-		brk
+		; brk
 		call windows_update
 		cmp [is_running], 0
 		je quit
