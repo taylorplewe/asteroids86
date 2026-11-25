@@ -14,10 +14,12 @@ press_any_key_text_len = $ - press_any_key_text
 
 screen_width_d_256 dd (256 / 4) dup (SCREEN_WIDTH)
 screen_height_d_256 dd (256 / 4) dup (SCREEN_HEIGHT)
+; pixels_ptr dq offset pixels
 
 
 .data?
 
+align 16
 pixels                    Pixel SCREEN_WIDTH * SCREEN_HEIGHT dup (<?>)
 ; pixels                    dq    ?
 screen_point1             Point <?>

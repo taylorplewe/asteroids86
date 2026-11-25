@@ -20,6 +20,7 @@ msg          MSG         <>
 monitor_info MONITORINFO <>
 paint        PAINTSTRUCT <>
 window_rect  RECT        <>
+align 16
 bitmap_info  BITMAPINFO  <>
 
 
@@ -291,11 +292,11 @@ windows_draw endp
 
 ; in:
     ; rcx - HDC
- windows_stretch_di_bits proc
+windows_stretch_di_bits proc
     ; StretchDIBits()
     push rbp
     mov rbp, rsp
-    sub rsp, 100h
+    sub rsp, 98h
 
     ; rcx (HDC) = param
     xor edx, edx
@@ -317,9 +318,9 @@ windows_draw endp
     mov dword ptr [rsp + MSVC_SHADOW_SIZE + 40h], SRCCOPY
     brk
     call StretchDIBits
-    nop ; handmade hero disasm has this?
+    ; nop ; handmade hero disasm has this?
 
-    add rsp, 100h
+    add rsp, 98h
     pop rbp
 
     ret
