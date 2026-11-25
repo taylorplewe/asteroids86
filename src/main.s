@@ -21,36 +21,11 @@ icon_path    byte "art\asteroid_512.bmp", 0
 
 .data?
 
-; SDL stuff
-window   dq ?
-renderer dq ?
-surface  dq ?
-texture  dq ?
-icon     dq ?
-event    db 2048 dup (?)
-
 ticks     dq    ?
 is_paused dd    ?
 
-; input
-joystick_ids dq ?
-gamepad      dq ?
-
 
 .code
-
-setWindowIcon macro
-	lea rcx, icon_path
-	; call SDL_LoadBMP
-	; rax = *SDL_Surface
-
-	mov [icon], rax
-
-	mov rdx, rax
-	mov rcx, [window]
-	; call SDL_SetWindowIcon
-
-endm
 
 main proc
 	push rbp
@@ -59,7 +34,6 @@ main proc
 	and rsp, not 8h
 
 	call star_generateAll
-
 	call font_initSprData
 	call ufo_initSprData
 	call game_setShipLivesPoints
@@ -68,164 +42,18 @@ main proc
 
 	call windows_init
 
-	; mov ecx, SDL_INIT_VIDEO or SDL_INIT_GAMEPAD
-	; call SDL_Init
-
-	; SDL_GetGamepads
-	xor ecx, ecx
-	; call SDL_GetGamepads
-	; cmp dword ptr [rax], 0
-	; je gamepadInitEnd
-	; 	mov [joystick_ids], rax
-	; 	mov ecx, [rax]
-	; 	; call SDL_OpenGamepad
-	; 	mov [gamepad], rax
-	; gamepadInitEnd:
-
-	; SDL_CreateWindow
-	; lea rcx, [window_title]
-	; mov edx, SCREEN_WIDTH
-	; mov r8d, SCREEN_HEIGHT
-	; xor r9d, r9d
-	; mov r9d, 1 ; fullscreen
-	; call SDL_CreateWindow
-	; mov qword ptr [window], rax
-
-	; SDL_CreateRenderer
-	; mov rcx, rax ; still has &window
-	; xor rdx, rdx
-	; call SDL_CreateRenderer
-	; mov qword ptr [renderer], rax
-
-	; setWindowIcon
-
-	; SDL_CreateSurface
-	; mov rcx, SCREEN_WIDTH
-	; mov rdx, SCREEN_HEIGHT
-	; mov r8d, SDL_PIXELFORMAT_RGBA32
-	; call SDL_CreateSurface
-	; mov qword ptr [surface], rax
-
-	xor rax, rax
-	mov [frame_counter], rax
+	mov [frame_counter], 0
 
 	mainLoop:
-		; call SDL_GetTicks
-		mov qword ptr [ticks], rax
+	    ; get ticks possibly
+
+		mov [input].buttons_down, 0
+		xor eax, eax
 
 		brk
 		call windows_update
 		cmp [is_running], 0
 		je quit
-
-		mov [input].buttons_down, 0
-		xor eax, eax
-		; pollLoop:
-		; 	lea rcx, event
-		; 	; call SDL_PollEvent
-		; 	test al, al
-		; 	je pollLoopEnd
-
-		; 	; cmp [event].SDL_Event.event_type, SDL_EVENT_QUIT
-		; 	je quit
-
-		; 	; cmp [event].SDL_Event.event_type, SDL_EVENT_KEY_DOWN
-		; 	jne @f
-		; 	bts [input].buttons_down, Keys_Other
-		; 	; cmp [event].SDL_KeyboardEvent.key, SDLK_Q
-		; 	je quit
-		; 	jmp pollLoopNext
-		; 	@@:
-
-		; 	; cmp [event].SDL_Event.event_type, SDL_EVENT_GAMEPAD_BUTTON_DOWN
-		; 	jne gamepadButtonDownCheckEnd
-		; 	bts [input].buttons_down, Keys_Other
-		; 	gamepadButtonDownCheckEnd:
-
-		; 	pollLoopNext:
-		; 	jmp pollLoop
-		; pollLoopEnd:
-
-		; get input
-		; mov [input].boost_val, 7fffh
-		; ; keyboard first:
-		; 	; call SDL_GetKeyboardState
-		; 	mov rbx, rax
-		; 	BTN_W      textequ <Boost>
-		; 	BTN_A      textequ <Left>
-		; 	BTN_S      textequ <Teleport>
-		; 	BTN_D      textequ <Right>
-		; 	BTN_L      textequ <Fire>
-		; 	BTN_ESCAPE textequ <Pause>
-		; 	BTN_SPACE  textequ <Fire>
-		; 	BTN_UP     textequ <Boost>
-		; 	BTN_DOWN   textequ <Teleport>
-		; 	BTN_LEFT   textequ <Left>
-		; 	BTN_RIGHT  textequ <Right>
-		; 	for key, <A, D, L, S, W, ESCAPE, SPACE, UP, DOWN, LEFT, RIGHT>
-		; 		local press
-		; 		local next
-		; 		; mov al, @CatStr(SDL_SCANCODE_, key)
-		; 		xlatb
-		; 		test al, al
-		; 		je next
-		; 		bts [input].buttons_down, @CatStr(Keys_, %@CatStr(BTN_, key))
-		; 		next:
-		; 	endm
-		; getGamepadInput:
-		; 	cmp [gamepad], 0
-		; 	je inputEnd
-
-		; 	BTN_DPAD_UP    textequ <Boost>
-		; 	BTN_DPAD_DOWN  textequ <Teleport>
-		; 	BTN_DPAD_LEFT  textequ <Left>
-		; 	BTN_DPAD_RIGHT textequ <Right>
-		; 	BTN_SOUTH      textequ <Fire>
-		; 	BTN_EAST       textequ <Fire>
-		; 	BTN_WEST       textequ <Teleport>
-		; 	BTN_NORTH      textequ <Teleport>
-		; 	BTN_START      textequ <Pause>
-		; 	for btn, <DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT, SOUTH, EAST, WEST, NORTH, START>
-		; 		local next
-
-		; 		mov [input].boost_val, 7fffh
-		; 		mov rcx, [gamepad]
-		; 		; mov edx, @CatStr(SDL_GAMEPAD_BUTTON_, btn)
-		; 		; call SDL_GetGamepadButton
-		; 		test al, al
-		; 		je next
-		; 		bts [input].buttons_down, @CatStr(Keys_, %@CatStr(BTN_, btn))
-
-		; 		next:
-		; 	endm
-
-		; 	; axis
-		; 	AXIS_TURN_DEADZONE = 4000h
-		; 	AXIS_BOOST_DEADZONE = 500h
-
-		; 	mov rcx, [gamepad]
-		; 	; mov edx, SDL_GAMEPAD_AXIS_LEFTX
-		; 	; call SDL_GetGamepadAxis
-		; 	cmp ax, AXIS_TURN_DEADZONE
-		; 	jle @f
-		; 		bts [input].buttons_down, Keys_Right
-		; 		jmp leftXCheckEnd
-		; 	@@:
-		; 	cmp ax, -AXIS_TURN_DEADZONE
-		; 	jge @f
-		; 		bts [input].buttons_down, Keys_Left
-		; 	@@:
-		; 	leftXCheckEnd:
-
-		; 	mov rcx, [gamepad]
-		; 	; mov edx, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
-		; 	; call SDL_GetGamepadAxis
-		; 	cmp ax, AXIS_BOOST_DEADZONE
-		; 	jle @f
-		; 	mov [input].boost_val, ax
-		; 	bts [input].buttons_down, Keys_Boost
-		; 	@@:
-		; inputEnd:
 
 		; set pressed & released keys
 		; pressed = (down ^ prev) & down
@@ -259,22 +87,22 @@ main proc
 		; rumble gamepad for events that happened this frame
 		bt [event_bus], Event_Fire
 		jnc @f
-			mov rcx, [gamepad]
-			mov dx, 8000h
-			mov r8w, 0
-			mov r9d, 50
+			; mov rcx, [gamepad]
+			; mov dx, 8000h
+			; mov r8w, 0
+			; mov r9d, 50
 			; call SDL_RumbleGamepad
 		@@:
 		bt [event_bus], Event_ShipDestroy
 		jnc @f
-			mov rcx, [gamepad]
-			mov dx, 3fffh
-			mov r8w, 0afffh
-			mov r9d, 700
+			; mov rcx, [gamepad]
+			; mov dx, 3fffh
+			; mov r8w, 0afffh
+			; mov r9d, 700
 			; call SDL_RumbleGamepad
 		@@:
 
-		call render
+		call draw
 
 		; 60fps
 		; call SDL_GetTicks
@@ -289,22 +117,6 @@ main proc
 		jmp mainLoop
 
 	quit:
-	cmp [joystick_ids], 0
-	je @f
-		mov rcx, [joystick_ids]
-		; call SDL_free
-		mov rcx, [gamepad]
-		; call SDL_CloseGamepad
-	@@:
-	mov rcx, [surface]
-	; call SDL_DestroySurface
-	mov rcx, [renderer]
-	; call SDL_DestroyRenderer
-	mov rcx, [window]
-	; call SDL_DestroyWindow
-	mov rcx, [icon]
-	; call SDL_DestroySurface
-	; call SDL_Quit
 
 	call ExitProcess
 
@@ -314,7 +126,7 @@ main proc
 	ret
 main endp
 
-render proc
+draw proc
 	push rbp
 	mov rbp, rsp
 	sub rsp, 100h
@@ -336,7 +148,7 @@ render proc
 	mov rsp, rbp
 	pop rbp
 	ret
-render endp
+draw endp
 
 
 end
