@@ -131,13 +131,13 @@ draw proc
 
 	call star_drawAll
 
-	; cmp [mode], Mode_Game
-	; je doGameDraw
-	; 	call title_draw
-	; 	jmp drawsEnd
-	; doGameDraw:
-	; 	call game_draw
-	; drawsEnd:
+	cmp [mode], Mode_Game
+	je doGameDraw
+		call title_draw
+		jmp drawsEnd
+	doGameDraw:
+		call game_draw
+	drawsEnd:
 
 	call windows_draw
 

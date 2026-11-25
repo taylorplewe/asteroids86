@@ -33,10 +33,10 @@ bitmap_info  BITMAPINFO  <>
 ;     LPARAM l_param
 ; )
 windows_wnd_proc proc
-    mov [rsp + 08h], rcx
-    mov [rsp + 10h], rdx
-    mov [rsp + 18h], r8
-    mov [rsp + 20h], r9
+    push rbp
+    mov rbp, rsp
+    sub rsp, 100h
+    and rsp, not 8
 
     cmp edx, WM_CLOSE
     je close
@@ -47,59 +47,49 @@ windows_wnd_proc proc
     cmp edx, WM_PAINT
     je wm_paint
 
-    callms DefWindowProcA
-    ret
+    call DefWindowProcA
+    jmp _end
 
     keyup:
-    cmp r8, VK_ESCAPE
-    jne keyup_end
-
-    mov [is_running], 0
+    cmp r8, 'Q'
+    je close
+    cmp r8, 'W'
+    jne @f
+        btc [input].buttons_down, Keys_Boost
+        jmp keyup_end
+    @@:
 
     keyup_end:
     xor rax, rax
-    ret
+    jmp _end
 
     close:
     mov [is_running], 0
     xor rax, rax
-    ret
+    jmp _end
 
     wm_paint:
     mov rcx, [hwnd]
     lea rdx, window_rect
-    callms GetClientRect
+    call GetClientRect
 
     mov rcx, [hwnd]
     lea rdx, paint
-    callms BeginPaint
+    call BeginPaint
 
     mov rcx, rax
     call windows_stretch_di_bits
 
     mov rcx, [hwnd]
     lea rdx, paint
-    callms EndPaint
-    ; PAINTSTRUCT paint;
-    ; HDC hdc = BeginPaint(h_wnd, &paint);
-    ; int x = paint.rcPaint.left;
-    ; int y = paint.rcPaint.top;
-    ; int w = paint.rcPaint.right - paint.rcPaint.left;
-    ; int h = paint.rcPaint.bottom - paint.rcPaint.top;
-    ; win32::WindowDimensions win_dim = win32::get_window_dimension(h_wnd);
-    ; display_buffer_in_window(
-    ;     hdc,
-    ;     win_dim.width,
-    ;     win_dim.height,
-    ;     &global_buf,
-    ;     x,
-    ;     y,
-    ;     w,
-    ;     h
-    ; );
-    ; EndPaint(h_wnd, &paint);
+    call EndPaint
 
     xor rax, rax
+    ; jmp _end
+
+    _end:
+    mov rsp, rbp
+    pop rbp
     ret
 windows_wnd_proc endp
 
@@ -108,17 +98,6 @@ windows_init proc
     push rbp
     mov rbp, rsp
     sub rsp, 200h ; random number that should be plenty
-
-        ; buf->bitmap_info = {
-        ;     .bmiHeader = {
-        ;         .biSize = sizeof(buf->bitmap_info.bmiHeader),
-        ;         .biWidth = width,
-        ;         .biHeight = -height,
-        ;         .biPlanes = 1,
-        ;         .biBitCount = 32,
-        ;         .biCompression = BI_RGB,
-        ;     },
-        ; };
 
     mov [bitmap_info].bmi_header.bi_size, sizeof BITMAPINFOHEADER
     mov [bitmap_info].bmi_header.bi_width, SCREEN_WIDTH
@@ -259,19 +238,6 @@ windows_update proc
         jmp _loop
     loop_end:
 
-    ; while (PeekMessageA(
-    ;     &msg,
-    ;     0,
-    ;     0,
-    ;     0,
-    ;     PM_REMOVE
-    ; )) {
-    ;     if (msg.message == WM_QUIT) is_running = false;
-    ;     TranslateMessage(&msg);
-    ;     DispatchMessageA(&msg);
-    ; }
-
-
     _end:
     mov rsp, rbp
     pop rbp
@@ -311,7 +277,7 @@ windows_stretch_di_bits proc
     push rbp
     mov rbp, rsp
     sub rsp, 98h
-    and rsp, not 8h ; align stack (StretchDIBits does a "movaps xmmword ptr" off of a stack offset so it must be aligned)
+    and rsp, not 8 ; align stack (StretchDIBits does a "movaps xmmword ptr" off of a stack offset so it must be aligned)
 
     ; rcx (HDC) = param
     xor edx, edx
