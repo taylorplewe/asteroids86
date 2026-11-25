@@ -38,11 +38,13 @@ $asmArgs = @(
     "src\main.s"
 )
 $linkerArgs = @(
-    "SDL3.lib",
     "kernel32.lib",
-    ".\resources\resources.res",
+    "user32.lib",
+    "gdi32.lib",
+    "resources\resources.res",
     "/entry:main",
-    "/out:.\bin\$gameName.exe"
+    "/subsystem:windows",
+    "/out:bin\$gameName.exe"
 )
 if (!$args.Contains("release")) {
     $asmArgs += @("/Zd", "/Zi", "/Zf")
