@@ -276,16 +276,18 @@ windows_throttle proc
     ; rdtsc
     ; shl rdx, 20h
     ; or rdx, rax
+    ; ticks_end in rdx
+    ; brk
     ; brk
     lea rcx, ticks_end
     callms QueryPerformanceCounter
     mov rdx, [ticks_end]
-    ; ticks_end in rdx
+
     sub rdx, [ticks_start]
     imul rdx, 1000 ; milliseconds
     mov rax, rdx
     cqo
-    idiv [clock_freq]
+    idiv qword ptr [clock_freq]
 
     mov rcx, 1000 / 60
     cmp rcx, rax

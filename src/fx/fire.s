@@ -198,7 +198,7 @@ fire_draw proc
 
 	; color
 	mov r8d, [fire_color]
-	and r8d, 000000ffh
+	and r8d, 00ff0000h
 	mov eax, [rdi].Fire.num_frames_alive
 	mov ebx, FIRE_MAX_NUM_FRAMES
 	mov ecx, ebx
