@@ -13,6 +13,9 @@ debug_text  db "Hello this is from asm", 0
 
 .data?
 
+ticks_start  dq          ?
+ticks_end    dq          ?
+clock_freq   dq          ?
 window_class WNDCLASS    <>
 h_instance   dq          ?
 hwnd         dq          ?
@@ -108,6 +111,12 @@ windows_init proc
     push rbp
     mov rbp, rsp
     sub rsp, 200h ; random number that should be plenty
+
+    ; brk
+    ; lea rcx, ticks_start
+    ; call QueryPerformanceCounter
+    lea rcx, clock_freq
+    call QueryPerformanceFrequency
 
     mov [bitmap_info].bmi_header.bi_size, sizeof BITMAPINFOHEADER
     mov [bitmap_info].bmi_header.bi_width, SCREEN_WIDTH
@@ -222,6 +231,14 @@ windows_update proc
     sub rsp, 100h
     and rsp, not 8h
 
+    ; rdtsc
+    ; shl rdx, 20h
+    ; or rdx, rax
+    ; mov [ticks_start], rdx
+
+    lea rcx, ticks_start
+    call QueryPerformanceCounter
+
     ; message loop
     _loop:
         lea rcx, msg
@@ -253,6 +270,33 @@ windows_update proc
     pop rbp
     ret
 windows_update endp
+
+windows_throttle proc
+    ; NOTE: Windows documentation "strongly recommends" you use QueryPerformanceCounter() instead of the raw `rdtsc[p]` instruction
+    ; rdtsc
+    ; shl rdx, 20h
+    ; or rdx, rax
+    ; brk
+    lea rcx, ticks_end
+    callms QueryPerformanceCounter
+    mov rdx, [ticks_end]
+    ; ticks_end in rdx
+    sub rdx, [ticks_start]
+    imul rdx, 1000 ; milliseconds
+    mov rax, rdx
+    cqo
+    idiv [clock_freq]
+
+    mov rcx, 1000 / 60
+    cmp rcx, rax
+    jb _end
+    sub rcx, rax
+
+    callms Sleep
+
+    _end:
+    ret
+windows_throttle endp
 
 ; draw pixels to screen
 windows_draw proc

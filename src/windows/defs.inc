@@ -3,7 +3,21 @@ windows_defs_h = 1
 
 ; functions
 
-extern ExitProcess       : proto
+extern ExitProcess               : proto
+
+extern QueryPerformanceCounter : proto
+
+; https://learn.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancefrequency
+; BOOL QueryPerformanceFrequency(
+;   [out] LARGE_INTEGER *lpFrequency
+; );
+extern QueryPerformanceFrequency : proto
+
+; https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-sleep
+; VOID Sleep(
+;   [in] DWORD dwMilliseconds
+; );
+extern Sleep                     : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-findresourcea
 ; HRSRC FindResourceA(
@@ -11,26 +25,26 @@ extern ExitProcess       : proto
 ;   [in]           LPCSTR  lpName,
 ;   [in]           LPCSTR  lpType
 ; );
-extern FindResourceA     : proto
+extern FindResourceA             : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-loadresource
 ; HGLOBAL LoadResource(
 ;   [in, optional] HMODULE hModule,
 ;   [in]           HRSRC   hResInfo
 ; );
-extern LoadResource      : proto
+extern LoadResource              : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-lockresource
 ; LPVOID LockResource(
 ;   [in] HGLOBAL hResData
 ; );
-extern LockResource      : proto
+extern LockResource              : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerclassa
 ; ATOM RegisterClassA(
 ;   [in] const WNDCLASSA *lpWndClass
 ; );
-extern RegisterClassA    : proto
+extern RegisterClassA            : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-createwindowexa
 ; HWND CreateWindowExA(
@@ -47,7 +61,7 @@ extern RegisterClassA    : proto
 ;   [in, optional] HINSTANCE hInstance,
 ;   [in, optional] LPVOID    lpParam
 ; );
-extern CreateWindowExA   : proto
+extern CreateWindowExA           : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-peekmessagea
 ; BOOL PeekMessageA(
@@ -57,19 +71,19 @@ extern CreateWindowExA   : proto
 ;   [in]           UINT  wMsgFilterMax,
 ;   [in]           UINT  wRemoveMsg
 ; );
-extern PeekMessageA      : proto
+extern PeekMessageA              : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-translatemessage
 ; BOOL TranslateMessage(
 ;   [in] const MSG *lpMsg
 ; );
-extern TranslateMessage  : proto
+extern TranslateMessage          : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-dispatchmessagea
 ; LRESULT DispatchMessageA(
 ;   [in] const MSG *lpMsg
 ; );
-extern DispatchMessageA  : proto
+extern DispatchMessageA          : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-defwindowproca
 ; LRESULT DefWindowProcA(
@@ -78,7 +92,7 @@ extern DispatchMessageA  : proto
 ;   [in] WPARAM wParam,
 ;   [in] LPARAM lParam
 ; );
-extern DefWindowProcA    : proto
+extern DefWindowProcA            : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-messageboxa
 ; int MessageBoxA(
@@ -87,20 +101,20 @@ extern DefWindowProcA    : proto
 ;   [in, optional] LPCSTR lpCaption,
 ;   [in]           UINT   uType
 ; );
-extern MessageBoxA       : proto
+extern MessageBoxA               : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow
 ; BOOL ShowWindow(
 ;   [in] HWND hWnd,
 ;   [in] int  nCmdShow
 ; );
-extern ShowWindow        : proto
+extern ShowWindow                : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-updatewindow
 ; BOOL UpdateWindow(
 ;   [in] HWND hWnd
 ; );
-extern UpdateWindow      : proto
+extern UpdateWindow              : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
 ; LONG SetWindowLongA(
@@ -108,7 +122,7 @@ extern UpdateWindow      : proto
 ;   [in] int  nIndex,
 ;   [in] LONG dwNewLong
 ; );
-extern SetWindowLongA    : proto
+extern SetWindowLongA            : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos
 ; BOOL SetWindowPos(
@@ -120,27 +134,27 @@ extern SetWindowLongA    : proto
 ;   [in]           int  cy,
 ;   [in]           UINT uFlags
 ; );
-extern SetWindowPos      : proto
+extern SetWindowPos              : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulehandlea
 ; HMODULE GetModuleHandleA(
 ;   [in, optional] LPCSTR lpModuleName
 ; );
-extern GetModuleHandleA  : proto
+extern GetModuleHandleA          : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmonitorinfoa
 ; BOOL GetMonitorInfoA(
 ;   [in]  HMONITOR      hMonitor,
 ;   [out] LPMONITORINFO lpmi
 ; );
-extern GetMonitorInfoA   : proto
+extern GetMonitorInfoA           : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-monitorfromwindow
 ; HMONITOR MonitorFromWindow(
 ;   [in] HWND  hwnd,
 ;   [in] DWORD dwFlags
 ; );
-extern MonitorFromWindow : proto
+extern MonitorFromWindow         : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-stretchdibits
 ; int StretchDIBits(
@@ -158,45 +172,45 @@ extern MonitorFromWindow : proto
 ;   [in] UINT             iUsage,
 ;   [in] DWORD            rop
 ; );
-extern StretchDIBits     : proto
+extern StretchDIBits             : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclientrect
 ; BOOL GetClientRect(
 ;   [in]  HWND   hWnd,
 ;   [out] LPRECT lpRect
 ; );
-extern GetClientRect     : proto
+extern GetClientRect             : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getdc
 ; HDC GetDC(
 ;   [in] HWND hWnd
 ; );
-extern GetDC             : proto
+extern GetDC                     : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-releasedc
 ; int ReleaseDC(
 ;   [in] HWND hWnd,
 ;   [in] HDC  hDC
 ; );
-extern ReleaseDC         : proto
+extern ReleaseDC                 : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-beginpaint
 ; HDC BeginPaint(
 ;   [in]  HWND          hWnd,
 ;   [out] LPPAINTSTRUCT lpPaint
 ; );
-extern BeginPaint        : proto
+extern BeginPaint                : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-endpaint
 ; BOOL EndPaint(
 ;   [in] HWND              hWnd,
 ;   [in] const PAINTSTRUCT *lpPaint
 ; );
-extern EndPaint          : proto
+extern EndPaint                  : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror
 ; _Post_equals_last_error_ DWORD GetLastError();
-extern GetLastError      : proto
+extern GetLastError              : proto
 
 
 ; constants

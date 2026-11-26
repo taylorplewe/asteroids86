@@ -45,7 +45,7 @@ main proc
 	mov [frame_counter], 0
 	mov [is_running], 1
 
-	mainLoop:
+	main_loop:
 	    ; get ticks possibly
 
 		; mov [input].buttons_down, 0
@@ -103,17 +103,10 @@ main proc
 
 		call draw
 
-		; 60fps
-		; call SDL_GetTicks
-		sub rax, qword ptr [ticks]
-		mov rcx, 1000 / 60
-		sub rcx, rax
-		js delayEnd ; more than 1/60 of a second has already elapsed, next frame
-		; call SDL_Delay
-		delayEnd:
+		call windows_throttle
 
 		inc [frame_counter]
-		jmp mainLoop
+		jmp main_loop
 
 	quit:
 
