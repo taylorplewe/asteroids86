@@ -5,7 +5,13 @@ windows_defs_h = 1
 
 extern ExitProcess               : proto
 
-extern QueryPerformanceCounter : proto
+; https://learn.microsoft.com/en-us/windows/win32/api/timeapi/nf-timeapi-timebeginperiod
+; MMRESULT timeBeginPeriod(
+;   UINT uPeriod
+; );
+extern timeBeginPeriod           : proto
+
+extern QueryPerformanceCounter   : proto
 
 ; https://learn.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancefrequency
 ; BOOL QueryPerformanceFrequency(

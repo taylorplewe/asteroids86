@@ -41,6 +41,7 @@ $linkerArgs = @(
     "kernel32.lib",
     "user32.lib",
     "gdi32.lib",
+    "winmm.lib",
     "resources\resources.res",
     "/entry:main",
     "/subsystem:windows",

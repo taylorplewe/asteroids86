@@ -1,7 +1,8 @@
 SRC=src\* src\data\* src\fx\* src\sdl\* src\windows\* Makefile
+LIBS=user32.lib gdi32.lib kernel32.lib winmm.lib
 
 bin/asteroids86.exe: bin bin/asteroids86.obj resources/resources.res
-	link bin\asteroids86.obj resources\resources.res user32.lib gdi32.lib kernel32.lib /entry:main /subsystem:windows /out:bin\asteroids86.exe
+	link bin\asteroids86.obj resources\resources.res $(LIBS) /entry:main /subsystem:windows /out:bin\asteroids86.exe
 
 bin/asteroids86.obj: bin $(SRC)
 	ml64 /c /Cp /Fo bin\asteroids86.obj src\main.s

@@ -118,6 +118,10 @@ windows_init proc
     lea rcx, clock_freq
     call QueryPerformanceFrequency
 
+    ; set timer granularity
+    mov rcx, 1
+    call timeBeginPeriod
+
     mov [bitmap_info].bmi_header.bi_size, sizeof BITMAPINFOHEADER
     mov [bitmap_info].bmi_header.bi_width, SCREEN_WIDTH
     mov [bitmap_info].bmi_header.bi_height, -SCREEN_HEIGHT ; TODO: flip this and see if it un-breaks stuff
@@ -277,17 +281,14 @@ windows_throttle proc
     ; shl rdx, 20h
     ; or rdx, rax
     ; ticks_end in rdx
-    ; brk
-    ; brk
     lea rcx, ticks_end
     callms QueryPerformanceCounter
-    mov rdx, [ticks_end]
+    mov rax, [ticks_end]
 
-    sub rdx, [ticks_start]
-    imul rdx, 1000 ; milliseconds
-    mov rax, rdx
+    sub rax, [ticks_start]
+    imul rax, 1000 ; milliseconds
     cqo
-    idiv qword ptr [clock_freq]
+    idiv [clock_freq]
 
     mov rcx, 1000 / 60
     cmp rcx, rax
