@@ -54,6 +54,8 @@ main proc
 		cmp [is_running], 0
 		je quit
 
+		mov [input].boost_val, 7fffh
+
 		; set pressed & released keys
 		; pressed = (down ^ prev) & down
 		; released = (down ^ prev) & prev
