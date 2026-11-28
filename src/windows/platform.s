@@ -61,6 +61,26 @@ windows_wnd_proc proc
         bts [input].buttons_down, Keys_Boost
         jmp keys_end
     @@:
+    cmp r8, 'D'
+    jne @f
+        bts [input].buttons_down, Keys_Right
+        jmp keys_end
+    @@:
+    cmp r8, 'A'
+    jne @f
+        bts [input].buttons_down, Keys_Left
+        jmp keys_end
+    @@:
+    cmp r8, 'S'
+    jne @f
+        bts [input].buttons_down, Keys_Teleport
+        jmp keys_end
+    @@:
+    cmp r8, 'L'
+    jne @f
+        bts [input].buttons_down, Keys_Fire
+        jmp keys_end
+    @@:
     jmp keys_end
 
     keyup:
@@ -69,6 +89,26 @@ windows_wnd_proc proc
     cmp r8, 'W'
     jne @f
         btc [input].buttons_down, Keys_Boost
+        jmp keys_end
+    @@:
+    cmp r8, 'D'
+    jne @f
+        btc [input].buttons_down, Keys_Right
+        jmp keys_end
+    @@:
+    cmp r8, 'A'
+    jne @f
+        btc [input].buttons_down, Keys_Left
+        jmp keys_end
+    @@:
+    cmp r8, 'S'
+    jne @f
+        btc [input].buttons_down, Keys_Teleport
+        jmp keys_end
+    @@:
+    cmp r8, 'L'
+    jne @f
+        btc [input].buttons_down, Keys_Fire
         jmp keys_end
     @@:
 
@@ -112,9 +152,6 @@ windows_init proc
     mov rbp, rsp
     sub rsp, 200h ; random number that should be plenty
 
-    ; brk
-    ; lea rcx, ticks_start
-    ; call QueryPerformanceCounter
     lea rcx, clock_freq
     call QueryPerformanceFrequency
 
